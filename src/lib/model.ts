@@ -53,3 +53,5 @@ export interface UserProfile {
   age: number;
   taille: number;
 }
+
+export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };

@@ -6,10 +6,9 @@ import type { TabId } from './components/TabBar';
 import { Onboarding } from './components/onboarding/Onboarding';
 import { WeekBanner } from './components/WeekBanner';
 import { CuisineView } from './components/cuisine/CuisineView';
-import type { ImportedWeek, ProfileKey, UserProfile } from './lib/model';
+import { PRENOMS } from './lib/model';
+import type { ImportedWeek, UserProfile } from './lib/model';
 import { loadProfile, loadWeek } from './lib/storage';
-
-export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };
 
 function App() {
   const [profile, setProfile] = useState<UserProfile | null>(() => loadProfile());
