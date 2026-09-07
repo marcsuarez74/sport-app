@@ -174,6 +174,16 @@ describe('storage: corrupted keys', () => {
     expect(localStorage.getItem('sportapp:weights:marc')).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith('Pesées corrompues ignorées : sportapp:weights:marc');
   });
+
+  it('getChecks returns {} silently on an absent key (no warn, no remove)', () => {
+    expect(getChecks('2026-S40')).toEqual({});
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('getWeights returns [] silently on an absent key (no warn, no remove)', () => {
+    expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
 });
 
 describe('dates: todayKey', () => {

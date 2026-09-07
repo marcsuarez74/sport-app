@@ -43,7 +43,9 @@ const isPlainObject = (v: unknown): v is Record<string, unknown> =>
 
 export const getChecks = (semaine: string): Record<string, boolean> => {
   const key = checksKey(semaine);
-  const parsed = safeParse<unknown>(key, localStorage.getItem(key), null);
+  const raw = localStorage.getItem(key);
+  if (raw === null) return {};
+  const parsed = safeParse<unknown>(key, raw, null);
   if (!isPlainObject(parsed)) {
     console.warn(`Checks corrompus ignorés : ${key}`);
     localStorage.removeItem(key);
@@ -60,7 +62,9 @@ export const setCheck = (semaine: string, id: string, done: boolean): void => {
 
 export const getWeights = (p: ProfileKey): WeightEntry[] => {
   const key = weightsKey(p);
-  const parsed = safeParse<unknown>(key, localStorage.getItem(key), null);
+  const raw = localStorage.getItem(key);
+  if (raw === null) return [];
+  const parsed = safeParse<unknown>(key, raw, null);
   if (
     !Array.isArray(parsed) ||
     !parsed.every((w) => !!w && typeof w.date === 'string' && typeof w.kg === 'number')
