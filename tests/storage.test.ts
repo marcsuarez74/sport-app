@@ -107,7 +107,51 @@ describe('storage: weights', () => {
   });
 });
 
+describe('storage: corrupted keys', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('loadWeek returns null and removes a corrupted week key', () => {
+    localStorage.setItem('sportapp:week', '{invalid');
+    expect(loadWeek()).toBeNull();
+    expect(localStorage.getItem('sportapp:week')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:week');
+  });
+
+  it('getChecks returns {} and removes a corrupted checks key', () => {
+    localStorage.setItem('sportapp:checks:2026-S39', 'nope[');
+    expect(getChecks('2026-S39')).toEqual({});
+    expect(localStorage.getItem('sportapp:checks:2026-S39')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:checks:2026-S39');
+  });
+
+  it('getWeights returns [] and removes a corrupted weights key', () => {
+    localStorage.setItem('sportapp:weights:marc', '{"date":');
+    expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
+    expect(localStorage.getItem('sportapp:weights:marc')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:weights:marc');
+  });
+});
+
 describe('dates: todayKey', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns mardi on Tuesday 2026-09-22', () => {
+    vi.useFakeTimers();
+    // Utiliser la forme `T10:00:00` (parse en heure locale), pas la forme date-only (parse en UTC).
+    vi.setSystemTime(new Date('2026-09-22T10:00:00'));
+    expect(todayKey()).toBe('mardi');
+  });
   afterEach(() => {
     vi.useRealTimers();
   });

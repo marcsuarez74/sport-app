@@ -4,6 +4,17 @@ const WEEK_KEY = 'sportapp:week';
 const checksKey = (s: string) => `sportapp:checks:${s}`;
 const weightsKey = (p: string) => `sportapp:weights:${p}`;
 
+const safeParse = <T>(key: string, raw: string | null, fallback: T): T => {
+  if (raw === null) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    console.warn(`Clé corrompue ignorée : ${key}`);
+    localStorage.removeItem(key);
+    return fallback;
+  }
+};
+
 export interface WeightEntry {
   date: string;
   kg: number;
@@ -17,11 +28,11 @@ export const saveWeek = (raw: string, data: WeeklyData): void =>
 
 export const loadWeek = (): ImportedWeek | null => {
   const s = localStorage.getItem(WEEK_KEY);
-  return s ? (JSON.parse(s) as ImportedWeek) : null;
+  return s ? safeParse<ImportedWeek | null>(WEEK_KEY, s, null) : null;
 };
 
 export const getChecks = (semaine: string): Record<string, boolean> =>
-  JSON.parse(localStorage.getItem(checksKey(semaine)) ?? '{}');
+  safeParse<Record<string, boolean>>(checksKey(semaine), localStorage.getItem(checksKey(semaine)), {});
 
 export const setCheck = (semaine: string, id: string, done: boolean): void => {
   const c = getChecks(semaine);
@@ -30,8 +41,9 @@ export const setCheck = (semaine: string, id: string, done: boolean): void => {
 };
 
 export const getWeights = (p: ProfileKey): WeightEntry[] =>
-  JSON.parse(localStorage.getItem(weightsKey(p)) ?? '[]');
+  safeParse<WeightEntry[]>(weightsKey(p), localStorage.getItem(weightsKey(p)), []);
 
+// Remplace l'entrée existante pour `date` (upsert) puis persiste.
 export const addWeight = (p: ProfileKey, date: string, kg: number): WeightEntry[] => {
   const list = getWeights(p)
     .filter((w) => w.date !== date)
