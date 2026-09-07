@@ -4,6 +4,7 @@ import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
 import { parseWeeklyFile } from '../src/lib/parse';
 import { saveProfile, saveWeek } from '../src/lib/storage';
+import type { ProfileKey } from '../src/lib/model';
 
 const fixture = (semaine = '2026-S39', extraCourse = 'Carottes') => `---
 semaine: ${semaine}
@@ -71,6 +72,9 @@ const mockConfirm = (value: boolean) => {
   return spy;
 };
 
+// Toute vue shell suppose un profil choisi (onboarding passé).
+const initProfile = (id: ProfileKey = 'marc') => saveProfile({ id, age: 41, taille: 178 });
+
 describe('App shell', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -80,7 +84,18 @@ describe('App shell', () => {
     vi.unstubAllGlobals();
   });
 
-  it('affiche ImportScreen quand aucune semaine est chargée', () => {
+  it('affiche l’onboarding quand aucun profil n’est choisi (semaine chargée ou non)', () => {
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: /Qui est derrière l'écran/ })).toBeInTheDocument();
+    expect(screen.queryByText('Importer un .md')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '🛒 Cuisine' })).not.toBeInTheDocument();
+  });
+
+  it('affiche ImportScreen quand le profil existe mais aucune semaine est chargée', () => {
+    initProfile();
     render(<App />);
     expect(screen.getByRole('heading', { name: 'Sport App', level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Importer un .md')).toBeInTheDocument();
@@ -89,7 +104,8 @@ describe('App shell', () => {
     ).toBeInTheDocument();
   });
 
-  it('le bouton exemple importe la semaine et affiche le shell complet', async () => {
+  it('le bouton exemple importe la semaine et affiche le shell 2 onglets', async () => {
+    initProfile();
     const sample = parseWeeklyFile(sampleRaw);
     expect(sample.warnings).toEqual([]);
     expect(sample.data.meta.semaine).toBe('2026-S39');
@@ -102,16 +118,19 @@ describe('App shell', () => {
     expect(screen.getByText('Menu A')).toBeInTheDocument();
     expect(screen.getByText('21/09 → 27/09')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '🛒 Cuisine' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '💪 Marc' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '🥑 Mélanie' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '💪 Marc' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '🥑 Mélanie' })).not.toBeInTheDocument();
     expect(screen.getByText('Changer de semaine')).toBeInTheDocument();
     expect(screen.queryByText("Charger la semaine d'exemple")).not.toBeInTheDocument();
   });
 
-  it('navigue entre les onglets et affiche chaque vue', async () => {
+  it('navigue entre Cuisine et Mon suivi (données filtrées sur mon profil)', async () => {
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    initProfile('marc');
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
 
     expect(screen.getByRole('heading', { name: 'Legumes', level: 3 })).toBeInTheDocument();
     expect(screen.getByText('Carottes')).toBeInTheDocument();
@@ -122,18 +141,17 @@ describe('App shell', () => {
     await user.click(screen.getByRole('button', { name: '📦 Batch' }));
     expect(screen.getByText(/Gros batch/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '💪 Marc' }));
+    await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
+    expect(screen.getByText(/Salut Marc/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Marc — Diet & Sport', level: 2 })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: '🥑 Mélanie' }));
-    expect(
-      screen.getByRole('heading', { name: 'Mélanie — Keto & Sport', level: 2 }),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Full body')).toBeInTheDocument();
+    expect(screen.queryByText('Cardio')).not.toBeInTheDocument();
   });
 
   it("affiche une erreur et garde la semaine courante si l'import échoue", async () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
 
@@ -147,6 +165,7 @@ describe('App shell', () => {
   it('efface l’erreur d’import affichée dès qu’un import réussit', async () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
 
@@ -163,6 +182,7 @@ describe('App shell', () => {
     const confirmSpy = mockConfirm(false);
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
 
@@ -182,6 +202,7 @@ describe('App shell', () => {
   it('affiche un avis persistant quand l’import contient des lignes ignorées', async () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
 
@@ -198,6 +219,7 @@ describe('App shell', () => {
   it('masque l’avis de lignes ignorées au prochain import sans warning', async () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
 
@@ -216,6 +238,7 @@ describe('App shell', () => {
     const confirmSpy = mockConfirm(false);
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
 
@@ -230,6 +253,7 @@ describe('App shell', () => {
     const confirmSpy = mockConfirm(false);
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
 
@@ -243,6 +267,7 @@ describe('App shell', () => {
   it('affiche directement la semaine persistée sans écran import', () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
+    initProfile();
 
     render(<App />);
 
@@ -259,6 +284,7 @@ describe('Design system & sémantique (tâche 10)', () => {
   });
 
   it('affiche le titre de semaine dans un h1 portant la classe week-title', async () => {
+    initProfile();
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
@@ -268,6 +294,7 @@ describe('Design system & sémantique (tâche 10)', () => {
   });
 
   it("garde l'input fichier dans le document avec la classe sr-only", () => {
+    initProfile();
     const { container } = render(<App />);
     const input = getFileInput(container);
     expect(input).toBeInTheDocument();
@@ -275,17 +302,17 @@ describe('Design system & sémantique (tâche 10)', () => {
   });
 
   it("marque l'onglet actif avec aria-current=page et le déplace au changement d'onglet", async () => {
+    initProfile();
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
 
     const cuisine = screen.getByRole('button', { name: '🛒 Cuisine' });
     expect(cuisine).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('button', { name: '💪 Marc' })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('button', { name: '🥑 Mélanie' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).not.toHaveAttribute('aria-current');
 
-    await user.click(screen.getByRole('button', { name: '💪 Marc' }));
-    expect(screen.getByRole('button', { name: '💪 Marc' })).toHaveAttribute('aria-current', 'page');
+    await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
+    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toHaveAttribute('aria-current', 'page');
     expect(cuisine).not.toHaveAttribute('aria-current');
   });
 });

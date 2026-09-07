@@ -634,3 +634,12 @@ progress {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ---------- Accueil personnalisé (onglet Mon suivi) ---------- */
+
+.greeting {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
