@@ -1,24 +1,36 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// E2E mobile — le bug ciblé se manifeste sur les petits écrans : projet 320×568
-// (iPhone SE, pire cas) + 375×667 (iPhone classique) en attente rapide.
+// E2E mobile — le bug ciblé se manifeste sur les petits écrans : projets 375 + 320.
+// Mode par défaut : serveur dev (loop local). E2E_PREVIEW=1 : test du build de prod
+// via `vite preview` (utilisé par le workflow Deploy pour valider dist/ avant déploiement).
+const PREVIEW = !!process.env.E2E_PREVIEW;
+const BASE_URL = PREVIEW ? 'http://localhost:4173/sport-app/' : 'http://localhost:5173/sport-app/';
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173/sport-app/',
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
   },
   projects: [
     { name: 'mobile-se', use: { ...devices['iPhone SE'] } },
     { name: 'mobile-375', use: { viewport: { width: 375, height: 667 } } },
   ],
-  webServer: {
-    command: 'npm run dev -- --port 5173 --strictPort',
-    url: 'http://localhost:5173/sport-app/',
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-  },
+  webServer: PREVIEW
+    ? {
+        command: 'npm run preview -- --port 4173 --strictPort',
+        url: BASE_URL,
+        reuseExistingServer: false,
+        timeout: 60_000,
+      }
+    : {
+        command: 'npm run dev -- --port 5173 --strictPort',
+        url: BASE_URL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 30_000,
+      },
 });
+

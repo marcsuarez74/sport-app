@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 const OVERFLOW_TOLERANCE = 1; // arrondis de sous-pixel
+// Origine du localStorage : doit matcher la baseURL (dev 5173 ou preview 4173)
+const ORIGIN = process.env.E2E_PREVIEW ? 'http://localhost:4173' : 'http://localhost:5173';
 
 async function assertPasDeDebordement(page: import('@playwright/test').Page) {
   const overflow = await page.evaluate(
@@ -55,7 +57,7 @@ test.describe('Écran Profil — mobile', () => {
       cookies: [],
       origins: [
         {
-          origin: 'http://localhost:5173',
+          origin: ORIGIN,
           localStorage: [
             { name: 'sportapp:profile', value: JSON.stringify({ id: 'melanie', age: 38, taille: 165 }) },
             {

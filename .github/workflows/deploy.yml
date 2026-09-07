@@ -14,16 +14,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v5
+      - name: Prepare
+        run: npm ci
+      - name: Test (unitaire)
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Install navigateurs e2e
+        run: npx playwright install --with-deps chromium webkit
+      - name: Test e2e (build de prod, mobile)
+        run: npm run e2e:preview
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artefact
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
   deploy:

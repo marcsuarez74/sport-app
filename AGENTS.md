@@ -20,6 +20,7 @@ npm run dev          # serveur de dev (hot reload)
 npm test             # vitest, une passe
 npm run test:watch   # vitest en watch (loop TDD)
 npm run e2e          # Playwright (navigateur réel) — projet mobile 375/320 + soumission ; serveur dev auto
+npm run e2e:preview  # idem contre le BUILD DE PROD (dist/ via vite preview) — utilisé par le workflow Deploy
 npm run e2e:ui       # Playwright en mode UI (debug visuel)
 npm run typecheck    # tsc -b (couvre src/ ET tests/)
 npm run lint         # eslint
@@ -35,8 +36,8 @@ Un changement d'UI responsive → `npm run e2e` doit passer aussi (zéro débord
 
 - Les specs vivent dans `tests/e2e/*.spec.ts` — **exclues de vitest** (cf. `exclude` dans `vite.config.ts`) et typecheckées comme le reste
 - Règle mobile : la page ne doit **jamais** scroller horizontalement (`scrollWidth <= clientWidth` sur 320 et 375) — les flex rows multi-champs utilisent `flex-wrap` + `flex-basis` plancher + `min-width: 0`
-- Le serveur de dev est lancé automatiquement par la config (`webServer`), base `http://localhost:5173/sport-app/`
-- Simuler un état app (profil, semaine) via `storageState` localStorage — pas d'import de modules app
+- Deux modes : `npm run e2e` (serveur dev, loop local) et `npm run e2e:preview` (build de prod via preview, `E2E_PREVIEW=1`) — la baseURL/l'origine du `storageState` suivent le mode
+- Le serveur est lancé automatiquement par la config (`webServer`) ; simuler un état app (profil, semaine) via `storageState` localStorage — pas d'import de modules app
 - Les projets `devices[...]` tournent sur WebKit par défaut : `npx playwright install webkit chromium` après un clone (ou `npx playwright install`)
 
 ## Structure
@@ -97,6 +98,7 @@ Toute lecture passe par `safeParse` + garde de forme : une donnée corrompue se 
 
 - `base: '/sport-app/'` dans `vite.config.ts` = nom du repo GitHub. Si le repo est renommé, mettre à jour `base` ET l'URL dans le README.
 - **CI sur les PR** (`.github/workflows/ci.yml`) : Prepare → Lint → Typecheck → Test → Build — elle doit être verte avant tout merge ; ne pas y ajouter de step lent sans discussion.
+- **Deploy sur main** (`.github/workflows/deploy.yml`) : Test unitaire → Build → **Test e2e sur le build de prod** (`npm run e2e:preview`, nécessite `npx playwright install --with-deps chromium webkit`) → Pages. Si un e2e casse le déploiement, corriger et re-pousser (pas de contournement).
 - Le déploiement se fait tout seul (push sur `main` → Actions → Pages). Ne pas ajouter de build step qui ne serait pas aussi rapide en CI (le workflow lance déjà `npm ci && npm test && build`).
 - Après un changement PWA (manifest, service worker, icônes) : vérifier avec `npm run build && npm run preview` que `dist/` contient `sw.js` + `manifest.webmanifest`.
 
