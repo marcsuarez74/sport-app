@@ -8,7 +8,7 @@ Suivi cuisine / diet / sport pour Marc & Mélanie — PWA installable, contenu p
 2. L'installer comme application :
    - **iOS** : Safari → bouton **Partager** → **Sur l'écran d'accueil**
    - **Android** : Chrome → **Installer**
-3. L'app fonctionne **hors ligne** (service worker + cache).
+3. L'app fonctionne **hors ligne** après la première visite (le service worker est installé à ce moment-là).
 4. Pour changer de semaine : bouton **« Importer un .md »** puis choisir le fichier de la nouvelle semaine.
 
 ## Le fichier .md de la semaine
@@ -85,7 +85,7 @@ npm run icons      # régénérer les icônes après modification de public/icon
 
 L'app est déployée sur **GitHub Pages** via GitHub Actions (`.github/workflows/deploy.yml`).
 
-1. Créer un repo nommé `sport-app` sur GitHub.
+1. Créer un repo nommé `sport-app` sur GitHub. Il doit être **public** : GitHub Pages gratuit n'est disponible que pour les repos publics (les repos privés nécessitent un plan payant).
 2. Pousser le code :
 
    ```bash
