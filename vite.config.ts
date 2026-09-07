@@ -33,7 +33,22 @@ export default defineConfig({
           { src: 'apple-touch-icon-180x180.png', sizes: '180x180', type: 'image/png' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Les miniatures de rayons (jpg hashées) sont servies en CacheFirst :
+        // hors-ligne OK après la 1ʳᵉ vue, sans gonfler le précache.
+        runtimeCaching: [
+          {
+            urlPattern: /\.(?:jpg|jpeg|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
+      },
       // Les icônes sont déjà pré-cachées par le glob **/*.png : on désactive la
       // seconde injection via manifest.icons sinon chaque icône est precachée 2×.
       includeManifestIcons: false,

@@ -167,8 +167,23 @@ describe('ShoppingList', () => {
     expect(container.querySelector('progress')).toBeNull();
   });
 
-  it('capitalizes the rayon slug', () => {
+  it('affiche la miniature photo du rayon dans l’en-tête du groupe', () => {
     render(
+      <ShoppingList
+        semaine="2026-S39"
+        items={[
+          { id: 'courses:legumes:a', rayon: 'legumes', label: 'Épinards' },
+          { id: 'courses:inconnu:b', rayon: 'surgelés', label: 'Glace' },
+        ]}
+      />,
+    );
+
+    const legumes = screen.getByAltText('Legumes');
+    expect(legumes).toHaveAttribute('loading', 'lazy');
+    expect(screen.getByAltText('Surgelés')).toBeInTheDocument(); // fallback appliqué
+  });
+
+  it('capitalizes the rayon slug', () => {    render(
       <ShoppingList
         items={[{ id: 'courses:epicerie:sel', rayon: 'epicerie', label: 'Sel' }]}
         semaine="S39"

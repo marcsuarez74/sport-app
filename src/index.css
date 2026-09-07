@@ -260,6 +260,23 @@ p {
   box-shadow: inset 0 3px 0 var(--accent);
 }
 
+.course-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.course-group-header img {
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.course-group-header h3 {
+  margin: 0;
+}
+
 /* ---------- Boutons ---------- */
 
 button {
