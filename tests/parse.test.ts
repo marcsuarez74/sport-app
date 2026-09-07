@@ -299,3 +299,174 @@ describe('fins de ligne CRLF', () => {
     expect(crlf.warnings).toEqual(lf.warnings);
   });
 });
+
+function weekWith(body: string): string {
+  return `---
+semaine: 2026-S99
+menu: X
+du: 2026-12-21
+au: 2026-12-27
+---
+
+${body}`;
+}
+
+describe('syntaxe supportée : puces *, cases [X], items indentés', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Courses
+### Fraîcheur
+* Poireaux
+
+## Menu
+### Jeudi
+  - diner-famille: Soupe poireaux
+* batch: Pain
+
+## Batch
+* [X] Cuire les poireaux
+  - [ ] Préparer la soupe
+`));
+
+  it('parse les puces astérisque et les items indentés', () => {
+    expect(data.courses).toEqual([
+      { id: 'courses:fraicheur:poireaux', rayon: 'fraicheur', label: 'Poireaux' },
+    ]);
+    expect(data.menu).toEqual([{ jour: 'Jeudi', dinerFamille: 'Soupe poireaux', batch: 'Pain' }]);
+    expect(data.batch).toEqual([
+      { id: 'batch:cuire-les-poireaux', label: 'Cuire les poireaux' },
+      { id: 'batch:preparer-la-soupe', label: 'Préparer la soupe' },
+    ]);
+  });
+
+  it('traite [X] majuscule comme case cochée (préfixe retiré)', () => {
+    expect(data.batch[0].label).toBe('Cuire les poireaux');
+  });
+
+  it('ne génère aucun warning de ligne ignorée', () => {
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([]);
+  });
+});
+
+describe('lignes ignorées', () => {
+  it('courses : ligne non reconnue → warning « Ligne ignorée »', () => {
+    const { warnings } = parseWeeklyFile(weekWith(`## Courses
+### Fraîcheur
+Texte libre sans puce
+`));
+    expect(warnings).toContain('Ligne ignorée (courses) : « Texte libre sans puce »');
+  });
+
+  it('courses : une case à cocher devient un item normal (préfixe retiré, pas de warning)', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Courses
+### Fraîcheur
+- [x] Poulet 600 g
+`));
+    expect(data.courses).toEqual([
+      { id: 'courses:fraicheur:poulet-600-g', rayon: 'fraicheur', label: 'Poulet 600 g' },
+    ]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([]);
+  });
+
+  it('menu : paire clé:valeur avant tout jour → warning « Ligne ignorée »', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Menu
+- diner-famille: Repas orphelin
+`));
+    expect(data.menu).toEqual([]);
+    expect(warnings).toContain('Ligne ignorée (menu) : « - diner-famille: Repas orphelin »');
+  });
+
+  it('profils : item avant tout ### → warning « Ligne ignorée »', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Marc
+- Orphelin
+
+### Cibles
+- 2200 kcal
+`));
+    expect(data.profiles.marc.cibles).toEqual(['2200 kcal']);
+    expect(warnings).toContain('Ligne ignorée (marc) : « - Orphelin »');
+  });
+
+  it('profils : item sous un ### inconnu → warning « Ligne ignorée »', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Melanie
+### Divers
+- Perdu
+`));
+    expect(data.profiles.melanie).toEqual({ cibles: [], seances: [], rappels: [] });
+    expect(warnings).toContain('Ligne ignorée (melanie) : « - Perdu »');
+  });
+
+  it('tronque le contenu des longues lignes ignorées', () => {
+    const long = 'Ligne'.repeat(16);
+    const { warnings } = parseWeeklyFile(weekWith(`## Courses
+${long}
+`));
+    const w = warnings.find((x) => x.startsWith('Ligne ignorée (courses)'));
+    expect(w).toBeDefined();
+    expect(w?.includes('…')).toBe(true);
+    expect(w?.includes(long)).toBe(false);
+  });
+});
+
+describe('ids dupliqués', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Courses
+### Fraîcheur
+- Eau
+- Eau
+
+### Épicerie
+- Eau
+
+## Batch
+- Riz
+- Riz
+- Sauce
+`));
+
+  it('garde tous les éléments (pas de dédoublonnage ni suffixe)', () => {
+    expect(data.courses.map((i) => i.id)).toEqual([
+      'courses:fraicheur:eau',
+      'courses:fraicheur:eau',
+      'courses:epicerie:eau',
+    ]);
+    expect(data.batch.map((i) => i.id)).toEqual(['batch:riz', 'batch:riz', 'batch:sauce']);
+  });
+
+  it('émet un warning par id dupliqué, pas pour les ids distincts', () => {
+    expect(warnings.filter((w) => w.startsWith('Id dupliqué'))).toEqual([
+      'Id dupliqué « courses:fraicheur:eau » (courses) — les éléments partagent leur état de coche.',
+      'Id dupliqué « batch:riz » (batch) — les éléments partagent leur état de coche.',
+    ]);
+  });
+});
+
+describe('section dupliquée', () => {
+  it('deux fois ## Batch → warning et la seconde écrase la première', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- Un
+
+## Batch
+- Deux
+`));
+    expect(warnings).toContain('Section dupliquée « batch » — la seconde écrase la première.');
+    expect(data.batch).toEqual([{ id: 'batch:deux', label: 'Deux' }]);
+  });
+});
+
+describe('robustesse de l’entrée', () => {
+  it('gère un BOM UTF-8 en tête de fichier', () => {
+    const { data } = parseWeeklyFile('\uFEFF' + FULL_WEEK);
+    expect(data.meta.semaine).toBe('2026-S39');
+    expect(data.meta.au).toBe('2026-09-27');
+  });
+
+  it('rejette une valeur non textuelle dans le frontmatter (menu: 1)', () => {
+    expect(() =>
+      parseWeeklyFile(`---
+semaine: 2026-S39
+menu: 1
+du: 2026-09-21
+au: 2026-09-27
+---
+`),
+    ).toThrow(/Frontmatter incomplet/);
+  });
+});
