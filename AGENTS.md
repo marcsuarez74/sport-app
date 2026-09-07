@@ -7,8 +7,8 @@ Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une
 **Sport App** — PWA React (dark mode only) de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
 
 - **UX personnalisée** : au premier lancement, un onboarding en 2 étapes choisit le profil (💪 Marc / 🌿 Mélanie) et collecte les bases (poids, âge, taille) — clé `sportapp:profile`. L'app se teinte ensuite de la couleur perso et n'affiche que « ce qui me concerne » + la cuisine
-- L'app affiche **2 onglets** : 🛒 Cuisine (Courses / Menu / Batch, partagé) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, import, changer de profil) via l'icône en haut à droite
-- Le contenu vient d'**un fichier .md structuré par semaine**, importé dans l'app sur le téléphone (bouton « Importer un .md »)
+- L'app affiche **2 onglets en dock flottant** : 🛒 Cuisine (Courses / Menu / Batch, partagé) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, changer de profil) via l'icône en haut à droite
+- Le contenu : une **semaine d'exemple auto-chargée** au premier lancement (fallback en mémoire, l'app est donc toujours utilisable). L'import .md est **retiré de l'UI** pour l'instant — il reviendra avec une convention « template » ; le parser `parse.ts` reste la référence du format
 - Coches + pesées persistées en **localStorage** (aucune donnée ne quitte le téléphone)
 - Déployée en PWA offline-first sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 
@@ -44,9 +44,9 @@ Un changement d'UI responsive → `npm run e2e` doit passer aussi (zéro débord
 
 ```
 src/lib/          # cœur logique, zéro React : model.ts (types), parse.ts (.md → WeeklyData),
-                  # storage.ts (localStorage), dates.ts (jours FR, formatage)
+                  # storage.ts (localStorage), dates.ts (jours FR), rayons.ts (images de rayons)
 src/components/   # composants UI ; cuisine/ pour l'onglet Cuisine ; onboarding/ pour le premier lancement
-src/assets/       # semaine-exemple.md — la SEMAINE D'EXEMPLE, sert de référence du format
+src/assets/       # semaine-exemple.md (référence du format) + rayons/ (miniatures jpg des rayons)
 tests/            # miroir de src/, vitest + Testing Library, environnement happy-dom
 tests/e2e/        # specs Playwright (navigateur réel, config playwright.config.ts, projets mobile 375 + 320)
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
@@ -68,7 +68,7 @@ Règle de répartition : la logique va dans `src/lib/` (testable sans React), le
 
 ## Le contrat .md (ne pas casser)
 
-Le format des fichiers hebdo est un **contrat** : parser (`src/lib/parse.ts`), exemple (`src/assets/semaine-exemple.md`) et README doivent rester cohérents.
+Le format des fichiers hebdo est un **contrat** : l'app s'en sert pour la semaine d'exemple auto-chargée (`src/assets/semaine-exemple.md` → `parseWeeklyFile` dans `App.tsx`) et il servira à la future convention d'import. Parser (`src/lib/parse.ts`), exemple et README doivent rester cohérents.
 
 - Frontmatter requis : `semaine`, `menu`, `du`, `au` (dates ISO `AAAA-MM-JJ`), `titre` optionnel
 - Sections : `## Courses` (### rayons + items), `## Menu` (### jours + `- clé: texte` avec les 5 clés valides), `## Batch`, `## Marc`, `## Melanie` (### Cibles / Séances / Rappels)

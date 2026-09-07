@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { ImportScreen } from './components/ImportScreen';
+import { useState } from 'react';
 import { ProfilScreen } from './components/ProfilScreen';
 import { ProfileView } from './components/ProfileView';
 import { TabBar } from './components/TabBar';
@@ -9,14 +8,22 @@ import { WeekBanner } from './components/WeekBanner';
 import { CuisineView } from './components/cuisine/CuisineView';
 import { PRENOMS } from './lib/model';
 import type { ImportedWeek, UserProfile } from './lib/model';
+import { parseWeeklyFile } from './lib/parse';
 import { loadProfile, loadWeek, removeProfile } from './lib/storage';
+import sampleRaw from './assets/semaine-exemple.md?raw';
+
+// Fallback en mémoire : tant qu'aucune semaine n'a été enregistrée, on affiche
+// la semaine d'exemple (l'import .md reviendra avec la convention template).
+const semaineExemple = (): ImportedWeek => {
+  const { data } = parseWeeklyFile(sampleRaw);
+  return { raw: sampleRaw, data, importedAt: '' };
+};
 
 function App() {
   const [profile, setProfile] = useState<UserProfile | null>(() => loadProfile());
-  const [week, setWeek] = useState<ImportedWeek | null>(() => loadWeek());
+  const [week] = useState<ImportedWeek>(() => loadWeek() ?? semaineExemple());
   const [tab, setTab] = useState<TabId>('cuisine');
   const [profilOuvert, setProfilOuvert] = useState(false);
-  const refresh = useCallback(() => setWeek(loadWeek()), []);
 
   if (profile) {
     document.documentElement.dataset.profile = profile.id;
@@ -25,8 +32,6 @@ function App() {
   }
 
   if (!profile) return <Onboarding onDone={setProfile} />;
-
-  if (!week) return <ImportScreen onImported={refresh} />;
 
   if (profilOuvert) {
     return (
@@ -39,7 +44,6 @@ function App() {
             setProfile(null);
             setProfilOuvert(false);
           }}
-          onImported={refresh}
           onProfileSaved={setProfile}
         />
       </div>
@@ -48,7 +52,7 @@ function App() {
 
   return (
     <div className="main-content">
-      <WeekBanner meta={week.data.meta} onImported={refresh} onOpenProfile={() => setProfilOuvert(true)} />
+      <WeekBanner meta={week.data.meta} onOpenProfile={() => setProfilOuvert(true)} />
       <TabBar active={tab} onSelect={setTab} />
       <main>
         {tab === 'cuisine' && <CuisineView data={week.data} />}

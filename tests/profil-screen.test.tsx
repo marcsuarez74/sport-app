@@ -64,14 +64,12 @@ const monterApp = () => {
 describe('ProfilScreen (unité)', () => {
   let onBack: Mock<() => void>;
   let onChangeProfile: Mock<() => void>;
-  let onImported: Mock<() => void>;
   let onProfileSaved: Mock<(p: UserProfile) => void>;
 
   beforeEach(() => {
     localStorage.clear();
     onBack = vi.fn();
     onChangeProfile = vi.fn();
-    onImported = vi.fn();
     onProfileSaved = vi.fn();
   });
 
@@ -79,9 +77,9 @@ describe('ProfilScreen (unité)', () => {
     vi.unstubAllGlobals();
   });
 
-  it('affiche le titre, le retour, mes infos, l’import et le changement de profil', () => {
+  it('affiche le titre, le retour, mes infos et le changement de profil', () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
     );
 
     expect(screen.getByRole('heading', { name: 'Profil', level: 1 })).toBeInTheDocument();
@@ -89,13 +87,13 @@ describe('ProfilScreen (unité)', () => {
     expect(screen.getByLabelText('Âge')).toHaveValue(41);
     expect(screen.getByLabelText('Taille (cm)')).toHaveValue(178);
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument();
-    expect(screen.getByText('Importer un autre .md')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Changer de profil/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Importer/)).not.toBeInTheDocument();
   });
 
   it('enregistre les infos modifiées dans le store', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
     );
     const user = userEvent.setup();
 
@@ -108,7 +106,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('refuse les valeurs hors bornes avec une erreur explicite (cohérent avec l’onboarding)', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
     );
     const user = userEvent.setup();
 
@@ -122,7 +120,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('prévient le parent après enregistrement (état App resynchronisé)', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
     );
     const user = userEvent.setup();
 
@@ -137,7 +135,7 @@ describe('ProfilScreen (unité)', () => {
     const spy = vi.fn().mockReturnValue(true);
     vi.stubGlobal('confirm', spy);
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
     );
     const user = userEvent.setup();
 
@@ -164,10 +162,10 @@ describe('ProfilScreen (intégration via App)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Mon profil' }));
     expect(screen.getByRole('heading', { name: 'Profil', level: 1 })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '🛒 Cuisine' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cuisine' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Retour/ }));
-    expect(screen.getByRole('button', { name: '🛒 Cuisine' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cuisine' })).toBeInTheDocument();
   });
 
   it('la réouverture de l’écran montre les infos enregistrées (pas d’état périmé)', async () => {

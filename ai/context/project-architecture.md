@@ -31,30 +31,31 @@ Déployée sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 src/
 ├── lib/                  # Cœur logique, ZÉRO React (testable isolément)
 │   ├── model.ts          # Types du domaine (WeeklyData, ChecklistItem, ProfileData…)
-│   ├── parse.ts          # Parser .md hebdo → WeeklyData (+ warnings)
+│   ├── parse.ts          # Parser .md hebdo → WeeklyData (+ warnings) — sert à la semaine d'exemple
 │   ├── storage.ts        # Persistance localStorage (semaine, coches, pesées)
+│   ├── rayons.ts         # imagePourRayon : slug → miniature (normalisation casse/accents, fallback)
 │   └── dates.ts          # Jours FR, todayKey, todayISO, formatage DD/MM
 ├── components/
-│   ├── App.tsx           # Shell : semaine courante + onglets + fallback ImportScreen
-│   ├── ImportButton.tsx  # Import .md (file input, confirmation, erreurs)
-│   ├── ImportScreen.tsx  # Écran d'accueil si aucune semaine + exemple embarqué
-│   ├── WeekBanner.tsx    # Bannière semaine (h1, menu, dates FR) + import
-│   ├── TabBar.tsx        # 3 onglets (Cuisine / Marc / Mélanie), export type TabId
+│   ├── App.tsx           # Shell : onboarding → 2 onglets ou ProfilScreen ; fallback semaineExemple()
+│   ├── WeekBanner.tsx    # Bannière semaine (h1, menu, dates FR) + icône profil
+│   ├── TabBar.tsx        # Dock flottant 2 onglets (Cuisine / Mon suivi), export type TabId
+│   ├── ProfilScreen.tsx  # Écran poussé : infos perso + changer de profil
 │   ├── Checklist.tsx     # Checklists persistées par semaine (pattern réutilisable)
 │   ├── Sparkline.tsx     # Graphe SVG pur, zéro dépendance
 │   ├── ProfileView.tsx   # Vue générique Marc/Mélanie (cibles, séances, poids, rappels)
 │   └── cuisine/          # Onglet Cuisine
 │       ├── CuisineView.tsx   # Sous-onglets Courses / Menu / Batch
-│       ├── ShoppingList.tsx  # Courses groupées par rayon + progression
+│       ├── ShoppingList.tsx  # Courses groupées par rayon (miniature photo) + progression
 │       ├── MenuView.tsx      # Menu de la semaine, jour courant en évidence
 │       └── BatchView.tsx     # Tâches batch cochables
 ├── assets/
-│   └── semaine-exemple.md    # SEMAINE D'EXEMPLE = référence du contrat de format
+│   ├── semaine-exemple.md    # SEMAINE D'EXEMPLE auto-chargée = référence du contrat de format
+│   └── rayons/               # Miniatures 160×120 des rayons (~5-10 Ko, runtime cache SW)
 └── index.css             # Design system complet (tokens + composants)
 
-tests/                    # Miroir de src/ : parse, storage, components, app
+tests/                    # Miroir de src/ : parse, storage, rayons, components, app
 public/                   # Icônes PWA (générées via npm run icons)
-.github/workflows/deploy.yml  # CI : npm ci → test → build → Pages
+.github/workflows/deploy.yml  # CI : npm ci → test → build → e2e preview → Pages
 docs/superpowers/         # Spec + plan historiques
 ai/                       # Contexte et configs pour agents IA
 ```

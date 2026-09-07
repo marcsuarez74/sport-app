@@ -42,16 +42,16 @@ test.describe('Onboarding — formulaire poids/âge/taille sur mobile', () => {
     await page.getByLabel('Taille (cm)').fill('165');
     await page.getByRole('button', { name: /C'est parti/ }).click();
 
-    // Profil enregistré, pas de semaine → écran d'import
-    await expect(page.getByText('Importer un .md')).toBeVisible();
+    // Profil enregistré + semaine d'exemple auto-chargée → shell direct
+    await expect(page.getByText('Semaine 2026-S39')).toBeVisible();
     const profil = await page.evaluate(() => JSON.parse(localStorage.getItem('sportapp:profile')!));
     expect(profil).toEqual({ id: 'melanie', age: 38, taille: 165 });
   });
 });
 
 test.describe('Écran Profil — mobile', () => {
-  // Profil + semaine minimale : la bannière (et son icône profil) n'existe
-  // que dans le shell, qui exige les deux.
+  // Profil seul suffit : la semaine d'exemple se charge automatiquement,
+  // la bannière (et son icône profil) apparaît donc dans le shell.
   test.use({
     storageState: {
       cookies: [],
@@ -60,23 +60,6 @@ test.describe('Écran Profil — mobile', () => {
           origin: ORIGIN,
           localStorage: [
             { name: 'sportapp:profile', value: JSON.stringify({ id: 'melanie', age: 38, taille: 165 }) },
-            {
-              name: 'sportapp:week',
-              value: JSON.stringify({
-                raw: '',
-                importedAt: new Date().toISOString(),
-                data: {
-                  meta: { semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' },
-                  courses: [],
-                  menu: [],
-                  batch: [],
-                  profiles: {
-                    marc: { cibles: [], seances: [], rappels: [] },
-                    melanie: { cibles: [], seances: [], rappels: [] },
-                  },
-                },
-              }),
-            },
           ],
         },
       ],

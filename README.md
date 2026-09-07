@@ -1,6 +1,6 @@
 # Sport App
 
-Suivi cuisine / diet / sport pour Marc & Mélanie — PWA installable, contenu piloté par un fichier `.md` par semaine.
+Suivi cuisine / diet / sport pour Marc & Mélanie — PWA installable, livrée avec une semaine d'exemple prête à cocher.
 
 ## Utilisation sur téléphone
 
@@ -9,9 +9,10 @@ Suivi cuisine / diet / sport pour Marc & Mélanie — PWA installable, contenu p
    - **iOS** : Safari → bouton **Partager** → **Sur l'écran d'accueil**
    - **Android** : Chrome → **Installer**
 3. L'app fonctionne **hors ligne** après la première visite (le service worker est installé à ce moment-là).
-4. Pour changer de semaine : bouton **« Importer un .md »** puis choisir le fichier de la nouvelle semaine.
 
-## Le fichier .md de la semaine
+> **Note** : l'import de fichier `.md` est momentanément retiré de l'app (il reviendra avec une future convention « template »). La semaine d'exemple se charge automatiquement au premier lancement. Le format décrit ci-dessous reste le contrat de référence.
+
+## Le fichier .md de la semaine (contrat de référence)
 
 Chaque semaine est décrite par un fichier Markdown avec frontmatter YAML **obligatoire** :
 

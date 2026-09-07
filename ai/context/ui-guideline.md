@@ -11,11 +11,11 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 ## Structure d'écran
 
-- `App.tsx` choisit : `Onboarding` (pas de profil) → `ImportScreen` (profil mais pas de semaine) → shell 2 onglets OU écran `ProfilScreen` poussé
-- Shell : `WeekBanner` (seul `h1`, + icône « Mon profil » à droite) → `TabBar` (🛒 Cuisine / 🎯 Mon suivi) → vue active
+- `App.tsx` choisit : `Onboarding` (pas de profil) → shell 2 onglets OU écran `ProfilScreen` poussé. **Pas d'écran intermédiaire** : sans semaine en storage, la semaine d'exemple se charge automatiquement (fallback en mémoire dans `App.tsx`)
+- Shell : `WeekBanner` (seul `h1`, + icône « Mon profil » à droite) → vue active → `TabBar` en **dock flottant** (🛒 Cuisine / 🎯 Mon suivi)
 - **Mon suivi est personnalisé** : `ProfileView` rendu avec le profil actif uniquement + accueil « Salut {prénom} 👋 » — jamais les données de l'autre
 - Sections = `h3` dans des cartes (`section` + classe sémantique). États vides systématiques (`.muted`)
-- Écran poussé (Profil) : bouton retour en haut, pas de tabbar, sorties par retour ou action explicite
+- Écran poussé (Profil) : bouton retour en haut, pas de dock, sorties par retour ou action explicite
 
 ## Onboarding (premier lancement)
 
@@ -27,7 +27,7 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 ## Écran Profil
 
-- Mes infos (âge/taille, feedback « enregistrées ✓ » en `role="status"`), importer un autre .md, **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
+- Mes infos (âge/taille, feedback « enregistrées ✓ » en `role="status"`), **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
 - Après changement : retour à l'onboarding, `data-profile` retiré de `<html>`
 
 ## Composants — conventions
@@ -46,19 +46,20 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 ## Feedback utilisateur
 
 - Coche = retour immédiat (état barré) + persistance instantanée en localStorage
-- Import : erreurs bloquantes en `role="alert"` (l'ancienne semaine survit), avis ambre `.warn-line` pour les lignes ignorées, `role="status"`
-- Confirmation avant remplacement d'une semaine différente (`window.confirm`)
+- Images de rayons : `loading="lazy"`, `alt` = libellé du rayon (utile si la miniature ne charge pas), fallback `defaut.jpg` pour un rayon inconnu
+- Confirmation avant toute action destructive (`window.confirm`)
 
 ## Interactions tactiles
 
 - Zone de clic = toute la ligne du label (pas seulement la checkbox)
-- Onglets : `aria-current="page"` sur l'actif, différenciation visuelle forte (pill + barre accent par onglet)
+- Dock : `aria-current="page"` sur l'actif, différenciation visuelle forte (pilule glissante `--accent-strong` + label vs icône seule muted) ; animations = rebond élastique 0,32s (pilule, pop icône, label), tuées par `prefers-reduced-motion` ; inactif = `aria-label` complet
 - `:focus-visible` toujours visible (clavier = outline accent) ; `.sr-only` pour les inputs fonctionnellement cachés mais focusables
 
 ## À ne PAS faire
 
 - ❌ Couleur hex en dur dans un composant (utiliser les tokens `var(--…)` ; texte blanc sur fond coloré → `--accent-strong`)
 - ❌ Montrer les données de l'autre profil dans Mon suivi
+- ❌ Écran intermédiaire avant le contenu (pas de page « importer d'abord » — la semaine d'exemple suffit)
 - ❌ Nouveau pattern de sync d'état (celui du repo suffit)
 - ❌ Modal custom / lib de composants — `window.confirm` et les cartes suffisent
 - ❌ Animations longues (> 0,25 s) ou décoratives

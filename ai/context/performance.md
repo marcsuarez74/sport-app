@@ -41,15 +41,16 @@
 ## Vite & Bundle
 
 - **Zéro dépendance runtime** hors React + js-yaml — toute nouvelle lib doit se justifier face à ce budget
-- Pas de code-splitting par route : une seule vue active, 3 onglets — le bundle unique + précaché SW est la bonne trade-off ici
-- Images : uniquement des icônes PWA PNG optimisées (`npm run icons`) ; pas de photos → pas de pipeline image nécessaire
+- Pas de code-splitting par route : une seule vue active, 2 onglets (+ 3 sous-onglets Cuisine) — le bundle unique + précaché SW est la bonne trade-off ici
+- Images : miniatures de rayons **160×120 JPEG optimisées** (~5-10 Ko chacune, ~55 Ko au total, `src/assets/rayons/`) — servies en **CacheFirst runtime caching**, jamais dans le précache. Optimiser toute nouvelle image (`sips -Z 160 -s format jpeg -s formatOptions 60`)
 - Pas de polyfill : cibles navigateurs modernes (Vite default), `esnext` OK
 
 ---
 
 ## PWA / Réseau
 
-- Le précache service worker (`globPatterns` dans `vite.config.ts`) doit rester **petit et complet** : toute l'app + assets statiques. Vérifier après chaque build que `dist/sw.js` liste l'essentiel (index, JS, CSS, manifest, icônes)
+- Le précache service worker (`globPatterns` dans `vite.config.ts`) doit rester **petit et complet** : toute l'app + assets statiques — **sans les jpg** (exclus des glob patterns). Vérifier après chaque build que `dist/sw.js` liste l'essentiel (index, JS, CSS, manifest, icônes, ~11 entrées)
+- Les miniatures de rayons passent par le **runtime caching** (`workbox.runtimeCaching` : jpg/jpeg/webp → CacheFirst, cacheName `images`, maxEntries 30, 30 jours) : hors-ligne OK après la première vue, sans gonfler le précache
 - Données utilisateur en localStorage → l'app fonctionne 100 % hors ligne après la première visite ; ne jamais introduire d'appel réseau pour le contenu
 - `registerSW({ immediate: true })` (autoUpdate) : la mise à jour s'applique au rechargement suivant — ne pas passer en `prompt` sans besoin UX réel
 
@@ -66,7 +67,7 @@
 ## Checklist Avant Déploiement
 
 - [ ] `npm run build` passe et affiche un bundle dans le budget
-- [ ] `dist/sw.js` précache tout le nécessaire (11 entrées attendues)
+- [ ] `dist/sw.js` précache tout le nécessaire (~11 entrées, **sans les jpg**) + `runtimeCaching` images intact
 - [ ] Pas de nouvelle dépendance runtime sans discussion
 - [ ] Pas de `memo`/`useCallback` ajoutés « au cas où »
 - [ ] Pas d'appel réseau introduit (offline-first intact)

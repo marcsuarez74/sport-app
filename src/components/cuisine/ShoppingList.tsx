@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { CourseItem } from '../../lib/model';
+import { imagePourRayon } from '../../lib/rayons';
 import { getChecks } from '../../lib/storage';
 import { Checklist } from '../Checklist';
 
@@ -37,7 +38,16 @@ export function ShoppingList({ items, semaine }: { items: CourseItem[]; semaine:
       </p>
       {groups.map(({ rayon, items: groupItems }) => (
         <section className="course-group" key={rayon}>
-          <h3>{capitalize(rayon)}</h3>
+          <header className="course-group-header">
+            <img
+              src={imagePourRayon(rayon)}
+              alt={capitalize(rayon)}
+              loading="lazy"
+              width={72}
+              height={54}
+            />
+            <h3>{capitalize(rayon)}</h3>
+          </header>
           <Checklist
             items={groupItems}
             semaine={semaine}
