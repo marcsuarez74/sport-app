@@ -22,7 +22,7 @@ export function Checklist({
     setCheck(semaine, item.id, done);
     const next = { ...checks, [item.id]: done };
     setChecks(next);
-    onChecksChange?.(next);
+    onChecksChange?.({ [item.id]: done });
   };
   return (
     <ul className="checklist">

@@ -134,6 +134,20 @@ describe('ShoppingList', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '2');
   });
 
+  it('does not resurrect stale checks from another group after unchecking', async () => {
+    const user = userEvent.setup();
+    setCheck('S39', 'courses:proteines:poulet', true);
+    render(<ShoppingList items={courseItems} semaine="S39" />);
+    expect(screen.getByText('1/4 cochés')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Poulet' }));
+    expect(screen.getByText('0/4 cochés')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Yaourts' }));
+    expect(screen.getByText('1/4 cochés')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '1');
+  });
+
   it('persists checked items via storage', async () => {
     const user = userEvent.setup();
     render(<ShoppingList items={courseItems} semaine="S39" />);
