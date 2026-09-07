@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
@@ -57,21 +57,6 @@ au: 2026-09-27
 - Électrolytes
 `;
 
-const getFileInput = (container: HTMLElement): HTMLInputElement =>
-  container.querySelector('input[type="file"]') as HTMLInputElement;
-
-const uploadFile = (input: HTMLInputElement, content: string) =>
-  userEvent
-    .setup()
-    .upload(input, new File([content], 'semaine.md', { type: 'text/markdown' }));
-
-// happy-dom n'expose pas window.confirm : on le remplace par un stub global.
-const mockConfirm = (value: boolean) => {
-  const spy = vi.fn().mockReturnValue(value);
-  vi.stubGlobal('confirm', spy);
-  return spy;
-};
-
 // Toute vue shell suppose un profil choisi (onboarding passé).
 const initProfile = (id: ProfileKey = 'marc') => saveProfile({ id, age: 41, taille: 178 });
 
@@ -80,49 +65,38 @@ describe('App shell', () => {
     localStorage.clear();
   });
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it('affiche l’onboarding quand aucun profil n’est choisi (semaine chargée ou non)', () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
     render(<App />);
 
     expect(screen.getByRole('heading', { name: /Qui est derrière l'écran/ })).toBeInTheDocument();
-    expect(screen.queryByText('Importer un .md')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '🛒 Cuisine' })).not.toBeInTheDocument();
   });
 
-  it('affiche ImportScreen quand le profil existe mais aucune semaine est chargée', () => {
+  it('sans semaine stockée, la semaine d’exemple se charge automatiquement (aucun écran d’import)', () => {
     initProfile();
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'Sport App', level: 1 })).toBeInTheDocument();
-    expect(screen.getByText('Importer un .md')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: "Charger la semaine d'exemple" }),
-    ).toBeInTheDocument();
-  });
-
-  it('le bouton exemple importe la semaine et affiche le shell 2 onglets', async () => {
-    initProfile();
-    const sample = parseWeeklyFile(sampleRaw);
-    expect(sample.warnings).toEqual([]);
-    expect(sample.data.meta.semaine).toBe('2026-S39');
-
-    const user = userEvent.setup();
-    render(<App />);
-    await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
 
     expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-    expect(screen.getByText('Menu A')).toBeInTheDocument();
     expect(screen.getByText('21/09 → 27/09')).toBeInTheDocument();
+    expect(screen.queryByText(/Importer/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Charger la semaine/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Changer de semaine/ })).not.toBeInTheDocument();
+  });
+
+  it('affiche le shell 2 onglets avec la semaine persistée', () => {
+    initProfile();
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    render(<App />);
+
+    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '🛒 Cuisine' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '💪 Marc' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '🥑 Mélanie' })).not.toBeInTheDocument();
-    expect(screen.getByText('Changer de semaine')).toBeInTheDocument();
-    expect(screen.queryByText("Charger la semaine d'exemple")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Importer/)).not.toBeInTheDocument();
   });
 
   it('navigue entre Cuisine et Mon suivi (données filtrées sur mon profil)', async () => {
@@ -139,7 +113,7 @@ describe('App shell', () => {
     expect(screen.getByRole('heading', { name: 'Lundi', level: 3 })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '📦 Batch' }));
-    expect(screen.getByText(/Gros batch/)).toBeInTheDocument();
+    expect(screen.getByText(/Riz/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
     expect(screen.getByText(/Salut Marc/)).toBeInTheDocument();
@@ -148,123 +122,7 @@ describe('App shell', () => {
     expect(screen.queryByText('Cardio')).not.toBeInTheDocument();
   });
 
-  it("affiche une erreur et garde la semaine courante si l'import échoue", async () => {
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-
-    await uploadFile(getFileInput(container), 'pas de frontmatter ici');
-
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
-    expect(screen.getByRole('alert')).toHaveTextContent(/Frontmatter introuvable/);
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-  });
-
-  it('efface l’erreur d’import affichée dès qu’un import réussit', async () => {
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-
-    await uploadFile(input, 'pas de frontmatter ici');
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
-
-    // Même semaine → pas de confirmation, l'import réussit.
-    await uploadFile(input, fixture('2026-S39', 'Betteraves'));
-    await waitFor(() => expect(screen.getByText('Betteraves')).toBeInTheDocument());
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('demande confirmation avant de remplacer une autre semaine (refus puis acceptation)', async () => {
-    const confirmSpy = mockConfirm(false);
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-
-    await uploadFile(input, fixture('2026-S40'));
-    await waitFor(() => expect(confirmSpy).toHaveBeenCalledTimes(1));
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringMatching(/2026-S39.*2026-S40/s));
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-    expect(screen.queryByText('Semaine 2026-S40')).not.toBeInTheDocument();
-
-    confirmSpy.mockReturnValue(true);
-    await uploadFile(input, fixture('2026-S40'));
-    await waitFor(() => expect(screen.getByText('Semaine 2026-S40')).toBeInTheDocument());
-    expect(confirmSpy).toHaveBeenCalledTimes(2);
-    expect(screen.queryByText('Semaine 2026-S39')).not.toBeInTheDocument();
-  });
-
-  it('affiche un avis persistant quand l’import contient des lignes ignorées', async () => {
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-
-    // Une clé menu inconnue génère exactement 1 warning (import non bloquant, même semaine).
-    await uploadFile(
-      input,
-      fixture('2026-S39').replace('- diner-famille: Poulet rôti', '- dessert: tarte\n- diner-famille: Poulet rôti'),
-    );
-
-    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
-    expect(screen.getByRole('status')).toHaveTextContent('1 ligne');
-  });
-
-  it('masque l’avis de lignes ignorées au prochain import sans warning', async () => {
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-
-    await uploadFile(
-      input,
-      fixture('2026-S39').replace('- diner-famille: Poulet rôti', '- dessert: tarte\n- diner-famille: Poulet rôti'),
-    );
-    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
-
-    await uploadFile(input, fixture('2026-S39', 'Poireaux'));
-    await waitFor(() => expect(screen.getByText('Poireaux')).toBeInTheDocument());
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  });
-
-  it('réinitialise le champ file même en cas de refus de confirmation', async () => {
-    const confirmSpy = mockConfirm(false);
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-
-    await uploadFile(input, fixture('2026-S40'));
-
-    await waitFor(() => expect(confirmSpy).toHaveBeenCalledTimes(1));
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-    expect(input.value).toBe('');
-  });
-
-  it("réimporte la même semaine sans confirmation", async () => {
-    const confirmSpy = mockConfirm(false);
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-
-    await uploadFile(input, fixture('2026-S39', 'Poireaux'));
-
-    await waitFor(() => expect(screen.getByText('Poireaux')).toBeInTheDocument());
-    expect(confirmSpy).not.toHaveBeenCalled();
-    expect(screen.queryByText('Carottes')).not.toBeInTheDocument();
-  });
-
-  it('affiche directement la semaine persistée sans écran import', () => {
+  it('affiche directement la semaine persistée après un re-render complet', () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
     initProfile();
@@ -272,48 +130,7 @@ describe('App shell', () => {
     render(<App />);
 
     expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-    expect(screen.getByText('21/09 → 27/09')).toBeInTheDocument();
     expect(screen.queryByText('Importer un .md')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: "Charger la semaine d'exemple" })).not.toBeInTheDocument();
-  });
-});
-
-describe('Design system & sémantique (tâche 10)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  it('affiche le titre de semaine dans un h1 portant la classe week-title', async () => {
-    initProfile();
-    const user = userEvent.setup();
-    render(<App />);
-    await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
-
-    const h1 = screen.getByRole('heading', { level: 1, name: 'Semaine 2026-S39' });
-    expect(h1).toHaveClass('week-title');
-  });
-
-  it("garde l'input fichier dans le document avec la classe sr-only", () => {
-    initProfile();
-    const { container } = render(<App />);
-    const input = getFileInput(container);
-    expect(input).toBeInTheDocument();
-    expect(input).toHaveClass('sr-only');
-  });
-
-  it("marque l'onglet actif avec aria-current=page et le déplace au changement d'onglet", async () => {
-    initProfile();
-    const user = userEvent.setup();
-    render(<App />);
-    await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
-
-    const cuisine = screen.getByRole('button', { name: '🛒 Cuisine' });
-    expect(cuisine).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).not.toHaveAttribute('aria-current');
-
-    await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
-    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toHaveAttribute('aria-current', 'page');
-    expect(cuisine).not.toHaveAttribute('aria-current');
   });
 });
 
@@ -340,6 +157,34 @@ describe('Theming par profil (data-profile)', () => {
     render(<App />);
 
     expect(document.documentElement.getAttribute('data-profile')).toBeNull();
+  });
+});
+
+describe('Design system & sémantique', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('affiche le titre de semaine dans un h1 portant la classe week-title', () => {
+    initProfile();
+    render(<App />);
+
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Semaine 2026-S39' });
+    expect(h1).toHaveClass('week-title');
+  });
+
+  it("marque l'onglet actif avec aria-current=page et le déplace au changement d'onglet", async () => {
+    initProfile();
+    const user = userEvent.setup();
+    render(<App />);
+
+    const cuisine = screen.getByRole('button', { name: '🛒 Cuisine' });
+    expect(cuisine).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).not.toHaveAttribute('aria-current');
+
+    await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
+    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toHaveAttribute('aria-current', 'page');
+    expect(cuisine).not.toHaveAttribute('aria-current');
   });
 });
 

@@ -2,19 +2,16 @@ import { useState } from 'react';
 import type { UserProfile } from '../lib/model';
 import { PRENOMS } from '../lib/model';
 import { saveProfile } from '../lib/storage';
-import { ImportButton } from './ImportButton';
 
 export function ProfilScreen({
   profile,
   onBack,
   onChangeProfile,
-  onImported,
   onProfileSaved,
 }: {
   profile: UserProfile;
   onBack: () => void;
   onChangeProfile: () => void;
-  onImported: () => void;
   onProfileSaved?: (p: UserProfile) => void;
 }) {
   const [age, setAge] = useState(String(profile.age));
@@ -104,11 +101,6 @@ export function ProfilScreen({
             Infos enregistrées ✓
           </p>
         )}
-      </section>
-
-      <section className="profile-section">
-        <h3>Semaine</h3>
-        <ImportButton onImported={onImported} label="Importer un autre .md" />
       </section>
 
       <section className="profile-section">
