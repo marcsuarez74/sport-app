@@ -33,9 +33,16 @@ export function ProfileView({
   semaine: string;
 }) {
   const [weights, setWeights] = useState<WeightEntry[]>(() => getWeights(profileKey));
+  const [syncedProfile, setSyncedProfile] = useState(profileKey);
   const [date, setDate] = useState<string>(todayISO);
   const [kg, setKg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  if (syncedProfile !== profileKey) {
+    setSyncedProfile(profileKey);
+    setWeights(getWeights(profileKey));
+    setError(null);
+    setKg('');
+  }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -66,11 +73,12 @@ export function ProfileView({
       </section>
       <section className="profile-section">
         <h3>Suivi poids</h3>
-        <form onSubmit={handleSubmit}>
+        <form className="weight-form" onSubmit={handleSubmit}>
           <input
             type="date"
-            className="weight-form"
+            className="weight-date"
             name="date"
+            aria-label="Date de la pesée"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
@@ -80,14 +88,18 @@ export function ProfileView({
             min="0"
             placeholder="Poids (kg)"
             name="kg"
+            aria-label="Poids (kg)"
             value={kg}
-            onChange={(e) => setKg(e.target.value)}
+            onChange={(e) => {
+              setError(null);
+              setKg(e.target.value);
+            }}
           />
           <button type="submit">Ajouter</button>
         </form>
         {error && (
           <p className="error" role="alert">
-            Poids invalide.
+            {error}
           </p>
         )}
         <Sparkline values={weights.map((w) => w.kg)} color={ACCENTS[profileKey]} />

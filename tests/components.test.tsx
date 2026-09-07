@@ -372,6 +372,41 @@ describe('ProfileView', () => {
     expect(getWeights('marc')).toEqual([{ date: '2026-09-07', kg: 77.2 }]);
   });
 
+  it('re-syncs per-profile state when profileKey changes without remount', () => {
+    addWeight('marc', '2026-09-05', 77.4);
+    const { container, rerender } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    fireEvent.submit(container.querySelector('form')!); // kg vide -> erreur
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    rerender(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
+    expect(container.querySelectorAll('ul.weight-list > li')).toHaveLength(0);
+    expect(screen.queryByText('05/09 — 77.4 kg')).not.toBeInTheDocument();
+    expect(screen.getByText('Ajoutez au moins 2 pesées.')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    rerender(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const lis = Array.from(container.querySelectorAll('ul.weight-list > li')).map((li) => li.textContent);
+    expect(lis).toEqual(['05/09 — 77.4 kg']);
+  });
+
+  it('clears the error when the kg input changes', () => {
+    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    fireEvent.submit(container.querySelector('form')!); // kg vide -> erreur
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    fireEvent.change(container.querySelector('input[name="kg"]')!, { target: { value: '76.8' } });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('exposes the date and kg inputs with dedicated classes and aria-labels', () => {
+    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const dateInput = container.querySelector('input[name="date"]')!;
+    expect(dateInput).toHaveClass('weight-date');
+    expect(dateInput).toHaveAttribute('aria-label', 'Date de la pesée');
+    const kgInput = container.querySelector('input[name="kg"]')!;
+    expect(kgInput).toHaveAttribute('aria-label', 'Poids (kg)');
+    expect(container.querySelector('form')).toHaveClass('weight-form');
+  });
+
   it('shows the sparkline hint when there are fewer than 2 entries', () => {
     const { container } = render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
     expect(screen.getByText('Ajoutez au moins 2 pesées.')).toBeInTheDocument();
