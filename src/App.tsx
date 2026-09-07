@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ImportScreen } from './components/ImportScreen';
+import { ProfilScreen } from './components/ProfilScreen';
 import { ProfileView } from './components/ProfileView';
 import { TabBar } from './components/TabBar';
 import type { TabId } from './components/TabBar';
@@ -8,12 +9,13 @@ import { WeekBanner } from './components/WeekBanner';
 import { CuisineView } from './components/cuisine/CuisineView';
 import { PRENOMS } from './lib/model';
 import type { ImportedWeek, UserProfile } from './lib/model';
-import { loadProfile, loadWeek } from './lib/storage';
+import { loadProfile, loadWeek, removeProfile } from './lib/storage';
 
 function App() {
   const [profile, setProfile] = useState<UserProfile | null>(() => loadProfile());
   const [week, setWeek] = useState<ImportedWeek | null>(() => loadWeek());
   const [tab, setTab] = useState<TabId>('cuisine');
+  const [profilOuvert, setProfilOuvert] = useState(false);
   const refresh = useCallback(() => setWeek(loadWeek()), []);
 
   if (profile) {
@@ -26,9 +28,26 @@ function App() {
 
   if (!week) return <ImportScreen onImported={refresh} />;
 
+  if (profilOuvert) {
+    return (
+      <div className="main-content">
+        <ProfilScreen
+          profile={profile}
+          onBack={() => setProfilOuvert(false)}
+          onChangeProfile={() => {
+            removeProfile();
+            setProfile(null);
+            setProfilOuvert(false);
+          }}
+          onImported={refresh}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="main-content">
-      <WeekBanner meta={week.data.meta} onImported={refresh} />
+      <WeekBanner meta={week.data.meta} onImported={refresh} onOpenProfile={() => setProfilOuvert(true)} />
       <TabBar active={tab} onSelect={setTab} />
       <main>
         {tab === 'cuisine' && <CuisineView data={week.data} />}

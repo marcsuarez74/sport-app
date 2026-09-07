@@ -643,3 +643,78 @@ progress {
   font-size: 14px;
   font-weight: 700;
 }
+
+/* ---------- Écran Profil ---------- */
+
+.week-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.week-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.profile-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.profile-icon-btn:active {
+  transform: scale(0.97);
+}
+
+.profil-back {
+  min-height: 48px;
+  padding: 10px 0;
+  margin-bottom: 4px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profil-screen .profile-section .btn {
+  margin-top: 12px;
+}
+
+.profil-switch {
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1.5px solid var(--danger);
+  border-radius: 12px;
+  background: none;
+  color: var(--danger);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profil-switch:active {
+  transform: scale(0.97);
+}
+
+.profil-about {
+  margin-top: 16px;
+  font-size: 13px;
+  text-align: center;
+}
