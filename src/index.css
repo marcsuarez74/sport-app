@@ -591,17 +591,25 @@ progress {
 
 .onboarding-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
 .onboarding-row .onboarding-field {
-  flex: 1;
+  /* Sous ~140px dispo, le champ passe à la ligne au lieu de déborder */
+  flex: 1 1 140px;
+  min-width: 0;
 }
 
 .onboarding-field {
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.onboarding-field input {
+  width: 100%;
+  min-width: 0;
 }
 
 .onboarding-field label {
