@@ -1,0 +1,132 @@
+import type { WeeklyData } from '../src/lib/model';
+import { addWeight, getChecks, getWeights, loadWeek, saveWeek, setCheck, type WeightEntry } from '../src/lib/storage';
+import { todayKey } from '../src/lib/dates';
+
+const week = (): WeeklyData => ({
+  meta: { semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' },
+  courses: [{ id: 'c1', rayon: 'Fraîcheur', label: 'Poulet 600 g' }],
+  menu: [{ jour: 'lundi', dejeunerMarc: 'Poulet riz' }],
+  batch: [{ id: 'b1', label: 'Riz à l’avance' }],
+  profiles: {
+    marc: { cibles: [], seances: [], rappels: [] },
+    melanie: { cibles: [], seances: [], rappels: [] },
+  },
+});
+
+describe('storage: week', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('loadWeek returns null when nothing saved', () => {
+    expect(loadWeek()).toBeNull();
+  });
+
+  it('saveWeek then loadWeek roundtrips the same data', () => {
+    const raw = '---\nsemaine: 2026-S39\n---\n';
+    const data = week();
+    saveWeek(raw, data);
+    const loaded = loadWeek();
+    expect(loaded).toEqual({ raw, data, importedAt: expect.any(String) });
+  });
+
+  it('importedAt is an ISO string', () => {
+    saveWeek('raw', week());
+    const loaded = loadWeek();
+    expect(loaded).not.toBeNull();
+    expect(new Date(loaded!.importedAt).toISOString()).toBe(loaded!.importedAt);
+  });
+});
+
+describe('storage: checks', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('getChecks is empty when nothing checked', () => {
+    expect(getChecks('2026-S39')).toEqual({});
+  });
+
+  it('setCheck/getChecks store state per semaine', () => {
+    setCheck('2026-S39', 'b1', true);
+    setCheck('2026-S39', 'b2', true);
+    setCheck('2026-S40', 'b3', true);
+    expect(getChecks('2026-S39')).toEqual({ b1: true, b2: true });
+    expect(getChecks('2026-S40')).toEqual({ b3: true });
+  });
+
+  it('checks are isolated between weeks', () => {
+    setCheck('2026-S39', 'b1', true);
+    setCheck('2026-S39', 'b1', false);
+    expect(getChecks('2026-S40')).toEqual({});
+  });
+
+  it('setCheck overwrites previous state for same id', () => {
+    setCheck('2026-S39', 'b1', true);
+    setCheck('2026-S39', 'b1', false);
+    expect(getChecks('2026-S39')).toEqual({ b1: false });
+  });
+});
+
+describe('storage: weights', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('getWeights returns [] when empty', () => {
+    expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
+  });
+
+  it('addWeight appends sorted by date', () => {
+    const r1 = addWeight('marc', '2026-09-24', 80.5);
+    const r2 = addWeight('marc', '2026-09-21', 81.2);
+    const r3 = addWeight('marc', '2026-09-23', 80.8);
+    expect(r3).toEqual<WeightEntry[]>([
+      { date: '2026-09-21', kg: 81.2 },
+      { date: '2026-09-23', kg: 80.8 },
+      { date: '2026-09-24', kg: 80.5 },
+    ]);
+    expect(r1).toEqual<WeightEntry[]>([{ date: '2026-09-24', kg: 80.5 }]);
+    expect(r2).toEqual<WeightEntry[]>([
+      { date: '2026-09-21', kg: 81.2 },
+      { date: '2026-09-24', kg: 80.5 },
+    ]);
+  });
+
+  it('addWeight replaces entry with same date (no duplicates)', () => {
+    addWeight('marc', '2026-09-21', 81.2);
+    const list = addWeight('marc', '2026-09-21', 80.9);
+    expect(list).toEqual<WeightEntry[]>([{ date: '2026-09-21', kg: 80.9 }]);
+  });
+
+  it('weights are isolated per profile', () => {
+    addWeight('marc', '2026-09-21', 81.2);
+    addWeight('melanie', '2026-09-21', 62.4);
+    expect(getWeights('marc')).toEqual<WeightEntry[]>([{ date: '2026-09-21', kg: 81.2 }]);
+    expect(getWeights('melanie')).toEqual<WeightEntry[]>([{ date: '2026-09-21', kg: 62.4 }]);
+  });
+});
+
+describe('dates: todayKey', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns mardi on Tuesday 2026-09-22', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-22T10:00:00'));
+    expect(todayKey()).toBe('mardi');
+  });
+
+  it('returns samedi on Saturday 2026-09-26', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-26T10:00:00'));
+    expect(todayKey()).toBe('samedi');
+  });
+
+  it('returns dimanche on Sunday 2026-09-27', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-27T10:00:00'));
+    expect(todayKey()).toBe('dimanche');
+  });
+});
