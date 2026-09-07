@@ -1,5 +1,5 @@
 import type { WeeklyData } from '../src/lib/model';
-import { addWeight, getChecks, getWeights, loadWeek, saveWeek, setCheck, type WeightEntry } from '../src/lib/storage';
+import { addWeight, getChecks, getWeights, loadProfile, loadWeek, removeProfile, saveProfile, saveWeek, setCheck, type WeightEntry } from '../src/lib/storage';
 import { todayKey } from '../src/lib/dates';
 
 const week = (): WeeklyData => ({
@@ -183,6 +183,80 @@ describe('storage: corrupted keys', () => {
   it('getWeights returns [] silently on an absent key (no warn, no remove)', () => {
     expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('storage: profil', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('loadProfile returns null silently when nothing saved (no warn, no remove)', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(loadProfile()).toBeNull();
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('saveProfile then loadProfile roundtrips the profile', () => {
+    saveProfile({ id: 'marc', age: 41, taille: 178 });
+    expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
+    saveProfile({ id: 'melanie', age: 38, taille: 165 });
+    expect(loadProfile()).toEqual({ id: 'melanie', age: 38, taille: 165 });
+  });
+
+  it('removeProfile removes the stored profile', () => {
+    saveProfile({ id: 'marc', age: 41, taille: 178 });
+    removeProfile();
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
+  });
+});
+
+describe('storage: profil corrompu', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('loadProfile returns null and removes corrupted JSON', () => {
+    localStorage.setItem('sportapp:profile', '{oops');
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Profil corrompu ignoré : sportapp:profile');
+  });
+
+  it('loadProfile returns null and removes an unknown profile id', () => {
+    localStorage.setItem('sportapp:profile', '{"id":"jean","age":41,"taille":178}');
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Profil corrompu ignoré : sportapp:profile');
+  });
+
+  it('loadProfile returns null and removes non-numeric age', () => {
+    localStorage.setItem('sportapp:profile', '{"id":"marc","age":"41","taille":178}');
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
+  });
+
+  it('loadProfile returns null and removes missing taille', () => {
+    localStorage.setItem('sportapp:profile', '{"id":"melanie","age":38}');
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
+  });
+
+  it('loadProfile returns null and removes wrong shape (array, null)', () => {
+    localStorage.setItem('sportapp:profile', '[1]');
+    expect(loadProfile()).toBeNull();
+    localStorage.setItem('sportapp:profile', 'null');
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
   });
 });
 

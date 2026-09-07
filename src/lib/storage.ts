@@ -1,6 +1,7 @@
-import type { ImportedWeek, ProfileKey, WeeklyData } from './model';
+import type { ImportedWeek, ProfileKey, UserProfile, WeeklyData } from './model';
 
 const WEEK_KEY = 'sportapp:week';
+const PROFILE_KEY = 'sportapp:profile';
 const checksKey = (s: string) => `sportapp:checks:${s}`;
 const weightsKey = (p: string) => `sportapp:weights:${p}`;
 
@@ -84,4 +85,29 @@ export const addWeight = (p: ProfileKey, date: string, kg: number): WeightEntry[
     .sort((a, b) => a.date.localeCompare(b.date));
   localStorage.setItem(weightsKey(p), JSON.stringify(list));
   return list;
+};
+
+export const saveProfile = (profile: UserProfile): void => {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+};
+
+export const removeProfile = (): void => {
+  localStorage.removeItem(PROFILE_KEY);
+};
+
+export const loadProfile = (): UserProfile | null => {
+  const raw = localStorage.getItem(PROFILE_KEY);
+  if (raw === null) return null;
+  const parsed = safeParse<unknown>(PROFILE_KEY, raw, null);
+  const ok =
+    isPlainObject(parsed) &&
+    (parsed.id === 'marc' || parsed.id === 'melanie') &&
+    typeof parsed.age === 'number' &&
+    typeof parsed.taille === 'number';
+  if (!ok) {
+    console.warn(`Profil corrompu ignoré : ${PROFILE_KEY}`);
+    localStorage.removeItem(PROFILE_KEY);
+    return null;
+  }
+  return parsed as unknown as UserProfile;
 };

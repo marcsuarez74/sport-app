@@ -47,3 +47,9 @@ export interface ImportedWeek {
   data: WeeklyData;
   importedAt: string;
 }
+
+export interface UserProfile {
+  id: ProfileKey;
+  age: number;
+  taille: number;
+}
