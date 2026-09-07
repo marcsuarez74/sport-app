@@ -24,3 +24,7 @@ coverage
 *.sln
 *.sw?
 .superpowers/
+
+# Playwright
+test-results/
+playwright-report/

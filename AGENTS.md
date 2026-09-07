@@ -19,6 +19,8 @@ npm install          # après un pull ou un changement de deps
 npm run dev          # serveur de dev (hot reload)
 npm test             # vitest, une passe
 npm run test:watch   # vitest en watch (loop TDD)
+npm run e2e          # Playwright (navigateur réel) — projet mobile 375/320 + soumission ; serveur dev auto
+npm run e2e:ui       # Playwright en mode UI (debug visuel)
 npm run typecheck    # tsc -b (couvre src/ ET tests/)
 npm run lint         # eslint
 npm run build        # tsc + vite build (génère dist/ + service worker)
@@ -27,6 +29,15 @@ npm run icons        # régénère les icônes PWA après modification de public
 ```
 
 Avant tout commit : `npm test && npm run typecheck && npm run lint && npm run build` doit passer.
+Un changement d'UI responsive → `npm run e2e` doit passer aussi (zéro débordement horizontal sur 320/375 px).
+
+## Tests e2e (Playwright)
+
+- Les specs vivent dans `tests/e2e/*.spec.ts` — **exclues de vitest** (cf. `exclude` dans `vite.config.ts`) et typecheckées comme le reste
+- Règle mobile : la page ne doit **jamais** scroller horizontalement (`scrollWidth <= clientWidth` sur 320 et 375) — les flex rows multi-champs utilisent `flex-wrap` + `flex-basis` plancher + `min-width: 0`
+- Le serveur de dev est lancé automatiquement par la config (`webServer`), base `http://localhost:5173/sport-app/`
+- Simuler un état app (profil, semaine) via `storageState` localStorage — pas d'import de modules app
+- Les projets `devices[...]` tournent sur WebKit par défaut : `npx playwright install webkit chromium` après un clone (ou `npx playwright install`)
 
 ## Structure
 
@@ -36,6 +47,7 @@ src/lib/          # cœur logique, zéro React : model.ts (types), parse.ts (.md
 src/components/   # composants UI ; cuisine/ pour l'onglet Cuisine ; onboarding/ pour le premier lancement
 src/assets/       # semaine-exemple.md — la SEMAINE D'EXEMPLE, sert de référence du format
 tests/            # miroir de src/, vitest + Testing Library, environnement happy-dom
+tests/e2e/        # specs Playwright (navigateur réel, config playwright.config.ts, projets mobile 375 + 320)
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
 docs/superpowers/ # spec design + plan d'implémentation (contexte historique)
 ai/               # configs d'agents IA (cf. section « Dossier ai/ »)
