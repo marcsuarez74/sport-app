@@ -5,6 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Nom du repo GitHub — mettre à jour si le repo est renommé
+  base: '/sport-app/',
   plugins: [
     react(),
     VitePWA({
