@@ -31,7 +31,10 @@ export default defineConfig({
           { src: 'apple-touch-icon-180x180.png', sizes: '180x180', type: 'image/png' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2,md}'] },
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      // Les icônes sont déjà pré-cachées par le glob **/*.png : on désactive la
+      // seconde injection via manifest.icons sinon chaque icône est precachée 2×.
+      includeManifestIcons: false,
     }),
   ],
   test: {

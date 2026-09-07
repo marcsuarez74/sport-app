@@ -225,6 +225,21 @@ describe('Design system & sémantique (tâche 10)', () => {
     expect(input).toBeInTheDocument();
     expect(input).toHaveClass('sr-only');
   });
+
+  it("marque l'onglet actif avec aria-current=page et le déplace au changement d'onglet", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
+
+    const cuisine = screen.getByRole('button', { name: '🛒 Cuisine' });
+    expect(cuisine).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: '💪 Marc' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: '🥑 Mélanie' })).not.toHaveAttribute('aria-current');
+
+    await user.click(screen.getByRole('button', { name: '💪 Marc' }));
+    expect(screen.getByRole('button', { name: '💪 Marc' })).toHaveAttribute('aria-current', 'page');
+    expect(cuisine).not.toHaveAttribute('aria-current');
+  });
 });
 
 describe("Semaine d'exemple — contenu réel (Menu A, S39)", () => {
