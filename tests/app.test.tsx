@@ -205,6 +205,28 @@ describe('App shell', () => {
   });
 });
 
+describe('Design system & sémantique (tâche 10)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('affiche le titre de semaine dans un h1 portant la classe week-title', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: "Charger la semaine d'exemple" }));
+
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Semaine 2026-S39' });
+    expect(h1).toHaveClass('week-title');
+  });
+
+  it("garde l'input fichier dans le document avec la classe sr-only", () => {
+    const { container } = render(<App />);
+    const input = getFileInput(container);
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveClass('sr-only');
+  });
+});
+
 describe("Semaine d'exemple — contenu réel (Menu A, S39)", () => {
   it('se parse sans warning avec meta, menu, courses, batch et profils complets', () => {
     const { data, warnings } = parseWeeklyFile(sampleRaw);

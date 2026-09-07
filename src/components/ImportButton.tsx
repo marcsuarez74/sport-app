@@ -36,7 +36,7 @@ export function ImportButton({
     <div className="import">
       <label className="btn">
         {label}
-        <input type="file" accept=".md,text/markdown" hidden onChange={onChange} />
+        <input type="file" accept=".md,text/markdown" className="sr-only" onChange={onChange} />
       </label>
       {error && (
         <p className="error" role="alert">
