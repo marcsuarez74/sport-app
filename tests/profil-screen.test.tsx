@@ -65,17 +65,23 @@ describe('ProfilScreen (unité)', () => {
   let onBack: Mock<() => void>;
   let onChangeProfile: Mock<() => void>;
   let onImported: Mock<() => void>;
+  let onProfileSaved: Mock<(p: UserProfile) => void>;
 
   beforeEach(() => {
     localStorage.clear();
     onBack = vi.fn();
     onChangeProfile = vi.fn();
     onImported = vi.fn();
+    onProfileSaved = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('affiche le titre, le retour, mes infos, l’import et le changement de profil', () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
     );
 
     expect(screen.getByRole('heading', { name: 'Profil', level: 1 })).toBeInTheDocument();
@@ -89,7 +95,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('enregistre les infos modifiées dans le store', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
     );
     const user = userEvent.setup();
 
@@ -100,11 +106,38 @@ describe('ProfilScreen (unité)', () => {
     expect(loadProfile()).toEqual({ id: 'marc', age: 42, taille: 178 });
   });
 
+  it('refuse les valeurs hors bornes avec une erreur explicite (cohérent avec l’onboarding)', async () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+    );
+    const user = userEvent.setup();
+
+    await user.clear(screen.getByLabelText('Âge'));
+    await user.type(screen.getByLabelText('Âge'), '999');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/âge/i);
+    expect(loadProfile()).toBeNull();
+  });
+
+  it('prévient le parent après enregistrement (état App resynchronisé)', async () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
+    );
+    const user = userEvent.setup();
+
+    await user.clear(screen.getByLabelText('Âge'));
+    await user.type(screen.getByLabelText('Âge'), '42');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(onProfileSaved).toHaveBeenCalledWith({ id: 'marc', age: 42, taille: 178 });
+  });
+
   it('change de profil après confirmation (et seulement après)', async () => {
     const spy = vi.fn().mockReturnValue(true);
     vi.stubGlobal('confirm', spy);
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onImported={onImported} onProfileSaved={onProfileSaved} />,
     );
     const user = userEvent.setup();
 
@@ -135,6 +168,20 @@ describe('ProfilScreen (intégration via App)', () => {
 
     await user.click(screen.getByRole('button', { name: /Retour/ }));
     expect(screen.getByRole('button', { name: '🛒 Cuisine' })).toBeInTheDocument();
+  });
+
+  it('la réouverture de l’écran montre les infos enregistrées (pas d’état périmé)', async () => {
+    const user = monterApp();
+
+    await user.click(screen.getByRole('button', { name: 'Mon profil' }));
+    await user.clear(screen.getByLabelText('Âge'));
+    await user.type(screen.getByLabelText('Âge'), '42');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    await user.click(screen.getByRole('button', { name: /Retour/ }));
+    await user.click(screen.getByRole('button', { name: 'Mon profil' }));
+
+    expect(screen.getByLabelText('Âge')).toHaveValue(42);
   });
 
   it('changer de profil efface le choix (onboarding) mais garde les données', async () => {

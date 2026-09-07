@@ -9,21 +9,37 @@ export function ProfilScreen({
   onBack,
   onChangeProfile,
   onImported,
+  onProfileSaved,
 }: {
   profile: UserProfile;
   onBack: () => void;
   onChangeProfile: () => void;
   onImported: () => void;
+  onProfileSaved?: (p: UserProfile) => void;
 }) {
   const [age, setAge] = useState(String(profile.age));
   const [taille, setTaille] = useState(String(profile.taille));
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const enregistrer = () => {
     const ans = Number.parseInt(age, 10);
     const cm = Number.parseInt(taille, 10);
-    if (Number.isNaN(ans) || Number.isNaN(cm)) return;
-    saveProfile({ id: profile.id, age: ans, taille: cm });
+    if (Number.isNaN(ans) || Number.isNaN(cm)) {
+      setError('Formulaire incomplet : remplis ton âge et ta taille.');
+      return;
+    }
+    if (ans < 10 || ans > 100) {
+      setError('Âge invalide : entre 10 et 100 ans.');
+      return;
+    }
+    if (cm < 120 || cm > 230) {
+      setError('Taille invalide : entre 120 et 230 cm.');
+      return;
+    }
+    const updated: UserProfile = { id: profile.id, age: ans, taille: cm };
+    saveProfile(updated);
+    onProfileSaved?.(updated);
     setSaved(true);
   };
 
@@ -55,6 +71,7 @@ export function ProfilScreen({
               value={age}
               onChange={(e) => {
                 setSaved(false);
+                setError(null);
                 setAge(e.target.value);
               }}
             />
@@ -68,6 +85,7 @@ export function ProfilScreen({
               value={taille}
               onChange={(e) => {
                 setSaved(false);
+                setError(null);
                 setTaille(e.target.value);
               }}
             />
@@ -76,7 +94,12 @@ export function ProfilScreen({
         <button type="button" className="btn" onClick={enregistrer}>
           Enregistrer
         </button>
-        {saved && (
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        {saved && !error && (
           <p className="muted" role="status">
             Infos enregistrées ✓
           </p>

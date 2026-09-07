@@ -492,10 +492,12 @@ progress {
 
 .onboarding[data-profile='marc'] {
   --accent: var(--accent-marc);
+  --accent-strong: #af602c;
 }
 
 .onboarding[data-profile='melanie'] {
   --accent: var(--accent-melanie);
+  --accent-strong: #307855;
 }
 
 .onboarding h1 {

@@ -40,6 +40,7 @@ function App() {
             setProfilOuvert(false);
           }}
           onImported={refresh}
+          onProfileSaved={setProfile}
         />
       </div>
     );

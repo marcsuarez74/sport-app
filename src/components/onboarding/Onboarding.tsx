@@ -83,7 +83,13 @@ export function Onboarding({ onDone }: { onDone: (profile: UserProfile) => void 
             Salut {PROFILS.find((p) => p.id === id)?.prenom} 👋
           </h1>
           <p className="onboarding-sub">Tes bases, pour tes suivis.</p>
-          <form className="onboarding-form" onSubmit={(e) => e.preventDefault()}>
+          <form
+            className="onboarding-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              valider();
+            }}
+          >
             <div className="onboarding-field">
               <label htmlFor="ob-poids">Poids (kg)</label>
               <input
@@ -126,7 +132,7 @@ export function Onboarding({ onDone }: { onDone: (profile: UserProfile) => void 
                 />
               </div>
             </div>
-            <button type="button" className="onboarding-cta" onClick={valider}>
+            <button type="submit" className="onboarding-cta">
               C'est parti ! 🚀
             </button>
             {error && (

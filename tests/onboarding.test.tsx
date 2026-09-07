@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Mock } from 'vitest';
 import { Onboarding } from '../src/components/onboarding/Onboarding';
@@ -6,11 +6,15 @@ import type { UserProfile } from '../src/lib/model';
 import { getWeights, loadProfile } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
 
+// happy-dom ne déclenche pas la soumission implicite des formulaires :
+// convention repo = fireEvent.submit (les navigateurs réels valident via Entrée/type=submit).
+const soumettre = () => fireEvent.submit(document.querySelector('.onboarding-form')!);
+
 const submitForm = async (user: ReturnType<typeof userEvent.setup>, overrides: Record<string, string> = {}) => {
   await user.type(screen.getByLabelText('Poids (kg)'), overrides.poids ?? '84.2');
   await user.type(screen.getByLabelText('Âge'), overrides.age ?? '41');
   await user.type(screen.getByLabelText('Taille (cm)'), overrides.taille ?? '178');
-  await user.click(screen.getByRole('button', { name: /C'est parti/ }));
+  soumettre();
 };
 
 describe('Onboarding — étape 1 (choix du profil)', () => {
@@ -79,7 +83,7 @@ describe('Onboarding — étape 2 (validation et enregistrement)', () => {
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText('Poids (kg)'), '62.4');
-    await user.click(screen.getByRole('button', { name: /C'est parti/ }));
+    soumettre();
 
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent(/remplis/i);
@@ -104,6 +108,17 @@ describe('Onboarding — étape 2 (validation et enregistrement)', () => {
     await waitFor(() => expect(onDone).toHaveBeenCalledWith({ id: 'melanie', age: 41, taille: 178 }));
     expect(loadProfile()).toEqual({ id: 'melanie', age: 41, taille: 178 });
     expect(getWeights('melanie')).toEqual([{ date: todayISO(), kg: 62.4 }]);
+  });
+
+  it('valide le formulaire avec la touche Entrée (soumission du form)', async () => {
+    const user = await ouvrirEtape2();
+
+    await user.type(screen.getByLabelText('Poids (kg)'), '62.4');
+    await user.type(screen.getByLabelText('Âge'), '38');
+    await user.type(screen.getByLabelText('Taille (cm)'), '165');
+    soumettre();
+
+    await waitFor(() => expect(onDone).toHaveBeenCalledWith({ id: 'melanie', age: 38, taille: 165 }));
   });
 
   it('accepte les bornes hautes valides (poids 250, âge 100, taille 230)', async () => {
