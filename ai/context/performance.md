@@ -1,0 +1,95 @@
+# Performance — sport-app
+
+## Principes Généraux
+
+- App PWA de la taille d'un paiement mobile : **le budget est petit, la marge est grande** — ne pas optimiser prématurément, mais ne rien régresser
+- Optimiser la performance **perçue** (interactions < 100 ms, transitions fluides)
+- Le contenu critique (semaine courante) est **local** : zéro réseau, zéro loading state
+- Chaque nouvelle dépendance = du JS à télécharger et analyser sur un vieux téléphone, en 4G de cuisine → poids fort dans la balance
+
+---
+
+## Budgets
+
+| Métrique | Cible | Vérification |
+|---|---|---|
+| Bundle JS (gzip) | < 60 Ko | `npm run build` (taille affichée) |
+| Précaché service worker | < 300 Ko | entrées `dist/sw.js` (actuellement ~11 fichiers, ~260 Ko) |
+| Lighthouse Performance (mobile) | > 95 | audit DevTools sur `npm run preview` |
+| LCP | < 1,5 s | l'app shell est du HTML+CSS quasi statique |
+| Interaction (toggle coche) | < 100 ms | écriture localStorage synchrone, ok |
+
+---
+
+## React — Règles
+
+### Rendu
+
+- Composants minces et présentatifs : un re-render est bon marché par construction
+- **Pas de `memo`/`useCallback`/`useMemo` spéculatif** — n'ajouter que sur mesure d'un vrai problème (profiler React DevTools)
+- Pas de calcul dans le rendu qui pourrait être dérivé une fois : `useMemo` autorisé uniquement pour des dérivations non triviales (ex. groupement des courses)
+- Listes : `key` **stable** = l'id du domaine (`item.id`), jamais l'index. C'est aussi la clé de persistance — les ids dupliqués produisent un warning au parse
+
+### État
+
+- `useState` local + props, **pas de store global** (YAGNI)
+- Resynchronisation sur changement de prop : pattern render-phase reset (`syncedSemaine`), pas de `useEffect` inutile (rendu supplémentaire + flash de contenu périmé)
+- localStorage est synchrone : lire au mount est OK pour cette taille de données ; ne pas introduire de couche async
+
+---
+
+## Vite & Bundle
+
+- **Zéro dépendance runtime** hors React + js-yaml — toute nouvelle lib doit se justifier face à ce budget
+- Pas de code-splitting par route : une seule vue active, 3 onglets — le bundle unique + précaché SW est la bonne trade-off ici
+- Images : uniquement des icônes PWA PNG optimisées (`npm run icons`) ; pas de photos → pas de pipeline image nécessaire
+- Pas de polyfill : cibles navigateurs modernes (Vite default), `esnext` OK
+
+---
+
+## PWA / Réseau
+
+- Le précache service worker (`globPatterns` dans `vite.config.ts`) doit rester **petit et complet** : toute l'app + assets statiques. Vérifier après chaque build que `dist/sw.js` liste l'essentiel (index, JS, CSS, manifest, icônes)
+- Données utilisateur en localStorage → l'app fonctionne 100 % hors ligne après la première visite ; ne jamais introduire d'appel réseau pour le contenu
+- `registerSW({ immediate: true })` (autoUpdate) : la mise à jour s'applique au rechargement suivant — ne pas passer en `prompt` sans besoin UX réel
+
+---
+
+## CSS
+
+- Un seul fichier `src/index.css` (~470 lignes) : pas de CSS-in-JS, pas de lib utilitaire (Tailwind), pas de `<style>` dans les composants
+- Variables CSS sur `:root` = tokens ; les composants ne codent **jamais** une couleur/rayon en dur (exception documentée : `ACCENTS` dans ProfileView, aligné sur les variables)
+- Transitions limitées aux propriétés bon marché (`background-color`, `color`, `transform`) + kill-switch `prefers-reduced-motion`
+
+---
+
+## Checklist Avant Déploiement
+
+- [ ] `npm run build` passe et affiche un bundle dans le budget
+- [ ] `dist/sw.js` précache tout le nécessaire (11 entrées attendues)
+- [ ] Pas de nouvelle dépendance runtime sans discussion
+- [ ] Pas de `memo`/`useCallback` ajoutés « au cas où »
+- [ ] Pas d'appel réseau introduit (offline-first intact)
+- [ ] Lighthouse mobile > 95 (audit sur `npm run preview`)
+- [ ] Coches/pesées toujours fonctionnelles en mode avion (test DevTools offline)
+
+---
+
+## Anti-patterns à Éviter
+
+```tsx
+// ❌ Dériver dans le rendu sans memoïser un calcul coûteux (et non trivial)
+{items.filter(i => i.rayon === 'proteines').sort(...).map(...)}
+
+// ❌ index comme key
+{items.map((it, i) => <Row key={i} />)}
+
+// ❌ Effet de sync à la place du pattern render-phase reset
+useEffect(() => { setChecks(getChecks(semaine)) }, [semaine]) // rendu + flash périmé
+
+// ❌ Charger une lib pour un truc de 15 lignes (chart, date, state)
+npm i recharts   // Sparkline SVG maison = 25 lignes
+
+// ❌ Fetch du contenu au démarrage
+fetch('/semaine.md') // le contenu vit en localStorage, pas sur le réseau
+```

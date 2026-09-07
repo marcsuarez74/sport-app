@@ -4,6 +4,14 @@ Design rules:
 - never hardcode repeated values
 - group styles into reusable patterns
 
+Project constraints (sport-app — override any generic habit):
+
+- dark mode ONLY, no light theme, no prefers-color-scheme logic
+- plain CSS in a single file (src/index.css), semantic classes — NO Tailwind, no CSS-in-JS
+- tokens live as CSS variables on :root — map every color/spacing/radius to var(--token)
+- touch targets >= 48px, contrast >= 4.5:1 ("ultra visible" is a product requirement)
+- texts in French
+
 Component strategy:
 
 - identify reusable components
@@ -17,30 +25,24 @@ Spacing:
 
 Colors:
 
-- map colors to semantic names (primary, secondary, danger)
-- avoid raw hex values in components
+- map colors to semantic CSS variables (see ai/context/design-system.md)
+- avoid raw hex values in components (except documented ACCENTS constant)
 
 Typography:
 
-- define hierarchy (title, subtitle, body)
+- define hierarchy (h1 20px/800, h2 20px/700, h3 17px/700, body 16px)
 - maintain consistency
 
 Responsive:
 
-- mobile-first approach
-- adapt layout progressively
-
-Tailwind rules:
-
-- prefer utility classes
-- extract reusable classes if repeated
-- use config (tailwind.config.js) for tokens
+- mobile-first, content capped at 560px
+- respect iOS safe areas (env(safe-area-inset-*))
 
 UX:
 
 - clear interaction states (hover, focus, active)
 - accessible contrast
-- intuitive layout
+- transitions 0.2s on interactive elements only + prefers-reduced-motion kill switch
 
 Performance:
 

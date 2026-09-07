@@ -6,15 +6,16 @@
   "skills": [
     "figma/design-to-tokens",
     "figma/design-to-component",
-    "tailwind/ui-generator",
-    "tailwind/design-tokens",
-    "tailwind/responsive-layout"
+    "css/design-tokens",
+    "css/semantic-classes",
+    "responsive-layout"
   ],
 
   "context": [
     "../../context/design-system.md",
-    "../../context/ui-guidelines.md",
-    "../../context/project-architecture.md"
+    "../../context/ui-guideline.md",
+    "../../context/project-architecture.md",
+    "../../context/performance.md"
   ],
 
   "prompts": [

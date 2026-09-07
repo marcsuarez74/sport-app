@@ -2,18 +2,20 @@ Always structure your response like this:
 
 ## Design Tokens
 
-Provide a JSON structure:
+Map every value to the existing CSS variables from src/index.css (:root):
 
-- colors
+- colors (var(--bg), var(--surface), var(--accent-cuisine), ...)
 - spacing
 - typography
 - radius
 
+New tokens, if unavoidable, are proposed as :root additions.
+
 ---
 
-## Tailwind Config Extension
+## CSS (semantic classes)
 
-Provide a tailwind.config.js extension
+Provide plain CSS using the semantic-class convention of src/index.css — NO Tailwind, no utility classes.
 
 ---
 
@@ -29,7 +31,7 @@ List components:
 
 ## UI Code
 
-Provide Tailwind-based UI code
+Provide React functional components (named exports) using the semantic classes above, dark mode only, touch targets >= 48px.
 
 ---
 
@@ -38,5 +40,5 @@ Provide Tailwind-based UI code
 Explain:
 
 - design decisions
-- token strategy
+- token strategy (existing variables reused vs added)
 - component architecture

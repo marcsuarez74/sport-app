@@ -96,13 +96,10 @@ Toute lecture passe par `safeParse` + garde de forme : une donnée corrompue se 
 `ai/` contient des **configs d'agents IA** à parcourir AVANT tout travail dans leur domaine :
 
 - `ai/agent/<nom>/` — un agent par dossier : `agent.config.json` (rôle, skills, settings) + prompts (`system.prompt.md`, `rules.prompt.md`, `output-format.prompt.md`)
-- Un travail de design/UI doit suivre `ai/agent/design-agent/` : lire ses prompts, adopter son rôle et ses règles
+- `ai/context/` — le contexte projet à lire avec l'agent : `project-architecture.md` (stack, patterns, build), `design-system.md` (tokens, source = `src/index.css`), `ui-guideline.md` (règles UI), `performance.md` (budgets, anti-patterns)
+- Un travail de design/UI doit suivre `ai/agent/design-agent/` : lire ses prompts et le contexte, adopter son rôle et ses règles
 
-Adaptation obligatoire à CE projet (les prompts génériques parlent Tailwind) :
-
-- Pas de Tailwind ici : les « design tokens » vivent dans les variables CSS de `src/index.css` (`:root`) — extraire/mapper les tokens vers ces variables, pas vers un `tailwind.config.js`
-- Le code UI produit suit le style du repo : composants React + classes sémantiques (pas d'utilitaires inline)
-- `design-agent` référence des fichiers `ai/context/*.md` qui **n'existent pas encore** — s'ils sont absents, ne pas les inventer, travailler depuis AGENTS.md + `src/index.css` (source de vérité du design system)
+Ces fichiers sont **adaptés à CE projet** (React + Vite + CSS sémantique, dark only) — s'ils contiennent du générique non applicable (ex. Tailwind), la contrainte du repo gagne : tokens = variables CSS de `src/index.css`, pas de framework CSS. Si `src/index.css` et `ai/context/design-system.md` divergent, corriger les deux.
 
 ## Si quelque chose est ambigu
 
