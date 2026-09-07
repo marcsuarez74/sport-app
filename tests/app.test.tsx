@@ -71,7 +71,7 @@ describe('App shell', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: /Qui est derrière l'écran/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '🛒 Cuisine' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cuisine' })).not.toBeInTheDocument();
   });
 
   it('sans semaine stockée, la semaine d’exemple se charge automatiquement (aucun écran d’import)', () => {
@@ -92,10 +92,10 @@ describe('App shell', () => {
     render(<App />);
 
     expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '🛒 Cuisine' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '💪 Marc' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '🥑 Mélanie' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cuisine' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mon suivi' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Marc' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mélanie' })).not.toBeInTheDocument();
     expect(screen.queryByText(/Importer/)).not.toBeInTheDocument();
   });
 
@@ -115,7 +115,7 @@ describe('App shell', () => {
     await user.click(screen.getByRole('button', { name: '📦 Batch' }));
     expect(screen.getByText(/Riz/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
+    await user.click(screen.getByRole('button', { name: 'Mon suivi' }));
     expect(screen.getByText(/Salut Marc/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Marc — Diet & Sport', level: 2 })).toBeInTheDocument();
     expect(screen.getByText('Full body')).toBeInTheDocument();
@@ -178,13 +178,28 @@ describe('Design system & sémantique', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const cuisine = screen.getByRole('button', { name: '🛒 Cuisine' });
+    const cuisine = screen.getByRole('button', { name: 'Cuisine' });
     expect(cuisine).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Mon suivi' })).not.toHaveAttribute('aria-current');
 
-    await user.click(screen.getByRole('button', { name: '🎯 Mon suivi' }));
-    expect(screen.getByRole('button', { name: '🎯 Mon suivi' })).toHaveAttribute('aria-current', 'page');
+    await user.click(screen.getByRole('button', { name: 'Mon suivi' }));
+    expect(screen.getByRole('button', { name: 'Mon suivi' })).toHaveAttribute('aria-current', 'page');
     expect(cuisine).not.toHaveAttribute('aria-current');
+  });
+
+  it('rend le dock flottant (maquette B) : pilule active, icône seule inactive', () => {
+    initProfile();
+    render(<App />);
+
+    const cuisine = screen.getByRole('button', { name: 'Cuisine' });
+    expect(cuisine.parentElement).toHaveClass('tabbar-dock');
+    expect(cuisine).toHaveClass('dock-tab-active');
+    expect(cuisine).toHaveTextContent('Cuisine'); // label visible à l'actif
+
+    const suivi = screen.getByRole('button', { name: 'Mon suivi' });
+    expect(suivi).toHaveClass('dock-tab');
+    expect(suivi).not.toHaveClass('dock-tab-active');
+    expect(suivi).not.toHaveTextContent('Mon suivi'); // icône seule à l'inactif
   });
 });
 

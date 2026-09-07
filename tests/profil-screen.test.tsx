@@ -162,10 +162,10 @@ describe('ProfilScreen (intégration via App)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Mon profil' }));
     expect(screen.getByRole('heading', { name: 'Profil', level: 1 })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '🛒 Cuisine' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cuisine' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Retour/ }));
-    expect(screen.getByRole('button', { name: '🛒 Cuisine' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cuisine' })).toBeInTheDocument();
   });
 
   it('la réouverture de l’écran montre les infos enregistrées (pas d’état périmé)', async () => {
