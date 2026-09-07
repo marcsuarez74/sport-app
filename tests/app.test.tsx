@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
@@ -59,12 +59,10 @@ au: 2026-09-27
 const getFileInput = (container: HTMLElement): HTMLInputElement =>
   container.querySelector('input[type="file"]') as HTMLInputElement;
 
-const uploadFile = async (input: HTMLInputElement, content: string) => {
-  const file = new File([content], 'semaine.md', { type: 'text/markdown' });
-  await act(async () => {
-    fireEvent.change(input, { target: { files: [file] } });
-  });
-};
+const uploadFile = (input: HTMLInputElement, content: string) =>
+  userEvent
+    .setup()
+    .upload(input, new File([content], 'semaine.md', { type: 'text/markdown' }));
 
 // happy-dom n'expose pas window.confirm : on le remplace par un stub global.
 const mockConfirm = (value: boolean) => {
@@ -76,6 +74,10 @@ const mockConfirm = (value: boolean) => {
 describe('App shell', () => {
   beforeEach(() => {
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('affiche ImportScreen quand aucune semaine est chargée', () => {
@@ -160,6 +162,20 @@ describe('App shell', () => {
     await waitFor(() => expect(screen.getByText('Semaine 2026-S40')).toBeInTheDocument());
     expect(confirmSpy).toHaveBeenCalledTimes(2);
     expect(screen.queryByText('Semaine 2026-S39')).not.toBeInTheDocument();
+  });
+
+  it('réinitialise le champ file même en cas de refus de confirmation', async () => {
+    const confirmSpy = mockConfirm(false);
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    const { container } = render(<App />);
+    const input = getFileInput(container);
+
+    await uploadFile(input, fixture('2026-S40'));
+
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalledTimes(1));
+    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
+    expect(input.value).toBe('');
   });
 
   it("réimporte la même semaine sans confirmation", async () => {

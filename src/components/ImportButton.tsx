@@ -16,6 +16,7 @@ export function ImportButton({
     if (!file) return;
     try {
       const raw = await file.text();
+      e.target.value = '';
       const { data, warnings } = parseWeeklyFile(raw);
       const current = loadWeek();
       if (
@@ -26,7 +27,6 @@ export function ImportButton({
         return;
       saveWeek(raw, data);
       if (warnings.length) console.warn('Import:', warnings);
-      e.target.value = '';
       onImported();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fichier invalide');

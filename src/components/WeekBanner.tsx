@@ -1,11 +1,6 @@
 import type { WeekMeta } from '../lib/model';
+import { formatDayMonth } from '../lib/dates';
 import { ImportButton } from './ImportButton';
-
-// '2026-09-21' -> '21/09' : un simple split évite le parsing UTC de new Date.
-const formatDayMonth = (iso: string): string => {
-  const [, month, day] = iso.split('-');
-  return `${day}/${month}`;
-};
 
 export function WeekBanner({ meta, onImported }: { meta: WeekMeta; onImported: () => void }) {
   return (

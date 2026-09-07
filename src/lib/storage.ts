@@ -28,7 +28,14 @@ export const saveWeek = (raw: string, data: WeeklyData): void =>
 
 export const loadWeek = (): ImportedWeek | null => {
   const s = localStorage.getItem(WEEK_KEY);
-  return s ? safeParse<ImportedWeek | null>(WEEK_KEY, s, null) : null;
+  if (!s) return null;
+  const parsed = safeParse<ImportedWeek | null>(WEEK_KEY, s, null);
+  if (!parsed || typeof parsed?.data?.meta?.semaine !== 'string') {
+    console.warn(`Semaine corrompue ignorée : ${WEEK_KEY}`);
+    localStorage.removeItem(WEEK_KEY);
+    return null;
+  }
+  return parsed;
 };
 
 export const getChecks = (semaine: string): Record<string, boolean> =>

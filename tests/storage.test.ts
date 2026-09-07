@@ -126,6 +126,13 @@ describe('storage: corrupted keys', () => {
     expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:week');
   });
 
+  it('loadWeek returns null and removes a week with a valid JSON but malformed shape', () => {
+    localStorage.setItem('sportapp:week', '{"foo":1}');
+    expect(loadWeek()).toBeNull();
+    expect(localStorage.getItem('sportapp:week')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Semaine corrompue ignorée : sportapp:week');
+  });
+
   it('getChecks returns {} and removes a corrupted checks key', () => {
     localStorage.setItem('sportapp:checks:2026-S39', 'nope[');
     expect(getChecks('2026-S39')).toEqual({});

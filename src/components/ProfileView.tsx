@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import type { ProfileData, ProfileKey } from '../lib/model';
 import { addWeight, getWeights } from '../lib/storage';
 import type { WeightEntry } from '../lib/storage';
-import { todayISO } from '../lib/dates';
+import { todayISO, formatDayMonth } from '../lib/dates';
 import { Checklist } from './Checklist';
 import { Sparkline } from './Sparkline';
 
@@ -15,12 +15,6 @@ const TITLES: Record<ProfileKey, string> = {
 const ACCENTS: Record<ProfileKey, string> = {
   marc: '#e07b39',
   melanie: '#3d9a6c',
-};
-
-// '2026-09-22' -> '22/09' (journal hebdo, l'année est superflue).
-const formatDayMonth = (iso: string): string => {
-  const [, month, day] = iso.split('-');
-  return `${day}/${month}`;
 };
 
 export function ProfileView({
