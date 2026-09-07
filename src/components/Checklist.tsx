@@ -2,7 +2,15 @@ import { useState } from 'react';
 import type { ChecklistItem } from '../lib/model';
 import { getChecks, setCheck } from '../lib/storage';
 
-export function Checklist({ items, semaine }: { items: ChecklistItem[]; semaine: string }) {
+export function Checklist({
+  items,
+  semaine,
+  onChecksChange,
+}: {
+  items: ChecklistItem[];
+  semaine: string;
+  onChecksChange?: (checks: Record<string, boolean>) => void;
+}) {
   const [checks, setChecks] = useState<Record<string, boolean>>(() => getChecks(semaine));
   const [syncedSemaine, setSyncedSemaine] = useState(semaine);
   if (syncedSemaine !== semaine) {
@@ -12,7 +20,9 @@ export function Checklist({ items, semaine }: { items: ChecklistItem[]; semaine:
   const toggle = (item: ChecklistItem) => {
     const done = !checks[item.id];
     setCheck(semaine, item.id, done);
-    setChecks((c) => ({ ...c, [item.id]: done }));
+    const next = { ...checks, [item.id]: done };
+    setChecks(next);
+    onChecksChange?.(next);
   };
   return (
     <ul className="checklist">

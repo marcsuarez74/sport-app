@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ChecklistItem } from '../src/lib/model';
+import type { ChecklistItem, CourseItem } from '../src/lib/model';
 import { getChecks, setCheck } from '../src/lib/storage';
 import { Checklist } from '../src/components/Checklist';
 import { Sparkline } from '../src/components/Sparkline';
+import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 
 const items: ChecklistItem[] = [
   { id: 'repas-a', label: 'Préparer les repas' },
@@ -92,5 +93,69 @@ describe('Sparkline', () => {
   it('defaults to the brand color', () => {
     const { container } = render(<Sparkline values={[1, 2]} />);
     expect(container.querySelector('polyline')!.getAttribute('stroke')).toBe('#4f6bed');
+  });
+});
+
+const courseItems: CourseItem[] = [
+  { id: 'courses:proteines:poulet', rayon: 'proteines', label: 'Poulet' },
+  { id: 'courses:proteines:oeufs', rayon: 'proteines', label: 'Œufs' },
+  { id: 'courses:laitiers:yaourts', rayon: 'laitiers', label: 'Yaourts' },
+  { id: 'courses:proteines:tofu', rayon: 'proteines', label: 'Tofu' },
+];
+
+describe('ShoppingList', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('groups items by rayon in first-appearance order', () => {
+    render(<ShoppingList items={courseItems} semaine="S39" />);
+    const headings = screen.getAllByRole('heading', { level: 3 });
+    expect(headings.map((h) => h.textContent)).toEqual(['Proteines', 'Laitiers']);
+    const proteines = screen.getByRole('heading', { name: 'Proteines' }).closest('section')!;
+    expect(within(proteines).getAllByRole('checkbox')).toHaveLength(3);
+    const laitiers = screen.getByRole('heading', { name: 'Laitiers' }).closest('section')!;
+    expect(within(laitiers).getAllByRole('checkbox')).toHaveLength(1);
+  });
+
+  it('renders 0/4 cochés and a native progress bar initially', () => {
+    render(<ShoppingList items={courseItems} semaine="S39" />);
+    expect(screen.getByText('0/4 cochés')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '0');
+    expect(screen.getByRole('progressbar')).toHaveAttribute('max', '4');
+  });
+
+  it('updates the progress live when items are checked', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingList items={courseItems} semaine="S39" />);
+    await user.click(screen.getByRole('checkbox', { name: 'Poulet' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Yaourts' }));
+    expect(screen.getByText('2/4 cochés')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '2');
+  });
+
+  it('persists checked items via storage', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingList items={courseItems} semaine="S39" />);
+    await user.click(screen.getByRole('checkbox', { name: 'Poulet' }));
+    expect(getChecks('S39')).toEqual({ 'courses:proteines:poulet': true });
+  });
+
+  it('renders a muted message and no sections when there are no items', () => {
+    const { container } = render(<ShoppingList items={[]} semaine="S39" />);
+    expect(screen.getByText('Aucune course pour cette semaine.')).toBeInTheDocument();
+    expect(container.querySelector('section.course-group')).toBeNull();
+    expect(container.querySelector('.progress')).toBeNull();
+    expect(container.querySelector('progress')).toBeNull();
+  });
+
+  it('capitalizes the rayon slug', () => {
+    render(
+      <ShoppingList
+        items={[{ id: 'courses:epicerie:sel', rayon: 'epicerie', label: 'Sel' }]}
+        semaine="S39"
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 3, name: 'Epicerie' })).toBeInTheDocument();
   });
 });
