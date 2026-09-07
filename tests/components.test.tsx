@@ -1,11 +1,14 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ChecklistItem, CourseItem, MenuDay } from '../src/lib/model';
-import { getChecks, setCheck } from '../src/lib/storage';
+import type { ChecklistItem, CourseItem, MenuDay, ProfileData } from '../src/lib/model';
+import { addWeight, getChecks, getWeights, setCheck } from '../src/lib/storage';
+import { todayISO } from '../src/lib/dates';
 import { Checklist } from '../src/components/Checklist';
 import { Sparkline } from '../src/components/Sparkline';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
+import { BatchView } from '../src/components/cuisine/BatchView';
+import { ProfileView } from '../src/components/ProfileView';
 
 const items: ChecklistItem[] = [
   { id: 'repas-a', label: 'Préparer les repas' },
@@ -254,6 +257,145 @@ describe('MenuView', () => {
     );
     expect(container.querySelector('section.menu-day.today')).toBeNull();
     expect(container.querySelector('.today-badge')).toBeNull();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+});
+
+describe('BatchView', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('renders the banner and the checklist items', () => {
+    render(<BatchView items={items} semaine="S39" />);
+    expect(screen.getByText('Gros batch : dimanche, 45-60 min')).toHaveClass('batch-banner');
+    expect(screen.getByRole('checkbox', { name: 'Préparer les repas' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Faire les courses' })).toBeInTheDocument();
+  });
+
+  it('renders a muted message and no banner when there are no items', () => {
+    const { container } = render(<BatchView items={[]} semaine="S39" />);
+    expect(screen.getByText('Aucun batch prévu cette semaine.')).toBeInTheDocument();
+    expect(container.querySelector('.batch-banner')).toBeNull();
+    expect(container.querySelector('ul.checklist')).toBeNull();
+  });
+});
+
+const profileData: ProfileData = {
+  cibles: ['Objectif 10 000 pas / jour', 'Protéines à chaque repas'],
+  seances: [
+    { id: 'seance-fullbody-a', label: 'Full body A' },
+    { id: 'seance-cardio-30', label: 'Cardio 30 min' },
+  ],
+  rappels: ['Pesée chaque matin', '3 L d’eau par jour'],
+};
+
+describe('ProfileView', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('renders the title matching the profile', () => {
+    const { unmount } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Marc — Diet & Sport' })).toBeInTheDocument();
+    unmount();
+    render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Mélanie — Keto & Sport' })).toBeInTheDocument();
+  });
+
+  it('renders cibles and rappels as list items with the exact strings', () => {
+    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const cibles = Array.from(container.querySelectorAll('ul.target-list > li')).map((li) => li.textContent);
+    expect(cibles).toEqual(profileData.cibles);
+    const rappels = Array.from(container.querySelectorAll('ul.rappel-list > li')).map((li) => li.textContent);
+    expect(rappels).toEqual(profileData.rappels);
+  });
+
+  it('renders the seances checklist and persists a toggle', async () => {
+    const user = userEvent.setup();
+    render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const checkbox = screen.getByRole('checkbox', { name: 'Full body A' });
+    expect(checkbox).not.toBeChecked();
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(getChecks('S39')).toEqual({ 'seance-fullbody-a': true });
+  });
+
+  it('adds a weight, shows it newest-first in the history and stores it', () => {
+    addWeight('marc', '2026-09-05', 77.4);
+    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const dateInput = container.querySelector('input[name="date"]') as HTMLInputElement;
+    const kgInput = container.querySelector('input[name="kg"]') as HTMLInputElement;
+    expect(dateInput.value).toBe(todayISO());
+
+    fireEvent.change(dateInput, { target: { value: '2026-09-07' } });
+    fireEvent.change(kgInput, { target: { value: '76.8' } });
+    // userEvent.click sur le bouton submit ne déclenche pas onSubmit sous happy-dom.
+    fireEvent.submit(container.querySelector('form')!);
+
+    const lis = Array.from(container.querySelectorAll('ul.weight-list > li')).map((li) => li.textContent);
+    expect(lis).toEqual(['07/09 — 76.8 kg', '05/09 — 77.4 kg']);
+    expect(getWeights('marc')).toEqual([
+      { date: '2026-09-05', kg: 77.4 },
+      { date: '2026-09-07', kg: 76.8 },
+    ]);
+    expect(kgInput.value).toBe('');
+    expect(dateInput.value).toBe('2026-09-07');
+  });
+
+  it.each(['', 'abc', '-1'])('rejects invalid weight %j and stores nothing', (raw) => {
+    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const kgInput = container.querySelector('input[name="kg"]') as HTMLInputElement;
+    fireEvent.change(kgInput, { target: { value: raw } });
+    fireEvent.submit(container.querySelector('form')!);
+    expect(screen.getByRole('alert')).toHaveTextContent('Poids invalide.');
+    expect(getWeights('marc')).toEqual([]);
+  });
+
+  it('replaces the entry when the same date is submitted twice', () => {
+    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const dateInput = container.querySelector('input[name="date"]') as HTMLInputElement;
+    const kgInput = container.querySelector('input[name="kg"]') as HTMLInputElement;
+    fireEvent.change(dateInput, { target: { value: '2026-09-07' } });
+
+    const form = container.querySelector('form')!;
+    fireEvent.change(kgInput, { target: { value: '76.8' } });
+    fireEvent.submit(form);
+    fireEvent.change(kgInput, { target: { value: '77.2' } });
+    fireEvent.submit(form);
+
+    const lis = Array.from(container.querySelectorAll('ul.weight-list > li')).map((li) => li.textContent);
+    expect(lis).toEqual(['07/09 — 77.2 kg']);
+    expect(getWeights('marc')).toEqual([{ date: '2026-09-07', kg: 77.2 }]);
+  });
+
+  it('shows the sparkline hint when there are fewer than 2 entries', () => {
+    const { container } = render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
+    expect(screen.getByText('Ajoutez au moins 2 pesées.')).toBeInTheDocument();
+    expect(container.querySelector('svg')).toBeNull();
+  });
+
+  it('renders the sparkline svg with the profile accent once there are 2+ entries', () => {
+    addWeight('melanie', '2026-09-06', 64.2);
+    addWeight('melanie', '2026-09-07', 63.8);
+    const { container } = render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
+    const svg = screen.getByRole('img', { name: 'évolution du poids' });
+    expect(container.querySelector('svg')).toBe(svg);
+    expect(svg.querySelector('polyline')!.getAttribute('stroke')).toBe('#3d9a6c');
+  });
+
+  it('todayISO returns the local calendar date as YYYY-MM-DD', () => {
+    vi.useFakeTimers();
+    // Utiliser la forme `T10:00:00` (parse en heure locale), pas la forme date-only (parse en UTC).
+    vi.setSystemTime(new Date('2026-09-07T23:30:00'));
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const expected = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    expect(todayISO()).toBe(expected);
+    expect(todayISO()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   afterEach(() => {
