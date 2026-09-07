@@ -1,10 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ChecklistItem, CourseItem } from '../src/lib/model';
+import type { ChecklistItem, CourseItem, MenuDay } from '../src/lib/model';
 import { getChecks, setCheck } from '../src/lib/storage';
 import { Checklist } from '../src/components/Checklist';
 import { Sparkline } from '../src/components/Sparkline';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
+import { MenuView } from '../src/components/cuisine/MenuView';
 
 const items: ChecklistItem[] = [
   { id: 'repas-a', label: 'Préparer les repas' },
@@ -171,5 +172,91 @@ describe('ShoppingList', () => {
       />,
     );
     expect(screen.getByRole('heading', { level: 3, name: 'Epicerie' })).toBeInTheDocument();
+  });
+});
+
+const menuFixture: MenuDay[] = [
+  {
+    jour: 'Lundi',
+    dejeunerMarc: "Flocons d'avoine",
+    dejeunerMelanie: 'Skyr et fruits rouges',
+    dinerFamille: 'Poulet rôti et légumes',
+    dinerMelanie: 'Saumon et brocoli',
+    batch: 'Quinoa',
+  },
+  { jour: 'Mardi', dejeunerMarc: 'Œufs brouillés' },
+  { jour: 'Mercredi', dinerFamille: 'Pâtes carbonara' },
+];
+
+describe('MenuView', () => {
+  it('renders one card per day with the day name in an h3', () => {
+    const { container } = render(<MenuView menu={menuFixture} />);
+    expect(container.querySelectorAll('section.menu-day')).toHaveLength(3);
+    const headings = screen.getAllByRole('heading', { level: 3 });
+    expect(headings.map((h) => h.textContent)).toEqual(['Lundi', 'Mardi', 'Mercredi']);
+  });
+
+  it('renders present fields with exact labels in spec order and hides absent ones', () => {
+    render(<MenuView menu={menuFixture} />);
+    const lundi = screen.getByRole('heading', { name: 'Lundi' }).closest('section')!;
+    const lines = Array.from(lundi.querySelectorAll('.menu-row')).map((el) => el.textContent);
+    expect(lines).toEqual([
+      "Déjeuner Marc Flocons d'avoine",
+      'Déjeuner Mélanie Skyr et fruits rouges',
+      'Dîner famille Poulet rôti et légumes',
+      'Assiette keto Mé Saumon et brocoli',
+      'Batch du jour Quinoa',
+    ]);
+
+    const mardi = screen.getByRole('heading', { name: 'Mardi' }).closest('section')!;
+    expect(mardi.querySelectorAll('.menu-row')).toHaveLength(1);
+    expect(mardi.querySelector('.menu-row')!.textContent).toBe('Déjeuner Marc Œufs brouillés');
+    expect(within(mardi).queryByText('Assiette keto Mé')).toBeNull();
+    expect(within(mardi).queryByText('Batch du jour')).toBeNull();
+  });
+
+  it('highlights the current day card with the today class and badge', () => {
+    vi.useFakeTimers();
+    // Utiliser la forme `T10:00:00` (parse en heure locale), pas la forme date-only (parse en UTC).
+    vi.setSystemTime(new Date('2026-09-22T10:00:00'));
+    render(<MenuView menu={menuFixture} />);
+
+    const mardi = screen.getByRole('heading', { name: 'Mardi' }).closest('section')!;
+    expect(mardi).toHaveClass('today');
+    expect(within(mardi).getByText("Aujourd'hui")).toHaveClass('today-badge');
+
+    const lundi = screen.getByRole('heading', { name: 'Lundi' }).closest('section')!;
+    expect(lundi).not.toHaveClass('today');
+    expect(within(lundi).queryByText("Aujourd'hui")).toBeNull();
+
+    const mercredi = screen.getByRole('heading', { name: 'Mercredi' }).closest('section')!;
+    expect(mercredi).not.toHaveClass('today');
+    expect(within(mercredi).queryByText("Aujourd'hui")).toBeNull();
+  });
+
+  it('renders a muted message and no cards when the menu is empty', () => {
+    const { container } = render(<MenuView menu={[]} />);
+    expect(screen.getByText('Aucun menu pour cette semaine.')).toBeInTheDocument();
+    expect(container.querySelector('section.menu-day')).toBeNull();
+  });
+
+  it('does not mark any card as today when the current day is absent from the menu', () => {
+    vi.useFakeTimers();
+    // Utiliser la forme `T10:00:00` (parse en heure locale), pas la forme date-only (parse en UTC).
+    vi.setSystemTime(new Date('2026-09-22T10:00:00'));
+    const { container } = render(
+      <MenuView
+        menu={[
+          { jour: 'Lundi', dejeunerMarc: 'Flocons' },
+          { jour: 'Mercredi', dinerFamille: 'Pâtes' },
+        ]}
+      />,
+    );
+    expect(container.querySelector('section.menu-day.today')).toBeNull();
+    expect(container.querySelector('.today-badge')).toBeNull();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 });
