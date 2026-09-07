@@ -17,13 +17,12 @@ Source de vérité : `src/index.css` (section `:root`). Toute valeur ici doit y 
 |---|---|---|
 | `--bg` | `#0f1115` | fond de page |
 | `--surface` | `#1a1d27` | cartes (`.menu-day`, `.course-group`, `.profile-section`) |
-| `--surface-2` | `#232735` | surfaces secondaires (`.batch-banner`, onglet actif, `.profile-icon-btn`) |
-| `--tabbar-bg` | `rgb(20 22 31 / 0.88)` | barre d'onglets fixe (backdrop-blur 12px) |
+| `--surface-2` | `#232735` | surfaces secondaires (`.batch-banner`, `.profile-icon-btn`) |
 | `--border` | `#2e3345` | bordures de cartes, dots inactifs |
 | `--text` | `#f2f4f8` | texte principal (15,3:1 sur surface) |
 | `--muted` | `#9aa3b5` | texte secondaire (6,6:1 sur surface) |
-| `--accent` | `#5c6bc0` par défaut | **accent global** : onglets, checkboxes, focus, `.today`, bordures, barre d'onglet active |
-| `--accent-strong` | `#485495` par défaut | accent **assombri** pour fonds portant du texte blanc (`.btn`, `.today-badge`, CTA) — garantit ≥ 4,5:1 pour chaque profil |
+| `--accent` | `#5c6bc0` par défaut | **accent global** : onglets, checkboxes, focus, `.today`, bordures |
+| `--accent-strong` | `#485495` par défaut | accent **assombri** pour fonds portant du texte blanc (`.btn`, `.dock-tab-active`, CTA) — garantit ≥ 4,5:1 pour chaque profil |
 | `--accent-marc` | `#e07b39` | couleur perso Marc (onboarding, sparkline) |
 | `--accent-melanie` | `#3d9a6c` | couleur perso Mélanie (onboarding, sparkline) |
 | `--danger` | `#ff6b6b` | erreurs (`.error`), `.profil-switch` |
@@ -43,7 +42,7 @@ Source de vérité : `src/index.css` (section `:root`). Toute valeur ici doit y 
 }
 ```
 
-Sans profil (écran import) : accent neutre bleu-violet `#5c6bc0`. Tout nouveau style interactif doit utiliser `var(--accent)` (éléments graphiques) ou `var(--accent-strong)` (fonds avec texte blanc), jamais un hex.
+Sans profil (onboarding) : accent neutre bleu-violet `#5c6bc0`. Tout nouveau style interactif doit utiliser `var(--accent)` (éléments graphiques) ou `var(--accent-strong)` (fonds avec texte blanc), jamais un hex.
 
 **Contrastes mesurés (blanc sur fond)** : `--accent-strong` = 7,1:1 (bleu) · 4,6:1 (orange) · 5,3:1 (vert). `--accent` brut réservé aux éléments non textuels (≥ 3:1 UI). Les dégradés des cartes onboarding (blanc sur orange/vert saturé) sont un choix visuel validé en maquette — ne pas réutiliser ce pattern ailleurs.
 
@@ -71,13 +70,13 @@ Pile système : `-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, san
 | `h3` | 17 px | 700 | titres de cartes (jours, rayons, sections) |
 | corps | 16 px | 400 | contenu |
 | `.today-badge` | 12 px | 700 | badge « Aujourd'hui » |
-| `.tab` | 12 px | 400/700 (actif) | libellés d'onglets |
+| `.dock-tab` | 12 px | 700 | libellés du dock (actif seulement) |
 
 ---
 
 ## Espacements
 
-Échelle 4 px : 2 · 4 · 8 · 12 · 16 · 24. Padding standard des cartes : 16 px. Gouttières page : 16 px. Espace sous la tabbar : `calc(76px + safe-area-inset-bottom)`.
+Échelle 4 px : 2 · 4 · 8 · 12 · 16 · 24. Padding standard des cartes : 16 px. Gouttières page : 16 px. Espace sous le dock : `calc(88px + safe-area-inset-bottom)` (sur `.main-content`).
 
 ---
 
@@ -91,7 +90,9 @@ Pile système : `-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, san
 | `.onboarding-cta` | validation étape 2 | dégradé `--accent` → `--accent-strong`, 48px, glow |
 | `.onboarding-back` / `.profil-back` | navigation retour | ghost, muted, ≥ 48px |
 | `.btn` | action principale | fond `--accent-strong`, blanc, 700, min-height 48 px, active `scale(0.97)` |
-| `.tabbar` / `.tab` / `.tab.active` | navigation fixe bas (2 onglets : Cuisine / Mon suivi) | fixed + safe-area + blur ; actif = pill `--surface-2` + blanc + 700 + barre accent `--accent` |
+| `.tabbar-dock` / `.dock-tab` / `.dock-tab-active` | **dock flottant** de navigation (2 onglets : Cuisine / Mon suivi) | fixed `left/right 16px` + `bottom calc(12px + safe-area)` + `max-width 528px` centré ; pill `999px`, fond `rgb(26 29 39 / 0.9)` + blur 12px + bordure + ombre ; **actif** = pilule pleine `--accent-strong` + blanc + label visible ; **inactif** = icône seule muted (`aria-label` porte le nom) ; ≥ 48 px, `aria-current="page"` |
+| `.cuisine-tabs .tab` | sous-onglets Cuisine (Courses / Menu / Batch) | pills `12px`, actif = `--surface-2` + barre accent inset |
+| `.course-group-header` + `img` | en-tête de groupe de courses | miniature 72×54 (`object-fit: cover`, radius 10px) via `imagePourRayon` (`src/lib/rayons.ts`), `loading="lazy"`, alt = libellé du rayon |
 | `.profile-icon-btn` | accès écran Profil | 48px, surface-2, icône SVG person `currentColor` |
 | `.profil-screen` / `.profil-switch` | écran Profil | sections `.profile-section` ; switch = bordure `--danger` (action sensible) |
 | `.greeting` | accueil personnalisé Mon suivi | muted, 14px/700 |
@@ -109,7 +110,6 @@ Pile système : `-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, san
 ## Accessibilité
 
 - `:focus-visible` : outline 2 px `--accent`, offset 2 px — toujours visible, jamais supprimé
-- `.btn:focus-within` : le bouton d'import s'illumine quand l'input fichier caché (`sr-only`) reçoit le focus
 - Contrastes texte vérifiés : texte/surface 15,3:1 · muted/surface 6,6:1 · blanc/accent-strong 4,6:1 minimum (tous profils)
 - `prefers-reduced-motion: reduce` → toutes transitions désactivées (`!important`, seule utilisation autorisée)
 
@@ -118,5 +118,5 @@ Pile système : `-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, san
 ## Responsive
 
 - Mobile-first, largeur de contenu plafonnée à **560 px** centrée (`.main-content`)
-- Safe-areas iOS : top sur `.main-content`, bottom sur `.tabbar`, left/right en paysage via `max(16px, env(safe-area-inset-*))`
+- Safe-areas iOS : top sur `.main-content`, bottom sur `.tabbar-dock`, left/right en paysage via `max(16px, env(safe-area-inset-*))`
 - `viewport-fit=cover` + barre de statut translucide (standalone PWA)
