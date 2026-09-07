@@ -204,3 +204,54 @@ describe('App shell', () => {
     expect(screen.queryByRole('button', { name: "Charger la semaine d'exemple" })).not.toBeInTheDocument();
   });
 });
+
+describe("Semaine d'exemple — contenu réel (Menu A, S39)", () => {
+  it('se parse sans warning avec meta, menu, courses, batch et profils complets', () => {
+    const { data, warnings } = parseWeeklyFile(sampleRaw);
+
+    expect(warnings).toEqual([]);
+    expect(data.meta).toEqual({
+      semaine: '2026-S39',
+      menu: 'A',
+      du: '2026-09-21',
+      au: '2026-09-27',
+      titre: 'Menu A — Base poulet & bolo',
+    });
+
+    expect(data.menu.map((d) => d.jour)).toEqual([
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche',
+    ]);
+    for (const day of data.menu) {
+      expect(day.dejeunerMarc).toBeTruthy();
+      expect(day.dinerFamille).toBeTruthy();
+    }
+    // Le « : » interne doit rester dans la valeur, pas couper la clé
+    expect(data.menu.find((d) => d.jour === 'Vendredi')?.dinerFamille).toBe(
+      'Tacos maison : galettes + haché (reste bolo) + crudités + yaourt-citron',
+    );
+    expect(data.menu.find((d) => d.jour === 'Samedi')?.batch).toBe(
+      '6-8 œufs durs (boxes de la semaine)',
+    );
+
+    expect(data.courses.length).toBeGreaterThanOrEqual(30);
+    expect(new Set(data.courses.map((c) => c.rayon)).size).toBeGreaterThanOrEqual(5);
+    expect(data.courses.find((c) => c.label === 'Pâtes')?.rayon).toBe('feculents');
+    expect(data.courses.find((c) => c.label === 'Amandes/noix')?.rayon).toBe('divers');
+
+    expect(data.batch).toHaveLength(5);
+    expect(data.batch[0].label).toBe('Egg muffins ×10');
+
+    expect(data.profiles.marc.cibles).toHaveLength(4);
+    expect(data.profiles.marc.seances).toHaveLength(6);
+    expect(data.profiles.marc.rappels).toHaveLength(2);
+    expect(data.profiles.melanie.cibles).toHaveLength(4);
+    expect(data.profiles.melanie.seances).toHaveLength(3);
+    expect(data.profiles.melanie.rappels).toHaveLength(2);
+  });
+});
