@@ -5,11 +5,12 @@ const TABS: Array<{ id: TabId; label: string; icone: string }> = [
   { id: 'suivi', label: 'Mon suivi', icone: '🎯' },
 ];
 
-// Dock flottant (maquette B) : l'onglet actif s'étire en pilule pleine avec
-// son label, l'inactif reste une icône seule (aria-label pour le nom).
+// Dock flottant (variante A) : pilule d'accent glissante pilotée en CSS via
+// data-active ; l'onglet actif porte son label, l'inactif reste une icône
+// seule (aria-label pour le nom).
 export function TabBar({ active, onSelect }: { active: TabId; onSelect: (tab: TabId) => void }) {
   return (
-    <nav className="tabbar-dock">
+    <nav className="tabbar-dock" data-active={active}>
       {TABS.map(({ id, label, icone }) => {
         const actif = id === active;
         return (

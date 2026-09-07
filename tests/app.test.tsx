@@ -185,14 +185,20 @@ describe('Design system & sémantique', () => {
     await user.click(screen.getByRole('button', { name: 'Mon suivi' }));
     expect(screen.getByRole('button', { name: 'Mon suivi' })).toHaveAttribute('aria-current', 'page');
     expect(cuisine).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Mon suivi' }).parentElement).toHaveAttribute(
+      'data-active',
+      'suivi',
+    );
   });
 
-  it('rend le dock flottant (maquette B) : pilule active, icône seule inactive', () => {
+  it('rend le dock flottant compact : pilule active, icône seule inactive', () => {
     initProfile();
     render(<App />);
 
     const cuisine = screen.getByRole('button', { name: 'Cuisine' });
-    expect(cuisine.parentElement).toHaveClass('tabbar-dock');
+    const dock = cuisine.parentElement;
+    expect(dock).toHaveClass('tabbar-dock');
+    expect(dock).toHaveAttribute('data-active', 'cuisine'); // pilule glissante pilotée en CSS
     expect(cuisine).toHaveClass('dock-tab-active');
     expect(cuisine).toHaveTextContent('Cuisine'); // label visible à l'actif
 

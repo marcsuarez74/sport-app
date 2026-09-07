@@ -52,7 +52,7 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 ## Interactions tactiles
 
 - Zone de clic = toute la ligne du label (pas seulement la checkbox)
-- Dock : `aria-current="page"` sur l'actif, différenciation visuelle forte (pilule pleine `--accent-strong` + label vs icône seule muted) ; inactif = `aria-label` complet
+- Dock : `aria-current="page"` sur l'actif, différenciation visuelle forte (pilule glissante `--accent-strong` + label vs icône seule muted) ; animations = rebond élastique 0,32s (pilule, pop icône, label), tuées par `prefers-reduced-motion` ; inactif = `aria-label` complet
 - `:focus-visible` toujours visible (clavier = outline accent) ; `.sr-only` pour les inputs fonctionnellement cachés mais focusables
 
 ## À ne PAS faire
