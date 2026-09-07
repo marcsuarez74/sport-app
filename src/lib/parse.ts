@@ -54,6 +54,8 @@ export function parseWeeklyFile(raw: string): ParseResult {
     typeof metaDoc.au !== 'string'
   )
     throw new Error('Frontmatter incomplet : semaine, menu, du, au sont requis.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(metaDoc.du) || !/^\d{4}-\d{2}-\d{2}$/.test(metaDoc.au))
+    throw new Error('Frontmatter incomplet : du et au doivent être au format AAAA-MM-JJ.');
   const meta: WeekMeta = {
     semaine: metaDoc.semaine,
     menu: metaDoc.menu,
@@ -175,7 +177,7 @@ function parseProfile(text: string, section: string, warnings: string[], seen: S
       else {
         const withBox = plain[1].match(/^\[( |x|X)\]\s+(.+)$/);
         const label = withBox ? withBox[2] : plain[1];
-        const id = `seances:${slugify(label)}`;
+        const id = `seances:${section}:${slugify(label)}`;
         registerId(id, section, seen, warnings);
         res.seances.push({ id, label });
       }

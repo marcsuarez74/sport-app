@@ -96,7 +96,7 @@ describe('Sparkline', () => {
 
   it('defaults to the brand color', () => {
     const { container } = render(<Sparkline values={[1, 2]} />);
-    expect(container.querySelector('polyline')!.getAttribute('stroke')).toBe('#4f6bed');
+    expect(container.querySelector('polyline')!.getAttribute('stroke')).toBe('#5c6bc0');
   });
 });
 

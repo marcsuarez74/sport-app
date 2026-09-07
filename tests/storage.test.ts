@@ -140,11 +140,39 @@ describe('storage: corrupted keys', () => {
     expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:checks:2026-S39');
   });
 
+  it('getChecks returns {} and removes a valid JSON with a wrong shape (array)', () => {
+    localStorage.setItem('sportapp:checks:2026-S39', '[1,2]');
+    expect(getChecks('2026-S39')).toEqual({});
+    expect(localStorage.getItem('sportapp:checks:2026-S39')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Checks corrompus ignorés : sportapp:checks:2026-S39');
+  });
+
+  it('getChecks returns {} and removes a valid JSON with a wrong shape (null)', () => {
+    localStorage.setItem('sportapp:checks:2026-S39', 'null');
+    expect(getChecks('2026-S39')).toEqual({});
+    expect(localStorage.getItem('sportapp:checks:2026-S39')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Checks corrompus ignorés : sportapp:checks:2026-S39');
+  });
+
   it('getWeights returns [] and removes a corrupted weights key', () => {
     localStorage.setItem('sportapp:weights:marc', '{"date":');
     expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
     expect(localStorage.getItem('sportapp:weights:marc')).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:weights:marc');
+  });
+
+  it('getWeights returns [] and removes a valid JSON with a wrong shape (object)', () => {
+    localStorage.setItem('sportapp:weights:marc', '{"a":1}');
+    expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
+    expect(localStorage.getItem('sportapp:weights:marc')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Pesées corrompues ignorées : sportapp:weights:marc');
+  });
+
+  it('getWeights returns [] and removes entries with wrong field types', () => {
+    localStorage.setItem('sportapp:weights:marc', '[{"date":"2026-09-21","kg":"81.2"}]');
+    expect(getWeights('marc')).toEqual<WeightEntry[]>([]);
+    expect(localStorage.getItem('sportapp:weights:marc')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Pesées corrompues ignorées : sportapp:weights:marc');
   });
 });
 

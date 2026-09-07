@@ -121,14 +121,14 @@ describe('parseWeeklyFile — semaine complète', () => {
   it('parse les profils Marc et Melanie', () => {
     expect(data.profiles.marc.cibles).toEqual(['2200 kcal', '150 g de protéines']);
     expect(data.profiles.marc.seances).toEqual([
-      { id: 'seances:ppg-lundi', label: 'PPG lundi' },
-      { id: 'seances:course-30-min', label: 'Course 30 min' },
+      { id: 'seances:marc:ppg-lundi', label: 'PPG lundi' },
+      { id: 'seances:marc:course-30-min', label: 'Course 30 min' },
     ]);
     expect(data.profiles.marc.rappels).toEqual(['Pesée le lundi']);
 
     expect(data.profiles.melanie.cibles).toEqual(['1600 kcal']);
     expect(data.profiles.melanie.seances).toEqual([
-      { id: 'seances:yoga-mardi', label: 'Yoga mardi' },
+      { id: 'seances:melanie:yoga-mardi', label: 'Yoga mardi' },
     ]);
     expect(data.profiles.melanie.rappels).toEqual(['Pesée le lundi']);
   });
@@ -210,6 +210,30 @@ au: 2026-09-27
 ---
 `),
     ).toThrow(/Frontmatter incomplet/);
+  });
+
+  it('du non ISO (21/09) → throw format AAAA-MM-JJ', () => {
+    expect(() =>
+      parseWeeklyFile(`---
+semaine: 2026-S39
+menu: A
+du: 21/09
+au: 2026-09-27
+---
+`),
+    ).toThrow('Frontmatter incomplet : du et au doivent être au format AAAA-MM-JJ.');
+  });
+
+  it('au non ISO (2026-9-27) → throw format AAAA-MM-JJ', () => {
+    expect(() =>
+      parseWeeklyFile(`---
+semaine: 2026-S39
+menu: A
+du: 2026-09-21
+au: 2026-9-27
+---
+`),
+    ).toThrow('Frontmatter incomplet : du et au doivent être au format AAAA-MM-JJ.');
   });
 });
 
@@ -435,6 +459,27 @@ describe('ids dupliqués', () => {
       'Id dupliqué « courses:fraicheur:eau » (courses) — les éléments partagent leur état de coche.',
       'Id dupliqué « batch:riz » (batch) — les éléments partagent leur état de coche.',
     ]);
+  });
+});
+
+describe('ids de séances par profil', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Marc
+### Séances
+- [ ] PPG lundi
+
+## Melanie
+### Séances
+- PPG lundi
+`));
+
+  it('même label de séance dans les deux profils → ids différents (état de coche non partagé)', () => {
+    expect(data.profiles.marc.seances[0].id).toBe('seances:marc:ppg-lundi');
+    expect(data.profiles.melanie.seances[0].id).toBe('seances:melanie:ppg-lundi');
+    expect(data.profiles.marc.seances[0].id).not.toBe(data.profiles.melanie.seances[0].id);
+  });
+
+  it('aucun warning d’id dupliqué pour un même label présent dans les deux profils', () => {
+    expect(warnings.filter((w) => w.startsWith('Id dupliqué'))).toEqual([]);
   });
 });
 

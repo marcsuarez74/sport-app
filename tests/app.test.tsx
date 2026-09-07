@@ -144,6 +144,21 @@ describe('App shell', () => {
     expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
   });
 
+  it('efface l’erreur d’import affichée dès qu’un import réussit', async () => {
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    const { container } = render(<App />);
+    const input = getFileInput(container);
+
+    await uploadFile(input, 'pas de frontmatter ici');
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+
+    // Même semaine → pas de confirmation, l'import réussit.
+    await uploadFile(input, fixture('2026-S39', 'Betteraves'));
+    await waitFor(() => expect(screen.getByText('Betteraves')).toBeInTheDocument());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('demande confirmation avant de remplacer une autre semaine (refus puis acceptation)', async () => {
     const confirmSpy = mockConfirm(false);
     const parsed = parseWeeklyFile(fixture());
@@ -162,6 +177,39 @@ describe('App shell', () => {
     await waitFor(() => expect(screen.getByText('Semaine 2026-S40')).toBeInTheDocument());
     expect(confirmSpy).toHaveBeenCalledTimes(2);
     expect(screen.queryByText('Semaine 2026-S39')).not.toBeInTheDocument();
+  });
+
+  it('affiche un avis persistant quand l’import contient des lignes ignorées', async () => {
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    const { container } = render(<App />);
+    const input = getFileInput(container);
+
+    // Une clé menu inconnue génère exactement 1 warning (import non bloquant, même semaine).
+    await uploadFile(
+      input,
+      fixture('2026-S39').replace('- diner-famille: Poulet rôti', '- dessert: tarte\n- diner-famille: Poulet rôti'),
+    );
+
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
+    expect(screen.getByRole('status')).toHaveTextContent('1 ligne');
+  });
+
+  it('masque l’avis de lignes ignorées au prochain import sans warning', async () => {
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+    const { container } = render(<App />);
+    const input = getFileInput(container);
+
+    await uploadFile(
+      input,
+      fixture('2026-S39').replace('- diner-famille: Poulet rôti', '- dessert: tarte\n- diner-famille: Poulet rôti'),
+    );
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
+
+    await uploadFile(input, fixture('2026-S39', 'Poireaux'));
+    await waitFor(() => expect(screen.getByText('Poireaux')).toBeInTheDocument());
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('réinitialise le champ file même en cas de refus de confirmation', async () => {

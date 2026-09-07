@@ -1,4 +1,4 @@
-export function Sparkline({ values, color = '#4f6bed', height = 48 }: { values: number[]; color?: string; height?: number }) {
+export function Sparkline({ values, color = '#5c6bc0', height = 48 }: { values: number[]; color?: string; height?: number }) {
   if (values.length < 2) return <p className="muted">Ajoutez au moins 2 pesées.</p>;
   const min = Math.min(...values), max = Math.max(...values);
   const pts = values.map((v, i) => {

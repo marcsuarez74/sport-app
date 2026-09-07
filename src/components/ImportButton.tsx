@@ -11,6 +11,7 @@ export function ImportButton({
   label?: string;
 }) {
   const [error, setError] = useState('');
+  const [ignoredCount, setIgnoredCount] = useState(0);
   const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -26,6 +27,8 @@ export function ImportButton({
       )
         return;
       saveWeek(raw, data);
+      setError('');
+      setIgnoredCount(warnings.length);
       if (warnings.length) console.warn('Import:', warnings);
       onImported();
     } catch (err) {
@@ -41,6 +44,11 @@ export function ImportButton({
       {error && (
         <p className="error" role="alert">
           {error}
+        </p>
+      )}
+      {ignoredCount > 0 && (
+        <p className="muted warn-line" role="status">
+          ⚠ {ignoredCount} ligne(s) ignorée(s) à l’import — vérifiez le fichier.
         </p>
       )}
     </div>

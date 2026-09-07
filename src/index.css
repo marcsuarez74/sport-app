@@ -384,6 +384,13 @@ progress {
   font-weight: 600;
 }
 
+.warn-line {
+  color: #fbbf24;
+  border-left: 3px solid #fbbf24;
+  padding-left: 8px;
+  font-size: 14px;
+}
+
 /* ---------- Profils ---------- */
 
 .profile-title {

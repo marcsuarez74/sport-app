@@ -38,8 +38,19 @@ export const loadWeek = (): ImportedWeek | null => {
   return parsed;
 };
 
-export const getChecks = (semaine: string): Record<string, boolean> =>
-  safeParse<Record<string, boolean>>(checksKey(semaine), localStorage.getItem(checksKey(semaine)), {});
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  !!v && typeof v === 'object' && !Array.isArray(v);
+
+export const getChecks = (semaine: string): Record<string, boolean> => {
+  const key = checksKey(semaine);
+  const parsed = safeParse<unknown>(key, localStorage.getItem(key), null);
+  if (!isPlainObject(parsed)) {
+    console.warn(`Checks corrompus ignorés : ${key}`);
+    localStorage.removeItem(key);
+    return {};
+  }
+  return parsed as Record<string, boolean>;
+};
 
 export const setCheck = (semaine: string, id: string, done: boolean): void => {
   const c = getChecks(semaine);
@@ -47,8 +58,19 @@ export const setCheck = (semaine: string, id: string, done: boolean): void => {
   localStorage.setItem(checksKey(semaine), JSON.stringify(c));
 };
 
-export const getWeights = (p: ProfileKey): WeightEntry[] =>
-  safeParse<WeightEntry[]>(weightsKey(p), localStorage.getItem(weightsKey(p)), []);
+export const getWeights = (p: ProfileKey): WeightEntry[] => {
+  const key = weightsKey(p);
+  const parsed = safeParse<unknown>(key, localStorage.getItem(key), null);
+  if (
+    !Array.isArray(parsed) ||
+    !parsed.every((w) => !!w && typeof w.date === 'string' && typeof w.kg === 'number')
+  ) {
+    console.warn(`Pesées corrompues ignorées : ${key}`);
+    localStorage.removeItem(key);
+    return [];
+  }
+  return parsed as WeightEntry[];
+};
 
 // Remplace l'entrée existante pour `date` (upsert) puis persiste.
 export const addWeight = (p: ProfileKey, date: string, kg: number): WeightEntry[] => {
