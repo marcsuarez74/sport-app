@@ -6,12 +6,19 @@ import type { TabId } from './components/TabBar';
 import { WeekBanner } from './components/WeekBanner';
 import { CuisineView } from './components/cuisine/CuisineView';
 import type { ImportedWeek } from './lib/model';
-import { loadWeek } from './lib/storage';
+import { loadProfile, loadWeek } from './lib/storage';
 
 function App() {
+  const [profile] = useState(() => loadProfile());
   const [week, setWeek] = useState<ImportedWeek | null>(() => loadWeek());
   const [tab, setTab] = useState<TabId>('cuisine');
   const refresh = useCallback(() => setWeek(loadWeek()), []);
+
+  if (profile) {
+    document.documentElement.dataset.profile = profile.id;
+  } else {
+    delete document.documentElement.dataset.profile;
+  }
 
   if (!week) return <ImportScreen onImported={refresh} />;
 

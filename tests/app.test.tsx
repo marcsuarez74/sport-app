@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
 import { parseWeeklyFile } from '../src/lib/parse';
-import { saveWeek } from '../src/lib/storage';
+import { saveProfile, saveWeek } from '../src/lib/storage';
 
 const fixture = (semaine = '2026-S39', extraCourse = 'Carottes') => `---
 semaine: ${semaine}
@@ -287,6 +287,32 @@ describe('Design system & sémantique (tâche 10)', () => {
     await user.click(screen.getByRole('button', { name: '💪 Marc' }));
     expect(screen.getByRole('button', { name: '💪 Marc' })).toHaveAttribute('aria-current', 'page');
     expect(cuisine).not.toHaveAttribute('aria-current');
+  });
+});
+
+describe('Theming par profil (data-profile)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.removeAttribute('data-profile');
+  });
+
+  it("pose data-profile sur <html> selon le profil stocké", () => {
+    saveProfile({ id: 'melanie', age: 38, taille: 165 });
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+
+    render(<App />);
+
+    expect(document.documentElement.getAttribute('data-profile')).toBe('melanie');
+  });
+
+  it("ne pose pas data-profile sans profil (accent neutre)", () => {
+    const parsed = parseWeeklyFile(fixture());
+    saveWeek(fixture(), parsed.data);
+
+    render(<App />);
+
+    expect(document.documentElement.getAttribute('data-profile')).toBeNull();
   });
 });
 

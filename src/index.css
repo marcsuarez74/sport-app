@@ -3,7 +3,8 @@
  * Contraste élevé, hiérarchie forte, cibles tactiles ≥ 48px, transitions douces.
  * Les accents Marc/Mélanie sont alignés sur la constante ACCENTS de
  * src/components/ProfileView.tsx : --accent-marc: #e07b39, --accent-melanie: #3d9a6c
- * (mêmes valeurs en CSS et en code — ne pas diverger).
+ * (mêmes valeurs en CSS et en code — ne pas diverger). L'accent global --accent
+ * suit le profil actif via data-profile sur <html> (bleu-violet par défaut).
  */
 
 :root {
@@ -16,12 +17,24 @@
   --border: #2e3345;
   --text: #f2f4f8;
   --muted: #9aa3b5;
-  --accent-cuisine: #5c6bc0;
+  --accent: #5c6bc0;
   --accent-marc: #e07b39;
   --accent-melanie: #3d9a6c;
   --danger: #ff6b6b;
   --radius: 16px;
   --shadow: 0 4px 16px rgb(0 0 0 / 0.4);
+}
+
+/*
+ * Theming par profil : App pose data-profile="marc|melanie" sur <html>,
+ * tout l'accent global bascule sur la couleur perso. Sans profil : neutre.
+ */
+[data-profile='marc'] {
+  --accent: var(--accent-marc);
+}
+
+[data-profile='melanie'] {
+  --accent: var(--accent-melanie);
 }
 
 *,
@@ -68,7 +81,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-cuisine);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -208,15 +221,7 @@ p {
 }
 
 .tabbar .tab.active {
-  box-shadow: inset 0 3px 0 var(--accent-cuisine);
-}
-
-.tabbar .tab[data-tab='marc'].active {
-  box-shadow: inset 0 3px 0 var(--accent-marc);
-}
-
-.tabbar .tab[data-tab='melanie'].active {
-  box-shadow: inset 0 3px 0 var(--accent-melanie);
+  box-shadow: inset 0 3px 0 var(--accent);
 }
 
 .cuisine-tabs {
@@ -226,7 +231,7 @@ p {
 }
 
 .cuisine-tabs .tab.active {
-  box-shadow: inset 0 3px 0 var(--accent-cuisine);
+  box-shadow: inset 0 3px 0 var(--accent);
 }
 
 /* ---------- Boutons ---------- */
@@ -244,7 +249,7 @@ button {
   gap: 8px;
   min-height: 48px;
   padding: 12px 18px;
-  background: var(--accent-cuisine);
+  background: var(--accent);
   color: #fff;
   font-weight: 700;
   font-size: 15px;
@@ -259,7 +264,7 @@ button {
 }
 
 .btn:focus-within {
-  outline: 2px solid var(--accent-cuisine);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -283,7 +288,7 @@ input[type='checkbox'] {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
-  accent-color: var(--accent-cuisine);
+  accent-color: var(--accent);
 }
 
 /* ---------- Progression ---------- */
@@ -299,7 +304,7 @@ progress {
   width: 100%;
   height: 8px;
   margin-top: 4px;
-  accent-color: var(--accent-cuisine);
+  accent-color: var(--accent);
 }
 
 /* ---------- Checklists ---------- */
@@ -352,14 +357,14 @@ progress {
 }
 
 .today {
-  border: 2px solid var(--accent-cuisine);
+  border: 2px solid var(--accent);
   box-shadow: 0 0 12px rgb(92 107 192 / 0.5);
 }
 
 .today-badge {
   flex-shrink: 0;
   padding: 2px 10px;
-  background: var(--accent-cuisine);
+  background: var(--accent);
   color: #fff;
   border-radius: 999px;
   font-size: 12px;
@@ -372,7 +377,7 @@ progress {
   margin-bottom: 12px;
   padding: 12px 16px;
   background: var(--surface-2);
-  border-left: 4px solid var(--accent-cuisine);
+  border-left: 4px solid var(--accent);
   border-radius: 0 12px 12px 0;
   font-weight: 600;
 }
