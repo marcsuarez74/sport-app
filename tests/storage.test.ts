@@ -152,15 +152,6 @@ describe('dates: todayKey', () => {
     vi.setSystemTime(new Date('2026-09-22T10:00:00'));
     expect(todayKey()).toBe('mardi');
   });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('returns mardi on Tuesday 2026-09-22', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-09-22T10:00:00'));
-    expect(todayKey()).toBe('mardi');
-  });
 
   it('returns samedi on Saturday 2026-09-26', () => {
     vi.useFakeTimers();
