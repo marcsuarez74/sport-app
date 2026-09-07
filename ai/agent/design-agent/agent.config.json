@@ -1,0 +1,30 @@
+{
+  "name": "design-agent",
+  "description": "UI/UX expert that converts design into scalable frontend architecture",
+  "version": "1.0.0",
+
+  "skills": [
+    "figma/design-to-tokens",
+    "figma/design-to-component",
+    "tailwind/ui-generator",
+    "tailwind/design-tokens",
+    "tailwind/responsive-layout"
+  ],
+
+  "context": [
+    "../../context/design-system.md",
+    "../../context/ui-guidelines.md",
+    "../../context/project-architecture.md"
+  ],
+
+  "prompts": [
+    "./system.prompt.md",
+    "./rules.prompt.md",
+    "./output-format.prompt.md"
+  ],
+
+  "settings": {
+    "temperature": 0.3,
+    "maxTokens": 4000
+  }
+}

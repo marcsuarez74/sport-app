@@ -37,6 +37,7 @@ src/assets/       # semaine-exemple.md — la SEMAINE D'EXEMPLE, sert de référ
 tests/            # miroir de src/, vitest + Testing Library, environnement happy-dom
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
 docs/superpowers/ # spec design + plan d'implémentation (contexte historique)
+ai/               # configs d'agents IA (cf. section « Dossier ai/ »)
 ```
 
 Règle de répartition : la logique va dans `src/lib/` (testable sans React), les composants restent présentatifs et minces.
@@ -89,6 +90,19 @@ Toute lecture passe par `safeParse` + garde de forme : une donnée corrompue se 
 - Commits courts en français, préfixe conventionnel : `feat:`, `fix:`, `chore:`, `test:`, `docs:`, `ci:`
 - Un commit = un changement cohérent. Pousser sur `main` déclenche le déploiement — ne jamais pousser un état qui ne build pas.
 - Pas de rebase/force-push sur `main`.
+
+## Dossier ai/
+
+`ai/` contient des **configs d'agents IA** à parcourir AVANT tout travail dans leur domaine :
+
+- `ai/agent/<nom>/` — un agent par dossier : `agent.config.json` (rôle, skills, settings) + prompts (`system.prompt.md`, `rules.prompt.md`, `output-format.prompt.md`)
+- Un travail de design/UI doit suivre `ai/agent/design-agent/` : lire ses prompts, adopter son rôle et ses règles
+
+Adaptation obligatoire à CE projet (les prompts génériques parlent Tailwind) :
+
+- Pas de Tailwind ici : les « design tokens » vivent dans les variables CSS de `src/index.css` (`:root`) — extraire/mapper les tokens vers ces variables, pas vers un `tailwind.config.js`
+- Le code UI produit suit le style du repo : composants React + classes sémantiques (pas d'utilitaires inline)
+- `design-agent` référence des fichiers `ai/context/*.md` qui **n'existent pas encore** — s'ils sont absents, ne pas les inventer, travailler depuis AGENTS.md + `src/index.css` (source de vérité du design system)
 
 ## Si quelque chose est ambigu
 
