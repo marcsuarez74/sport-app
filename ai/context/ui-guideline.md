@@ -11,10 +11,24 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 ## Structure d'écran
 
-- `App.tsx` choisit : `ImportScreen` (pas de semaine) OU shell (bannière + onglets + vue active)
-- Bannière = seul `h1` de la page. Sections = `h3` dans des cartes. Profil = `h2`
-- Une carte par bloc (`section` + classe sémantique), jamais de div sans rôle
-- États vides systématiques et explicites (`.muted`), ex. « Aucune course pour cette semaine. »
+- `App.tsx` choisit : `Onboarding` (pas de profil) → `ImportScreen` (profil mais pas de semaine) → shell 2 onglets OU écran `ProfilScreen` poussé
+- Shell : `WeekBanner` (seul `h1`, + icône « Mon profil » à droite) → `TabBar` (🛒 Cuisine / 🎯 Mon suivi) → vue active
+- **Mon suivi est personnalisé** : `ProfileView` rendu avec le profil actif uniquement + accueil « Salut {prénom} 👋 » — jamais les données de l'autre
+- Sections = `h3` dans des cartes (`section` + classe sémantique). États vides systématiques (`.muted`)
+- Écran poussé (Profil) : bouton retour en haut, pas de tabbar, sorties par retour ou action explicite
+
+## Onboarding (premier lancement)
+
+- 2 étapes obligatoires, lancées seulement si `sportapp:profile` absent ; style « grand écart fun » : dégradés saturés, émojis géants, CTA plein + **points de progression** en haut
+- Étape 1 : deux grandes cartes profil (💪 Marc orange / 🌿 Mélanie vert, tagline « Diet & sport » / « Keto & sport »)
+- Étape 2 : « Salut {prénom} 👋 » + poids/âge/taille avec bornes (30–250 kg, 10–100 ans, 120–230 cm), erreur inline `role="alert"`, CTA « C'est parti ! 🚀 », « ← Retour » vers l'étape 1
+- Submit = `saveProfile` + première pesée datée du jour ; pas de bouton « passer » (l'app est inutilisable sans profil — c'est voulu)
+- Le fond de l'étape 2 se teinte de la couleur choisie (`data-profile` local sur `.onboarding`)
+
+## Écran Profil
+
+- Mes infos (âge/taille, feedback « enregistrées ✓ » en `role="status"`), importer un autre .md, **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
+- Après changement : retour à l'onboarding, `data-profile` retiré de `<html>`
 
 ## Composants — conventions
 
@@ -43,7 +57,8 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 ## À ne PAS faire
 
-- ❌ Couleur hex en dur dans un composant (utiliser les tokens `var(--…)`)
+- ❌ Couleur hex en dur dans un composant (utiliser les tokens `var(--…)` ; texte blanc sur fond coloré → `--accent-strong`)
+- ❌ Montrer les données de l'autre profil dans Mon suivi
 - ❌ Nouveau pattern de sync d'état (celui du repo suffit)
 - ❌ Modal custom / lib de composants — `window.confirm` et les cartes suffisent
 - ❌ Animations longues (> 0,25 s) ou décoratives

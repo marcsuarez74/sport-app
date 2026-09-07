@@ -18,6 +18,7 @@
   --text: #f2f4f8;
   --muted: #9aa3b5;
   --accent: #5c6bc0;
+  --accent-strong: #485495;
   --accent-marc: #e07b39;
   --accent-melanie: #3d9a6c;
   --danger: #ff6b6b;
@@ -31,10 +32,12 @@
  */
 [data-profile='marc'] {
   --accent: var(--accent-marc);
+  --accent-strong: #af602c;
 }
 
 [data-profile='melanie'] {
   --accent: var(--accent-melanie);
+  --accent-strong: #307855;
 }
 
 *,
@@ -249,7 +252,7 @@ button {
   gap: 8px;
   min-height: 48px;
   padding: 12px 18px;
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
   font-weight: 700;
   font-size: 15px;
@@ -364,7 +367,7 @@ progress {
 .today-badge {
   flex-shrink: 0;
   padding: 2px 10px;
-  background: var(--accent);
+  background: var(--accent-strong);
   color: #fff;
   border-radius: 999px;
   font-size: 12px;
@@ -610,7 +613,7 @@ progress {
   margin-top: 4px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000));
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff;
   font: inherit;
   font-size: 16px;
