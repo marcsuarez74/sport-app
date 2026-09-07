@@ -1,9 +1,8 @@
-export type TabId = 'cuisine' | 'marc' | 'melanie';
+export type TabId = 'cuisine' | 'suivi';
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'cuisine', label: '🛒 Cuisine' },
-  { id: 'marc', label: '💪 Marc' },
-  { id: 'melanie', label: '🥑 Mélanie' },
+  { id: 'suivi', label: '🎯 Mon suivi' },
 ];
 
 export function TabBar({ active, onSelect }: { active: TabId; onSelect: (tab: TabId) => void }) {

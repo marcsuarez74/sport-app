@@ -6,8 +6,9 @@ Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une
 
 **Sport App** — PWA React (dark mode only) de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
 
+- **UX personnalisée** : au premier lancement, un onboarding en 2 étapes choisit le profil (💪 Marc / 🌿 Mélanie) et collecte les bases (poids, âge, taille) — clé `sportapp:profile`. L'app se teinte ensuite de la couleur perso et n'affiche que « ce qui me concerne » + la cuisine
+- L'app affiche **2 onglets** : 🛒 Cuisine (Courses / Menu / Batch, partagé) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, import, changer de profil) via l'icône en haut à droite
 - Le contenu vient d'**un fichier .md structuré par semaine**, importé dans l'app sur le téléphone (bouton « Importer un .md »)
-- L'app affiche 3 onglets : 🛒 Cuisine (Courses / Menu / Batch) · 💪 Marc (diet/sport) · 🥑 Mélanie (keto/sport)
 - Coches + pesées persistées en **localStorage** (aucune donnée ne quitte le téléphone)
 - Déployée en PWA offline-first sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 
@@ -32,7 +33,7 @@ Avant tout commit : `npm test && npm run typecheck && npm run lint && npm run bu
 ```
 src/lib/          # cœur logique, zéro React : model.ts (types), parse.ts (.md → WeeklyData),
                   # storage.ts (localStorage), dates.ts (jours FR, formatage)
-src/components/   # composants UI ; cuisine/ pour l'onglet Cuisine
+src/components/   # composants UI ; cuisine/ pour l'onglet Cuisine ; onboarding/ pour le premier lancement
 src/assets/       # semaine-exemple.md — la SEMAINE D'EXEMPLE, sert de référence du format
 tests/            # miroir de src/, vitest + Testing Library, environnement happy-dom
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
@@ -74,6 +75,7 @@ Le format des fichiers hebdo est un **contrat** : parser (`src/lib/parse.ts`), e
 Clés existantes — ne pas renommer (données réelles des téléphones) :
 
 - `sportapp:week` — semaine courante (raw + parsée + date d'import)
+- `sportapp:profile` — profil actif (`{ id: 'marc'|'melanie', age, taille }`, posé par l'onboarding)
 - `sportapp:checks:{semaine}` — coches par semaine
 - `sportapp:weights:{marc|melanie}` — pesées par profil
 
@@ -82,6 +84,7 @@ Toute lecture passe par `safeParse` + garde de forme : une donnée corrompue se 
 ## PWA & déploiement
 
 - `base: '/sport-app/'` dans `vite.config.ts` = nom du repo GitHub. Si le repo est renommé, mettre à jour `base` ET l'URL dans le README.
+- **CI sur les PR** (`.github/workflows/ci.yml`) : Prepare → Lint → Typecheck → Test → Build — elle doit être verte avant tout merge ; ne pas y ajouter de step lent sans discussion.
 - Le déploiement se fait tout seul (push sur `main` → Actions → Pages). Ne pas ajouter de build step qui ne serait pas aussi rapide en CI (le workflow lance déjà `npm ci && npm test && build`).
 - Après un changement PWA (manifest, service worker, icônes) : vérifier avec `npm run build && npm run preview` que `dist/` contient `sw.js` + `manifest.webmanifest`.
 

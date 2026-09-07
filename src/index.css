@@ -3,7 +3,8 @@
  * Contraste élevé, hiérarchie forte, cibles tactiles ≥ 48px, transitions douces.
  * Les accents Marc/Mélanie sont alignés sur la constante ACCENTS de
  * src/components/ProfileView.tsx : --accent-marc: #e07b39, --accent-melanie: #3d9a6c
- * (mêmes valeurs en CSS et en code — ne pas diverger).
+ * (mêmes valeurs en CSS et en code — ne pas diverger). L'accent global --accent
+ * suit le profil actif via data-profile sur <html> (bleu-violet par défaut).
  */
 
 :root {
@@ -16,12 +17,27 @@
   --border: #2e3345;
   --text: #f2f4f8;
   --muted: #9aa3b5;
-  --accent-cuisine: #5c6bc0;
+  --accent: #5c6bc0;
+  --accent-strong: #485495;
   --accent-marc: #e07b39;
   --accent-melanie: #3d9a6c;
   --danger: #ff6b6b;
   --radius: 16px;
   --shadow: 0 4px 16px rgb(0 0 0 / 0.4);
+}
+
+/*
+ * Theming par profil : App pose data-profile="marc|melanie" sur <html>,
+ * tout l'accent global bascule sur la couleur perso. Sans profil : neutre.
+ */
+[data-profile='marc'] {
+  --accent: var(--accent-marc);
+  --accent-strong: #af602c;
+}
+
+[data-profile='melanie'] {
+  --accent: var(--accent-melanie);
+  --accent-strong: #307855;
 }
 
 *,
@@ -68,7 +84,7 @@ textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-cuisine);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -208,15 +224,7 @@ p {
 }
 
 .tabbar .tab.active {
-  box-shadow: inset 0 3px 0 var(--accent-cuisine);
-}
-
-.tabbar .tab[data-tab='marc'].active {
-  box-shadow: inset 0 3px 0 var(--accent-marc);
-}
-
-.tabbar .tab[data-tab='melanie'].active {
-  box-shadow: inset 0 3px 0 var(--accent-melanie);
+  box-shadow: inset 0 3px 0 var(--accent);
 }
 
 .cuisine-tabs {
@@ -226,7 +234,7 @@ p {
 }
 
 .cuisine-tabs .tab.active {
-  box-shadow: inset 0 3px 0 var(--accent-cuisine);
+  box-shadow: inset 0 3px 0 var(--accent);
 }
 
 /* ---------- Boutons ---------- */
@@ -244,7 +252,7 @@ button {
   gap: 8px;
   min-height: 48px;
   padding: 12px 18px;
-  background: var(--accent-cuisine);
+  background: var(--accent-strong);
   color: #fff;
   font-weight: 700;
   font-size: 15px;
@@ -259,7 +267,7 @@ button {
 }
 
 .btn:focus-within {
-  outline: 2px solid var(--accent-cuisine);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -283,7 +291,7 @@ input[type='checkbox'] {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
-  accent-color: var(--accent-cuisine);
+  accent-color: var(--accent);
 }
 
 /* ---------- Progression ---------- */
@@ -299,7 +307,7 @@ progress {
   width: 100%;
   height: 8px;
   margin-top: 4px;
-  accent-color: var(--accent-cuisine);
+  accent-color: var(--accent);
 }
 
 /* ---------- Checklists ---------- */
@@ -352,14 +360,14 @@ progress {
 }
 
 .today {
-  border: 2px solid var(--accent-cuisine);
+  border: 2px solid var(--accent);
   box-shadow: 0 0 12px rgb(92 107 192 / 0.5);
 }
 
 .today-badge {
   flex-shrink: 0;
   padding: 2px 10px;
-  background: var(--accent-cuisine);
+  background: var(--accent-strong);
   color: #fff;
   border-radius: 999px;
   font-size: 12px;
@@ -372,7 +380,7 @@ progress {
   margin-bottom: 12px;
   padding: 12px 16px;
   background: var(--surface-2);
-  border-left: 4px solid var(--accent-cuisine);
+  border-left: 4px solid var(--accent);
   border-radius: 0 12px 12px 0;
   font-weight: 600;
 }
@@ -464,4 +472,254 @@ progress {
 
 .import-screen .btn {
   width: 100%;
+}
+
+/* ---------- Onboarding ---------- */
+
+.onboarding {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-left)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-right));
+  background:
+    radial-gradient(120% 90% at 15% 0%, rgb(224 123 57 / 0.2), transparent 55%),
+    radial-gradient(120% 90% at 85% 100%, rgb(61 154 108 / 0.2), transparent 55%),
+    var(--bg);
+}
+
+.onboarding[data-profile='marc'] {
+  --accent: var(--accent-marc);
+  --accent-strong: #af602c;
+}
+
+.onboarding[data-profile='melanie'] {
+  --accent: var(--accent-melanie);
+  --accent-strong: #307855;
+}
+
+.onboarding h1 {
+  margin-top: 16px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.onboarding-sub {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.onboarding-dots span {
+  width: 12px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.onboarding-dots .onboarding-dot-active {
+  width: 22px;
+  background: var(--accent);
+}
+
+.onboarding-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.onboarding-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 96px;
+  padding: 18px 16px;
+  border: none;
+  border-radius: 18px;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.onboarding-card-marc {
+  background: linear-gradient(135deg, #e07b39, #b3531d);
+  box-shadow: 0 6px 18px rgb(224 123 57 / 0.35);
+}
+
+.onboarding-card-melanie {
+  background: linear-gradient(135deg, #3d9a6c, #256b48);
+  box-shadow: 0 6px 18px rgb(61 154 108 / 0.35);
+}
+
+.onboarding-card:active {
+  transform: scale(0.97);
+}
+
+.onboarding-card-emoji {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.onboarding-card-prenom {
+  margin-top: 8px;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.onboarding-card-tagline {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.onboarding-row {
+  display: flex;
+  gap: 10px;
+}
+
+.onboarding-row .onboarding-field {
+  flex: 1;
+}
+
+.onboarding-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.onboarding-field label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.onboarding-cta {
+  min-height: 48px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.onboarding-cta:active {
+  transform: scale(0.97);
+}
+
+.onboarding-back {
+  min-height: 48px;
+  padding: 10px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- Accueil personnalisé (onglet Mon suivi) ---------- */
+
+.greeting {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---------- Écran Profil ---------- */
+
+.week-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.week-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.profile-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.profile-icon-btn:active {
+  transform: scale(0.97);
+}
+
+.profil-back {
+  min-height: 48px;
+  padding: 10px 0;
+  margin-bottom: 4px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profil-screen .profile-section .btn {
+  margin-top: 12px;
+}
+
+.profil-switch {
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1.5px solid var(--danger);
+  border-radius: 12px;
+  background: none;
+  color: var(--danger);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profil-switch:active {
+  transform: scale(0.97);
+}
+
+.profil-about {
+  margin-top: 16px;
+  font-size: 13px;
+  text-align: center;
 }
