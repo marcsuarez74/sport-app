@@ -54,23 +54,23 @@ au: 2026-09-27
 - dejeuner-marc: Boîte dinde-quinoa (batch dim) + légumes
 - dejeuner-melanie: Restes dinde + gratin courgettes + ½ avocat
 - diner-famille: Cuisses poulet rôties + carottes/patates douces + riz
-- diner-melanie: Poulet + légumes rôtis + filet huile d'olive (sans riz)
+- diner-melanie: Poulet + légumes rôtis + filet huile d'olive (sans riz/patate douce)
 - batch: Double riz + légumes rôtis → boîte mardi Marc
 ### Mardi
 - dejeuner-marc: Boîte poulet-riz (lun)
 - dejeuner-melanie: Restes poulet + œuf dur + crudités
 - diner-famille: Pâtes bolognaise (haché 5 %) + salade
 - diner-melanie: Bolo sur courgettes spaghetti + parmesan
-- batch: Double sauce bolo → boîte mer + 1 congel · courgettes en spaghetti
+- batch: Double sauce bolo → boîte mer + 1 congel · courgettes en spaghetti à la mandoline (5 min)
 ### Mercredi
 - dejeuner-marc: Boîte bolo
 - dejeuner-melanie: Bolo sur courgettes (restes)
-- diner-famille: Omelette fromage-herbes + pommes vapeur + salade
+- diner-famille: Omelette fromage-herbes (ta part : 4 œufs + jambon) + pommes vapeur + salade
 - diner-melanie: Omelette + salade + avocat (sans pommes)
 - batch: Zéro prep — soirée danse Maëlle 16h
 ### Jeudi
 - dejeuner-marc: Boîte bolo
-- dejeuner-melanie: Box thon-avocat ou restes omelette
+- dejeuner-melanie: Box thon-avocat ou restes omelette + salade
 - diner-famille: Wok poulet + légumes surgelés + riz (reste lun)
 - diner-melanie: Wok sans riz + légumes verts + sauce soja-sésame
 ### Vendredi
@@ -79,8 +79,8 @@ au: 2026-09-27
 - diner-famille: Tacos maison : galettes + haché (reste bolo) + crudités + yaourt-citron
 - diner-melanie: Taco bowl sans galette + guacamole
 ### Samedi
-- dejeuner-marc: GROS déjeuner récup post-sortie (~10h30)
-- dejeuner-melanie: Assiettes keto du déjeuner familial
+- dejeuner-marc: GROS déjeuner récup post-sortie (~10h30, 800-900 kcal)
+- dejeuner-melanie: Assiette keto du déjeuner familial (protéine + légumes + avocat, pas de féculent)
 - diner-famille: Soupe butternut-carotte + tartines complet + œufs durs/fromage
 - diner-melanie: Soupe portion réduite + œufs + fromage (sans tartines)
 - batch: 6-8 œufs durs (boxes de la semaine)
@@ -113,7 +113,7 @@ au: 2026-09-27
 - [ ] Samedi — Sortie longue (alternance sam/dim, 7h)
 ### Rappels
 - Pesée lun/mer/ven à jeun → moyenne hebdo
-- 10 km < 50 min : test à S10 · 5 km < 23:00
+- 10 km < 50 min : test à S12 · 5 km < 23:00 à S10
 
 ## Melanie
 ### Cibles
