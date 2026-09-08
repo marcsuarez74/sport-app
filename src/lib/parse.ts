@@ -81,11 +81,12 @@ export function parseWeeklyFile(raw: string): ParseResult {
   const sections = splitH2(content, warnings);
   const courses = parseCourses(sections.get('courses') ?? '', 'courses', warnings, seen);
   const menu = parseMenu(sections.get('menu') ?? '', 'menu', warnings);
-  const batch = parseBatch(sections.get('batch') ?? '', warnings, seen);
-  const rituel = parseRituel(sections.get('batch') ?? '', 'batch', warnings, seen);
-  const microBatch = parseMicroBatch(sections.get('batch') ?? '', warnings);
-  const recettes = parseRecettes(sections.get('recettes') ?? '', warnings);
-  const bases = parseBases(sections.get('bases') ?? '', warnings);
+  const lignes = lignesBatch(sections.get('batch') ?? '', warnings);
+  const batch = parseBatch(lignes, warnings, seen);
+  const rituel = parseRituel(lignes, 'batch', warnings, seen);
+  const microBatch = parseMicroBatch(lignes, warnings);
+  const recettes = parseRecettes(sections.get('recettes') ?? '', warnings, seen);
+  const bases = parseBases(sections.get('bases') ?? '', warnings, seen);
   const profiles = {
     marc: parseProfile(sections.get('marc') ?? '', 'marc', warnings, seen),
     melanie: parseProfile(sections.get('melanie') ?? '', 'melanie', warnings, seen),
@@ -207,10 +208,17 @@ function parseProfile(text: string, section: string, warnings: string[], seen: S
 }
 
 const BATCH_SUBS = new Set(['rituel-dimanche', 'micro-batch']);
+const SUB_IGNOREE = '__ignore__';
 
-export function parseBatch(text: string, warnings: string[], seen: Set<string>): ChecklistItem[] {
+type LigneBatch = [line: string, cur: string | null];
+
+const RITUEL_SHAPE = /^\s*[-*]\s+(\S.*?min)\s*·\s*(.+?)(?:\s*—\s*(.+?))?\s*$/;
+const MICRO_SHAPE =
+  /^\s*[-*]\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s*:\s*(.+?)\s*$/;
+
+function parseBatch(lignes: LigneBatch[], warnings: string[], seen: Set<string>): ChecklistItem[] {
   const out: ChecklistItem[] = [];
-  for (const [line, cur] of lignesBatch(text, warnings)) {
+  for (const [line, cur] of lignes) {
     if (cur) continue;
     const plain = line.match(/^\s*[-*]\s+(.+?)\s*$/);
     if (!plain) {
@@ -218,6 +226,16 @@ export function parseBatch(text: string, warnings: string[], seen: Set<string>):
       continue;
     }
     const withBox = plain[1].match(/^\[( |x|X)\]\s+(.+)$/);
+    if (!withBox) {
+      if (RITUEL_SHAPE.test(line)) {
+        warnings.push('Ligne rituel hors sous-section « Rituel dimanche » ignorée (batch).');
+        continue;
+      }
+      if (MICRO_SHAPE.test(line)) {
+        warnings.push('Ligne micro-batch hors sous-section « Micro-batch » ignorée (batch).');
+        continue;
+      }
+    }
     const label = withBox ? withBox[2] : plain[1];
     const id = `batch:${slugify(label)}`;
     registerId(id, 'batch', seen, warnings);
@@ -226,8 +244,8 @@ export function parseBatch(text: string, warnings: string[], seen: Set<string>):
   return out;
 }
 
-function lignesBatch(text: string, warnings: string[]): Array<[string, string | null]> {
-  const out: Array<[string, string | null]> = [];
+function lignesBatch(text: string, warnings: string[]): LigneBatch[] {
+  const out: LigneBatch[] = [];
   let cur: string | null = null;
   for (const line of text.split(/\r?\n/)) {
     const h = line.match(/^###\s+(.+?)\s*$/);
@@ -236,7 +254,7 @@ function lignesBatch(text: string, warnings: string[]): Array<[string, string | 
       if (BATCH_SUBS.has(k)) cur = k;
       else {
         warnings.push(`Sous-section « ${h[1]} » ignorée (batch).`);
-        cur = null;
+        cur = SUB_IGNOREE;
       }
       continue;
     }
@@ -246,19 +264,17 @@ function lignesBatch(text: string, warnings: string[]): Array<[string, string | 
   return out;
 }
 
-export function parseRituel(
-  text: string,
+function parseRituel(
+  lignes: LigneBatch[],
   section: string,
   warnings: string[],
   seen: Set<string>,
 ): RituelEtape[] {
   const out: RituelEtape[] = [];
-  for (const [line, cur] of lignesBatch(text, warnings)) {
+  for (const [line, cur] of lignes) {
     if (cur !== 'rituel-dimanche') continue;
     if (!line.trim()) continue;
-    const m = line.match(
-      /^\s*[-*]\s+(\S.*?min)\s*·\s*(.+?)(?:\s*—\s*(.+?))?\s*$/,
-    );
+    const m = line.match(RITUEL_SHAPE);
     if (!m) {
       warnings.push(`Ligne ignorée (${section}/rituel) : « ${preview(line)} »`);
       continue;
@@ -271,9 +287,9 @@ export function parseRituel(
   return out;
 }
 
-export function parseMicroBatch(text: string, warnings: string[]): MicroBatchJour[] {
+function parseMicroBatch(lignes: LigneBatch[], warnings: string[]): MicroBatchJour[] {
   const out: MicroBatchJour[] = [];
-  for (const [line, cur] of lignesBatch(text, warnings)) {
+  for (const [line, cur] of lignes) {
     if (cur !== 'micro-batch') continue;
     if (!line.trim()) continue;
     const m = line.match(/^\s*[-*]\s+([a-z-]+)\s*:\s*(.+?)\s*$/);
@@ -286,14 +302,26 @@ export function parseMicroBatch(text: string, warnings: string[]): MicroBatchJou
   return out;
 }
 
-function parseRecettes(text: string, warnings: string[]): Recette[] {
+function nombreValide(raw: string): number | undefined {
+  const n = Number(raw.replace(/\s/g, ''));
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function registerHeadingId(id: string, seen: Set<string>, warnings: string[]): void {
+  if (seen.has(id)) warnings.push(`Identifiant « ${id} » déjà utilisé.`);
+  seen.add(id);
+}
+
+function parseRecettes(text: string, warnings: string[], seen: Set<string>): Recette[] {
   const recettes: Recette[] = [];
   let rec: Recette | null = null;
   for (const line of text.split(/\r?\n/)) {
     const h = line.match(/^###\s+(.+?)\s*$/);
     if (h) {
       if (rec) recettes.push(rec);
-      rec = { id: slugify(h[1]), nom: h[1] };
+      const id = slugify(h[1]);
+      registerHeadingId(id, seen, warnings);
+      rec = { id, nom: h[1] };
       continue;
     }
     if (!line.trim()) continue;
@@ -304,9 +332,19 @@ function parseRecettes(text: string, warnings: string[]): Recette[] {
     const kv = line.match(/^(temps|kcal|proteines|bases)\s*:\s*(.+?)\s*$/);
     if (kv) {
       if (kv[1] === 'temps') rec.temps = kv[2];
-      else if (kv[1] === 'kcal') rec.kcal = Number(kv[2].replace(/\s/g, ''));
-      else if (kv[1] === 'proteines') rec.proteines = Number(kv[2].replace(/\s/g, ''));
-      else rec.bases = kv[2].split(',').map((b) => b.trim());
+      else if (kv[1] === 'kcal') {
+        const kcal = nombreValide(kv[2]);
+        if (kcal === undefined)
+          warnings.push(`Valeur kcal invalide pour la recette « ${rec.nom} » : ligne ignorée.`);
+        else rec.kcal = kcal;
+      } else if (kv[1] === 'proteines') {
+        const proteines = nombreValide(kv[2]);
+        if (proteines === undefined)
+          warnings.push(
+            `Valeur proteines invalide pour la recette « ${rec.nom} » : ligne ignorée.`,
+          );
+        else rec.proteines = proteines;
+      } else rec.bases = kv[2].split(',').map((b) => b.trim());
       continue;
     }
     const pour = line.match(/^\s*[-*]\s+pour\s*(?:\d+\s*)?\s*:\s*(.+?)\s*$/);
@@ -335,14 +373,16 @@ function parseRecettes(text: string, warnings: string[]): Recette[] {
   return recettes;
 }
 
-function parseBases(text: string, warnings: string[]): BaseCuisine[] {
+function parseBases(text: string, warnings: string[], seen: Set<string>): BaseCuisine[] {
   const bases: BaseCuisine[] = [];
   let base: BaseCuisine | null = null;
   for (const line of text.split(/\r?\n/)) {
     const h = line.match(/^###\s+(.+?)\s*$/);
     if (h) {
       if (base) bases.push(base);
-      base = { id: slugify(h[1]), nom: h[1], texte: '' };
+      const id = slugify(h[1]);
+      registerHeadingId(id, seen, warnings);
+      base = { id, nom: h[1], texte: '' };
       continue;
     }
     if (!line.trim()) continue;

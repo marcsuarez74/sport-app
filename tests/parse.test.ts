@@ -654,6 +654,128 @@ describe('parseWeeklyFile — format v2 (recettes, bases, rituel, micro-batch)',
   });
 });
 
+describe('sous-section batch inconnue', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- [ ] Tâche réelle
+
+### Snack
+- Barre protéinée
+- [ ] Autre barre
+`));
+
+  it('n’absorbe pas les lignes de la sous-section inconnue comme tâches batch', () => {
+    expect(data.batch).toEqual([{ id: 'batch:tache-reelle', label: 'Tâche réelle' }]);
+  });
+
+  it('émet exactement UN warning de sous-section ignorée (pas de triplé)', () => {
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Sous-section « Snack » ignorée (batch).',
+    ]);
+  });
+});
+
+describe('lignes v2 hors sous-section (batch)', () => {
+  it('étape rituel top-level → warning dédié et pas de tâche', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- 0-5 min · Four à 180° — egg muffins ×10
+`));
+    expect(data.batch).toEqual([]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Ligne rituel hors sous-section « Rituel dimanche » ignorée (batch).',
+    ]);
+  });
+
+  it('ligne micro-batch top-level → warning dédié et pas de tâche', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- lundi: doubler le plat
+`));
+    expect(data.batch).toEqual([]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Ligne micro-batch hors sous-section « Micro-batch » ignorée (batch).',
+    ]);
+  });
+
+  it('les cases à cocher restent des tâches top-level (même avec la forme jour:)', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- [ ] lundi: préparer les boîtes
+`));
+    expect(data.batch).toEqual([
+      { id: 'batch:lundi-preparer-les-boites', label: 'lundi: préparer les boîtes' },
+    ]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([]);
+  });
+});
+
+describe('kcal/proteines invalides (recettes)', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Recettes
+### R2 · Gratin de courgettes
+kcal: ~620 kcal
+proteines: beaucoup
+temps: 30 min
+`));
+
+  it('laisse kcal et proteines undefined (pas de NaN silencieux)', () => {
+    expect(data.recettes).toEqual([
+      { id: 'r2-gratin-de-courgettes', nom: 'R2 · Gratin de courgettes', temps: '30 min' },
+    ]);
+  });
+
+  it('émet un warning par valeur invalide', () => {
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Valeur kcal invalide pour la recette « R2 · Gratin de courgettes » : ligne ignorée.',
+      'Valeur proteines invalide pour la recette « R2 · Gratin de courgettes » : ligne ignorée.',
+    ]);
+  });
+});
+
+describe('ids de recettes/bases dupliqués', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Recettes
+### R2 · Sauce tomate
+temps: 10 min
+
+### R2 · Sauce tomate
+temps: 15 min
+
+## Bases
+### B1 · Vinaigrette
+Huile + moutarde.
+
+### B1 · Vinaigrette
+Huile + citron.
+`));
+
+  it('garde les deux occurrences (pas de dédoublonnage)', () => {
+    expect(data.recettes).toHaveLength(2);
+    expect(data.bases).toHaveLength(2);
+  });
+
+  it('émet un warning par identifiant déjà utilisé', () => {
+    expect(warnings.filter((w) => w.includes('déjà utilisé'))).toEqual([
+      'Identifiant « r2-sauce-tomate » déjà utilisé.',
+      'Identifiant « b1-vinaigrette » déjà utilisé.',
+    ]);
+  });
+});
+
+describe('épinglage v2', () => {
+  it('R7 sans étapes : objet exactement {id, nom, temps}', () => {
+    const { data } = parseWeeklyFile(V2_WEEK);
+    expect(data.recettes![1]).toEqual({
+      id: 'r7-roti-de-dinde-gratin-courgettes',
+      nom: 'R7 · Rôti de dinde + gratin courgettes',
+      temps: '60 min · four 180°',
+    });
+  });
+
+  it('référence non finale (→ R2 extra) : texte intact et pas de recetteRefs', () => {
+    const { data } = parseWeeklyFile(weekWith(`## Menu
+### Mardi
+- diner-famille: Bolo pâtes → R2 extra
+`));
+    expect(data.menu).toEqual([{ jour: 'Mardi', dinerFamille: 'Bolo pâtes → R2 extra' }]);
+  });
+});
+
 describe('parseWeeklyFile — rétrocompatibilité v1', () => {
   it('une semaine sans blocs v2 ne définit pas les champs optionnels', () => {
     const { data } = parseWeeklyFile(FULL_WEEK);
