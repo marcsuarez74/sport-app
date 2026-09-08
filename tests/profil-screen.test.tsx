@@ -8,10 +8,10 @@ import { addWeight, getWeights, loadProfile, saveProfile, saveWeek } from '../sr
 import { parseWeeklyFile } from '../src/lib/parse';
 
 const fixture = () => `---
-semaine: 2026-S39
+semaine: 2026-S37
 menu: A
-du: 2026-09-21
-au: 2026-09-27
+du: 2026-09-07
+au: 2026-09-13
 ---
 
 ## courses

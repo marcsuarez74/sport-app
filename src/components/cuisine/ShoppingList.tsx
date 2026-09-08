@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react';
 import type { CourseItem } from '../../lib/model';
 import { imagePourRayon } from '../../lib/rayons';
 import { getChecks } from '../../lib/storage';
+import { capitalize } from '../../lib/text';
 import { Checklist } from '../Checklist';
-
-const capitalize = (slug: string): string => (slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : slug);
 
 export function ShoppingList({ items, semaine }: { items: CourseItem[]; semaine: string }) {
   const [checks, setChecks] = useState<Record<string, boolean>>(() => getChecks(semaine));
@@ -36,25 +35,47 @@ export function ShoppingList({ items, semaine }: { items: CourseItem[]; semaine:
         {done}/{total} cochés
         <progress value={done} max={total} />
       </p>
-      {groups.map(({ rayon, items: groupItems }) => (
-        <section className="course-group" key={rayon}>
-          <header className="course-group-header">
-            <img
-              src={imagePourRayon(rayon)}
-              alt={capitalize(rayon)}
-              loading="lazy"
-              width={72}
-              height={54}
-            />
-            <h3>{capitalize(rayon)}</h3>
-          </header>
-          <Checklist
-            items={groupItems}
-            semaine={semaine}
-            onChecksChange={(groupChecks) => setChecks((prev) => ({ ...prev, ...groupChecks }))}
-          />
-        </section>
-      ))}
+      {[...groups]
+        .sort((a, b) => Number(a.rayon === 'keto') - Number(b.rayon === 'keto'))
+        .map(({ rayon, items: groupItems }) => {
+          const faits = groupItems.filter((it) => checks[it.id]).length;
+          return rayon === 'keto' ? (
+            <section className="keto-box" key={rayon}>
+              <h3 className="keto-title">
+                <span aria-hidden="true">🟢</span> Les extras keto de Mélanie{' '}
+                <span className="rayon-cnt">
+                  {faits}/{groupItems.length}
+                </span>
+              </h3>
+              <Checklist
+                items={groupItems}
+                semaine={semaine}
+                onChecksChange={(groupChecks) => setChecks((prev) => ({ ...prev, ...groupChecks }))}
+              />
+            </section>
+          ) : (
+            <section className="course-group" key={rayon}>
+              <header className="course-group-header">
+                <img
+                  src={imagePourRayon(rayon)}
+                  alt={capitalize(rayon)}
+                  loading="lazy"
+                  width={72}
+                  height={54}
+                />
+                <h3>{capitalize(rayon)}</h3>
+                <span className="rayon-cnt">
+                  {faits}/{groupItems.length}
+                </span>
+              </header>
+              <Checklist
+                items={groupItems}
+                semaine={semaine}
+                onChecksChange={(groupChecks) => setChecks((prev) => ({ ...prev, ...groupChecks }))}
+              />
+            </section>
+          );
+        })}
     </div>
   );
 }

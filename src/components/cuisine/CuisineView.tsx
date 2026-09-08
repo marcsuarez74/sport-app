@@ -31,8 +31,12 @@ export function CuisineView({ data }: { data: WeeklyData }) {
         ))}
       </nav>
       {tab === 'courses' && <ShoppingList items={data.courses} semaine={semaine} />}
-      {tab === 'menu' && <MenuView menu={data.menu} />}
-      {tab === 'batch' && <BatchView items={data.batch} semaine={semaine} />}
+      {tab === 'menu' && (
+        <MenuView menu={data.menu} recettes={data.recettes} bases={data.bases} />
+      )}
+      {tab === 'batch' && (
+        <BatchView items={data.batch} rituel={data.rituel} microBatch={data.microBatch} semaine={semaine} />
+      )}
     </>
   );
 }

@@ -36,7 +36,7 @@ test.describe('Dock flottant — mobile', () => {
   test('dock compact, centré, pilule qui glisse au changement d’onglet', async ({ page }) => {
     await page.goto(ORIGIN);
 
-    await expect(page.getByText('Semaine 2026-S39')).toBeVisible();
+    await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
 
     const avant = await dockState(page);
     expect(avant).not.toBeNull();

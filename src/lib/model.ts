@@ -21,12 +21,46 @@ export interface MenuDay {
   dinerFamille?: string;
   dinerMelanie?: string;
   batch?: string;
+  recetteRefs?: Partial<Record<MealKey, string>>;
 }
 
 export interface ChecklistItem {
   id: string;
   label: string;
 }
+
+export interface Recette {
+  id: string;
+  nom: string;
+  temps?: string;
+  kcal?: number;
+  proteines?: number;
+  pour?: string;
+  bases?: string[];
+  etapes?: string[];
+  mel?: string;
+  batch?: string;
+}
+
+export interface BaseCuisine {
+  id: string;
+  nom: string;
+  texte: string;
+}
+
+export interface RituelEtape {
+  id: string;
+  creneau: string;
+  label: string;
+  detail?: string;
+}
+
+export interface MicroBatchJour {
+  jour: string;
+  quoi: string;
+}
+
+export type MealKey = 'dejeunerMarc' | 'dejeunerMelanie' | 'dinerFamille' | 'dinerMelanie' | 'batch';
 
 export interface ProfileData {
   cibles: string[];
@@ -40,6 +74,10 @@ export interface WeeklyData {
   menu: MenuDay[];
   batch: ChecklistItem[];
   profiles: Record<ProfileKey, ProfileData>;
+  recettes?: Recette[];
+  bases?: BaseCuisine[];
+  rituel?: RituelEtape[];
+  microBatch?: MicroBatchJour[];
 }
 
 export interface ImportedWeek {

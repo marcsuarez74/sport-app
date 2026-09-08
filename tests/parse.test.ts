@@ -1,3 +1,4 @@
+import exemple from '../src/assets/semaine-exemple.md?raw';
 import { parseWeeklyFile, slugify } from '../src/lib/parse';
 
 const FULL_WEEK = `---
@@ -513,5 +514,358 @@ au: 2026-09-27
 ---
 `),
     ).toThrow(/Frontmatter incomplet/);
+  });
+});
+
+const V2_WEEK = `---
+semaine: 2026-S39
+menu: A
+du: 2026-09-21
+au: 2026-09-27
+---
+
+## Courses
+### Protéines
+- Poulet 600 g
+
+### Keto
+- Avocats ×3-4
+- Chocolat noir ≥ 85 %
+
+## Menu
+### Mardi
+- dejeuner-marc: Boîte poulet-riz
+- diner-famille: Pâtes bolognaise + salade → R2
+- diner-melanie: Bolo sur courgettes + parmesan → r2
+- batch: Double sauce → boîte mer
+
+## Recettes
+### R2 · Pâtes bolognaise + salade
+temps: 25 min · plaque + casserole
+kcal: 620
+proteines: 42
+bases: B4, B6
+- pour 4: 800 g haché 5 % · 2 boîtes tomates · 400 g pâtes
+1. Oignons + ail à l'huile 5 min, haché 8 min.
+2. Tomates + herbes, 15 min doux.
+3. Pâtes al dente en parallèle.
+- mel: bolo sur courgettes spaghetti + parmesan
+- batch: double sauce → boîte mercredi
+
+### R7 · Rôti de dinde + gratin courgettes
+temps: 60 min · four 180°
+
+## Bases
+### B4 · Vinaigrette minute
+3 c.à.s huile d'olive + 1 moutarde + jus d'½ citron + sel.
+
+### B6 · Courgettes spaghetti
+Julienne à l'économe, 3-4 min poêle très chaude, jamais à l'avance.
+
+## Batch
+### Rituel dimanche
+- 0-5 min · Four à 180° — egg muffins ×10 lancés
+- 5-30 min · Cuissons en double — dîner ×2 + féculent ×2
+
+### Micro-batch
+- lundi: doubler le plat
+- mardi: doubler la sauce
+
+- [ ] Egg muffins ×10
+
+## Marc
+### Cibles
+- 2200 kcal
+
+### Séances
+- [ ] PPG lundi
+
+### Rappels
+- Pesée le lundi
+
+## Melanie
+### Cibles
+- 1600 kcal
+
+### Séances
+- [ ] Yoga mardi
+
+### Rappels
+- Pesée le lundi
+`;
+
+describe('parseWeeklyFile — format v2 (recettes, bases, rituel, micro-batch)', () => {
+  const { data, warnings } = parseWeeklyFile(V2_WEEK);
+
+  it('extrait les recettes avec tous leurs champs', () => {
+    expect(data.recettes).toHaveLength(2);
+    const r2 = data.recettes![0];
+    expect(r2.id).toBe('r2-pates-bolognaise-salade');
+    expect(r2.nom).toBe('R2 · Pâtes bolognaise + salade');
+    expect(r2.temps).toBe('25 min · plaque + casserole');
+    expect(r2.kcal).toBe(620);
+    expect(r2.proteines).toBe(42);
+    expect(r2.bases).toEqual(['B4', 'B6']);
+    expect(r2.pour).toContain('800 g haché');
+    expect(r2.etapes).toEqual([
+      "Oignons + ail à l'huile 5 min, haché 8 min.",
+      'Tomates + herbes, 15 min doux.',
+      'Pâtes al dente en parallèle.',
+    ]);
+    expect(r2.mel).toContain('courgettes spaghetti');
+    expect(r2.batch).toContain('double sauce');
+  });
+
+  it('extrait les bases du carnet', () => {
+    expect(data.bases).toHaveLength(2);
+    expect(data.bases![0].id).toBe('b4-vinaigrette-minute');
+    expect(data.bases![0].texte).toContain("huile d'olive");
+  });
+
+  it('lie les repas aux recettes via → et retire la référence du texte', () => {
+    const mardi = data.menu[0];
+    expect(mardi.recetteRefs).toEqual({ dinerFamille: 'R2', dinerMelanie: 'r2' });
+    expect(mardi.dinerFamille).toBe('Pâtes bolognaise + salade');
+    expect(mardi.dejeunerMarc).toBe('Boîte poulet-riz');
+  });
+
+  it('extrait le rituel du dimanche avec créneaux et ids stables', () => {
+    expect(data.rituel).toHaveLength(2);
+    expect(data.rituel![0]).toEqual({
+      id: 'batch:rituel:four-a-180',
+      creneau: '0-5 min',
+      label: 'Four à 180°',
+      detail: 'egg muffins ×10 lancés',
+    });
+  });
+
+  it('extrait le micro-batch par jour', () => {
+    expect(data.microBatch).toEqual([
+      { jour: 'lundi', quoi: 'doubler le plat' },
+      { jour: 'mardi', quoi: 'doubler la sauce' },
+    ]);
+  });
+
+  it('garde les tâches batch hors sous-sections avec ids inchangés', () => {
+    expect(data.batch).toEqual([{ id: 'batch:egg-muffins-10', label: 'Egg muffins ×10' }]);
+  });
+
+  it('ne produit aucun warning pour une semaine v2 complète', () => {
+    expect(warnings).toEqual([]);
+  });
+});
+
+describe('sous-section batch inconnue', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- [ ] Tâche réelle
+
+### Snack
+- Barre protéinée
+- [ ] Autre barre
+`));
+
+  it('n’absorbe pas les lignes de la sous-section inconnue comme tâches batch', () => {
+    expect(data.batch).toEqual([{ id: 'batch:tache-reelle', label: 'Tâche réelle' }]);
+  });
+
+  it('émet exactement UN warning de sous-section ignorée (pas de triplé)', () => {
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Sous-section « Snack » ignorée (batch).',
+    ]);
+  });
+});
+
+describe('lignes v2 hors sous-section (batch)', () => {
+  it('étape rituel top-level → warning dédié et pas de tâche', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- 0-5 min · Four à 180° — egg muffins ×10
+`));
+    expect(data.batch).toEqual([]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Ligne rituel hors sous-section « Rituel dimanche » ignorée (batch).',
+    ]);
+  });
+
+  it('ligne micro-batch top-level → warning dédié et pas de tâche', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- lundi: doubler le plat
+`));
+    expect(data.batch).toEqual([]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Ligne micro-batch hors sous-section « Micro-batch » ignorée (batch).',
+    ]);
+  });
+
+  it('les cases à cocher restent des tâches top-level (même avec la forme jour:)', () => {
+    const { data, warnings } = parseWeeklyFile(weekWith(`## Batch
+- [ ] lundi: préparer les boîtes
+`));
+    expect(data.batch).toEqual([
+      { id: 'batch:lundi-preparer-les-boites', label: 'lundi: préparer les boîtes' },
+    ]);
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([]);
+  });
+});
+
+describe('kcal/proteines invalides (recettes)', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Recettes
+### R2 · Gratin de courgettes
+kcal: ~620 kcal
+proteines: beaucoup
+temps: 30 min
+`));
+
+  it('laisse kcal et proteines undefined (pas de NaN silencieux)', () => {
+    expect(data.recettes).toEqual([
+      { id: 'r2-gratin-de-courgettes', nom: 'R2 · Gratin de courgettes', temps: '30 min' },
+    ]);
+  });
+
+  it('émet un warning par valeur invalide', () => {
+    expect(warnings.filter((w) => !w.startsWith('Section ##'))).toEqual([
+      'Valeur kcal invalide pour la recette « R2 · Gratin de courgettes » : ligne ignorée.',
+      'Valeur proteines invalide pour la recette « R2 · Gratin de courgettes » : ligne ignorée.',
+    ]);
+  });
+});
+
+describe('ids de recettes/bases dupliqués', () => {
+  const { data, warnings } = parseWeeklyFile(weekWith(`## Recettes
+### R2 · Sauce tomate
+temps: 10 min
+
+### R2 · Sauce tomate
+temps: 15 min
+
+## Bases
+### B1 · Vinaigrette
+Huile + moutarde.
+
+### B1 · Vinaigrette
+Huile + citron.
+`));
+
+  it('garde les deux occurrences (pas de dédoublonnage)', () => {
+    expect(data.recettes).toHaveLength(2);
+    expect(data.bases).toHaveLength(2);
+  });
+
+  it('émet un warning par identifiant déjà utilisé', () => {
+    expect(warnings.filter((w) => w.includes('déjà utilisé'))).toEqual([
+      'Identifiant « r2-sauce-tomate » déjà utilisé.',
+      'Identifiant « b1-vinaigrette » déjà utilisé.',
+    ]);
+  });
+});
+
+describe('épinglage v2', () => {
+  it('R7 sans étapes : objet exactement {id, nom, temps}', () => {
+    const { data } = parseWeeklyFile(V2_WEEK);
+    expect(data.recettes![1]).toEqual({
+      id: 'r7-roti-de-dinde-gratin-courgettes',
+      nom: 'R7 · Rôti de dinde + gratin courgettes',
+      temps: '60 min · four 180°',
+    });
+  });
+
+  it('référence non finale (→ R2 extra) : texte intact et pas de recetteRefs', () => {
+    const { data } = parseWeeklyFile(weekWith(`## Menu
+### Mardi
+- diner-famille: Bolo pâtes → R2 extra
+`));
+    expect(data.menu).toEqual([{ jour: 'Mardi', dinerFamille: 'Bolo pâtes → R2 extra' }]);
+  });
+});
+
+describe('parseWeeklyFile — rétrocompatibilité v1', () => {
+  it('une semaine sans blocs v2 ne définit pas les champs optionnels', () => {
+    const { data } = parseWeeklyFile(FULL_WEEK);
+    expect(data.recettes).toBeUndefined();
+    expect(data.bases).toBeUndefined();
+    expect(data.rituel).toBeUndefined();
+    expect(data.microBatch).toBeUndefined();
+  });
+});
+
+// ⚠️ La sample est alignée sur la semaine COURANTE (S37 au 08/09/2026) tant qu'il n'y a pas
+// de template hebdo. Pour la rafraîchir, bump en lockstep : frontmatter + `# Semaine` de
+// src/assets/semaine-exemple.md, ce describe (dates), tests/app.test.tsx (fixture + meta +
+// dates bannière), tests/profil-screen.test.tsx, tests/e2e/{onboarding-mobile,dock}.spec.ts.
+describe('semaine-exemple.md — la sample réelle (v2, semaine courante)', () => {
+  const { data, warnings } = parseWeeklyFile(exemple);
+
+  it('frontmatter aligné sur la semaine courante : S37, du = lundi, au = dimanche', () => {
+    expect(data.meta.semaine).toBe('2026-S37');
+    expect(data.meta.du).toBe('2026-09-07');
+    expect(data.meta.au).toBe('2026-09-13');
+    const du = new Date('2026-09-07T12:00:00');
+    const au = new Date('2026-09-13T12:00:00');
+    expect(du.getDay()).toBe(1); // lundi
+    expect(au.getDay()).toBe(0); // dimanche
+    // Le code semaine du frontmatter == numéro de semaine ISO de `du`
+    const [y, m, d] = data.meta.du.split('-').map(Number);
+    const jeudi = new Date(y, m - 1, d + 3);
+    const debutAnnee = new Date(jeudi.getFullYear(), 0, 1);
+    const semaine = Math.ceil(((jeudi.getTime() - debutAnnee.getTime()) / 86400000 + 1) / 7);
+    expect(data.meta.semaine).toBe(`2026-S${String(semaine).padStart(2, '0')}`);
+  });
+
+  it('ne produit aucun warning', () => {
+    expect(warnings).toEqual([]);
+  });
+
+  it('contient des recettes, des bases, un rituel et un micro-batch', () => {
+    expect(data.recettes!.length).toBeGreaterThanOrEqual(3);
+    expect(data.bases!.length).toBeGreaterThanOrEqual(3);
+    expect(data.rituel!.length).toBeGreaterThanOrEqual(5);
+    expect(data.microBatch!.length).toBeGreaterThanOrEqual(3);
+    expect(data.rituel![0].label).toContain('180');
+  });
+
+  it('le menu contient 7 jours ordonnés du lundi au dimanche', () => {
+    expect(data.menu.map((d) => d.jour)).toEqual([
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche',
+    ]);
+  });
+
+  it('les refs → du menu pointent toutes vers des recettes existantes', () => {
+    for (const day of data.menu) {
+      for (const [repas, ref] of Object.entries(day.recetteRefs ?? {})) {
+        if (!ref) continue;
+        const cible = ref.toLowerCase();
+        const trouvée = data.recettes!.some(
+          (r) => r.id === cible || r.id.startsWith(cible + '-'),
+        );
+        expect(trouvée, `ref ${ref} (${repas}, jour ${day.jour}) introuvable`).toBe(true);
+      }
+    }
+  });
+
+  it('les bases référencées par les recettes existent', () => {
+    for (const r of data.recettes ?? []) {
+      for (const b of r.bases ?? []) {
+        const cible = b.toLowerCase();
+        expect(
+          data.bases!.some((base) => base.id === cible || base.id.startsWith(cible + '-')),
+          b,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('le rayon Keto existe dans les courses', () => {
+    expect(data.courses.some((c) => c.rayon === 'keto')).toBe(true);
+  });
+
+  it('le carnet contient les recettes clés du carnet papier', () => {
+    const ids = data.recettes!.map((r) => r.id);
+    expect(ids).toContain('r1-cuisses-de-poulet-roties-legumes-riz');
+    expect(ids).toContain('r2-pates-bolognaise-salade');
   });
 });

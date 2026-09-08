@@ -5,8 +5,10 @@ export function WeekBanner({ meta, onOpenProfile }: { meta: WeekMeta; onOpenProf
   return (
     <header className="week-banner">
       <div>
-        <h1 className="week-title">Semaine {meta.semaine}</h1>
-        <p>Menu {meta.menu}</p>
+        <div className="week-title-row">
+          <h1 className="week-title">Semaine {meta.semaine}</h1>
+          <span className="menu-pill">Menu {meta.menu}</span>
+        </div>
         {meta.titre && <p className="muted">{meta.titre}</p>}
         <p>
           {formatDayMonth(meta.du)} → {formatDayMonth(meta.au)}

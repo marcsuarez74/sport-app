@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-**Sport App** est une PWA 100 % frontend (zéro backend) de suivi cuisine / diet / sport pour Marc & Mélanie. Le contenu provient d'un fichier `.md` structuré par semaine, importé dans l'app depuis le téléphone. Toutes les données utilisateur vivent en `localStorage` — rien ne quitte l'appareil.
+**Sport App** est une PWA 100 % frontend (zéro backend) de suivi cuisine / diet / sport pour Marc & Mélanie. Le contenu provient d'un fichier `.md` structuré par semaine — la semaine d'exemple est auto-chargée (l'import UI reviendra plus tard). Toutes les données utilisateur vivent en `localStorage` — rien ne quitte l'appareil.
 
 Déployée sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 
@@ -29,15 +29,16 @@ Déployée sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 
 ```
 src/
+├── App.tsx               # Shell : onboarding → 2 onglets ou ProfilScreen ; fallback semaineExemple()
 ├── lib/                  # Cœur logique, ZÉRO React (testable isolément)
 │   ├── model.ts          # Types du domaine (WeeklyData, ChecklistItem, ProfileData…)
 │   ├── parse.ts          # Parser .md hebdo → WeeklyData (+ warnings) — sert à la semaine d'exemple
 │   ├── storage.ts        # Persistance localStorage (semaine, coches, pesées)
 │   ├── rayons.ts         # imagePourRayon : slug → miniature (normalisation casse/accents, fallback)
+│   ├── text.ts           # capitalize mutualisé (rayons, micro-batch)
 │   └── dates.ts          # Jours FR, todayKey, todayISO, formatage DD/MM
 ├── components/
-│   ├── App.tsx           # Shell : onboarding → 2 onglets ou ProfilScreen ; fallback semaineExemple()
-│   ├── WeekBanner.tsx    # Bannière semaine (h1, menu, dates FR) + icône profil
+│   ├── WeekBanner.tsx    # Bannière semaine (h1, pill Menu, dates FR) + icône profil
 │   ├── TabBar.tsx        # Dock flottant 2 onglets (Cuisine / Mon suivi), export type TabId
 │   ├── ProfilScreen.tsx  # Écran poussé : infos perso + changer de profil
 │   ├── Checklist.tsx     # Checklists persistées par semaine (pattern réutilisable)
@@ -45,15 +46,16 @@ src/
 │   ├── ProfileView.tsx   # Vue générique Marc/Mélanie (cibles, séances, poids, rappels)
 │   └── cuisine/          # Onglet Cuisine
 │       ├── CuisineView.tsx   # Sous-onglets Courses / Menu / Batch
-│       ├── ShoppingList.tsx  # Courses groupées par rayon (miniature photo) + progression
-│       ├── MenuView.tsx      # Menu de la semaine, jour courant en évidence
-│       └── BatchView.tsx     # Tâches batch cochables
+│       ├── ShoppingList.tsx  # Courses par rayon (miniature, compteurs) + encadré keto en dernier
+│       ├── MenuView.tsx      # Menu réordonné (jour courant en tête, jours passés en fin)
+│       │                     # + fiches recettes dépliables (RecetteCard, accordéon)
+│       └── BatchView.tsx     # Checklist batch + rituel dimanche (timeline) + micro-batch (carrousel)
 ├── assets/
 │   ├── semaine-exemple.md    # SEMAINE D'EXEMPLE auto-chargée = référence du contrat de format
 │   └── rayons/               # Miniatures 160×120 des rayons (~5-10 Ko, runtime cache SW)
 └── index.css             # Design system complet (tokens + composants)
 
-tests/                    # Miroir de src/ : parse, storage, rayons, components, app
+tests/                    # Miroir de src/ : parse, storage, rayons, text, components, app
 public/                   # Icônes PWA (générées via npm run icons)
 .github/workflows/deploy.yml  # CI : npm ci → test → build → e2e preview → Pages
 docs/superpowers/         # Spec + plan historiques
@@ -69,9 +71,12 @@ ai/                       # Contexte et configs pour agents IA
 ### 1. Flux de données unidirectionnel
 
 ```
-.md importé → parse.ts → saveWeek() → localStorage
+.md (semaine-exemple, import à venir) → parseWeeklyFile → WeeklyData (blocs v2 optionnels :
+                                               recettes, bases, rituel, microBatch, recetteRefs)
+                                               → saveWeek() → localStorage
                                    ↓
-App (loadWeek) → props descendantes → vues (Checklist/ProfileView…)
+App (loadWeek) → props descendantes → vues (CuisineView → MenuView/ShoppingList/BatchView,
+                                            Checklist/ProfileView…)
                                    ↓
 interactions → storage.ts → état local du composant
 ```
@@ -82,7 +87,7 @@ Un composant dont l'état dépend d'une prop qui peut changer (semaine, profil) 
 
 ### 3. IDs stables de coche
 
-Les items cochables ont des ids dérivés du contenu : `courses:{rayon}:{slug}`, `batch:{slug}`, `seances:{profil}:{slug}` (slug sans accents). Ces ids sont **la clé de persistance** : les modifier = perdre les états cochés des téléphones.
+Les items cochables ont des ids dérivés du contenu : `courses:{rayon}:{slug}`, `batch:{slug}`, `batch:rituel:{slug-étape}`, `seances:{profil}:{slug}` (slug sans accents). Ces ids sont **la clé de persistance** : les modifier = perdre les états cochés des téléphones.
 
 ### 4. Tolérance aux données corrompues
 
@@ -90,7 +95,7 @@ Toute lecture localStorage passe par `safeParse` + garde de forme : donnée illi
 
 ### 5. Parsing tolérant, format strict
 
-Le parser accepte les variantes bénignes (accents, CRLF, BOM, indentation, `*`, `[X]`) et **signale** tout ce qu'il ignore (warnings remontés à l'UI d'import). Le format contractuel est documenté dans `src/assets/semaine-exemple.md`.
+Le parser accepte les variantes bénignes (accents, CRLF, BOM, indentation, `*`, `[X]`) et **signale** tout ce qu'il ignore (warnings en mémoire, disponibles pour la future UI d'import). Le format contractuel est documenté dans `src/assets/semaine-exemple.md`.
 
 ---
 
