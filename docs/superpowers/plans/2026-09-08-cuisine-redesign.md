@@ -276,6 +276,7 @@ import type {
   BaseCuisine,
   ChecklistItem,
   CourseItem,
+  MealKey,
   MenuDay,
   MicroBatchJour,
   ProfileData,
@@ -285,6 +286,11 @@ import type {
   WeeklyData,
 } from './model';
 ```
+
+Et resserrer `MENU_KEYS` (revue T1 : `keyof MenuDay` inclut désormais `jour`/`recetteRefs`) :
+
+```ts
+const MENU_KEYS: Record<string, MealKey> = {
 
 Dans `parseWeeklyFile`, remplacer le bloc de parsing des sections par :
 
@@ -597,8 +603,9 @@ describe('semaine-exemple.md — format v2 complet', () => {
   it('les refs → du menu pointent toutes vers des recettes existantes', () => {
     for (const day of data.menu) {
       for (const ref of Object.values(day.recetteRefs ?? {})) {
+        const cible = ref.toLowerCase();
         const trouvée = data.recettes!.some(
-          (r) => r.id === ref.toLowerCase() || r.id.startsWith(ref.toLowerCase()),
+          (r) => r.id === cible || r.id.startsWith(cible + '-'),
         );
         expect(trouvée, `ref ${ref} (jour ${day.jour}) introuvable`).toBe(true);
       }
@@ -991,7 +998,8 @@ function recetteDuJour(_day: MenuDay, _ref: string): boolean {
 
 export function trouverRecette(ref: string, recettes: Recette[]): Recette | undefined {
   const cible = ref.toLowerCase();
-  return recettes.find((r) => r.id === cible || r.id.startsWith(cible));
+  // égalité exacte d'abord, puis préfixe avec borne (`r1` ne doit pas matcher `r10-…`)
+  return recettes.find((r) => r.id === cible) ?? recettes.find((r) => r.id.startsWith(cible + '-'));
 }
 
 export function RecetteCard({
