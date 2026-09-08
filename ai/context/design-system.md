@@ -104,7 +104,7 @@ Pile système : `-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, san
 | `.menu-day.past` + `.past-badge` | jours passés (regroupés en fin de liste) | titre muted, badge pill `--surface-2`/muted 12px/700 |
 | `.menu-tag` (`.tag-marc` `.tag-keto` `.tag-fam` `.tag-bat`) | tags de profil des repas | pills 11px/800 : Marc plein `--accent-marc`, Mé `--accent-melanie` 22%, Famille `--surface-2`, Batch `--accent-marc` 22% |
 | `.menu-row` / `.menu-row-text` | ligne repas (tag + texte) | tag `flex-shrink: 0`, texte `min-width: 0` (anti-débordement mobile) |
-| `.menu-recette-link` | lien « 📖 fiche recette » d'un repas | inline, `--accent` 700, souligné pointillé muted, `aria-expanded` (accordéon : une seule fiche ouverte) |
+| `.menu-recette-link` | lien « 📖 {recette} » d'un repas | inline, `--accent` 700, souligné pointillé muted, `aria-expanded` (accordéon : une seule fiche ouverte) |
 | `.recette-card` + `.recette-*` | fiche recette dépliable (RecetteCard) | surface-2 + bordure gauche 3 px accent, radius 12px ; `.recette-stats` chips bordées ; `.recette-bchip` cliquable (état `.on` = bordure accent) ; `.recette-mel` / `.recette-bat` pastilles vert/orange via `color-mix` + `::before` émoji |
 | `.progress` + `progress` | progression courses | texte bold muted + barre native `accent-color` |
 | `.batch-banner` | rappel batch | fond `--surface-2`, bordure gauche 4 px accent |

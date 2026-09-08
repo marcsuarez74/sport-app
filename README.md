@@ -121,7 +121,7 @@ Trois sous-onglets partagés (🛒 Courses · 📅 Menu · 📦 Batch) :
 npm install
 npm run dev        # serveur de dev
 npm test           # tests unitaires (vitest) — 190 verts
-npm run e2e        # tests navigateur (Playwright, mobile 375/320) — 22 verts
+npm run e2e        # tests navigateur (Playwright, mobile 375/320) — 11 specs × 2 mobiles, 22 verts
 npm run build      # build de production
 npm run preview    # prévisualiser le build
 npm run icons      # régénérer les icônes après modification de public/icon-src.svg

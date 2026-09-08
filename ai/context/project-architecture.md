@@ -29,6 +29,7 @@ Déployée sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 
 ```
 src/
+├── App.tsx               # Shell : onboarding → 2 onglets ou ProfilScreen ; fallback semaineExemple()
 ├── lib/                  # Cœur logique, ZÉRO React (testable isolément)
 │   ├── model.ts          # Types du domaine (WeeklyData, ChecklistItem, ProfileData…)
 │   ├── parse.ts          # Parser .md hebdo → WeeklyData (+ warnings) — sert à la semaine d'exemple
@@ -37,8 +38,7 @@ src/
 │   ├── text.ts           # capitalize mutualisé (rayons, micro-batch)
 │   └── dates.ts          # Jours FR, todayKey, todayISO, formatage DD/MM
 ├── components/
-│   ├── App.tsx           # Shell : onboarding → 2 onglets ou ProfilScreen ; fallback semaineExemple()
-│   ├── WeekBanner.tsx    # Bannière semaine (h1, menu, dates FR) + icône profil
+│   ├── WeekBanner.tsx    # Bannière semaine (h1, pill Menu, dates FR) + icône profil
 │   ├── TabBar.tsx        # Dock flottant 2 onglets (Cuisine / Mon suivi), export type TabId
 │   ├── ProfilScreen.tsx  # Écran poussé : infos perso + changer de profil
 │   ├── Checklist.tsx     # Checklists persistées par semaine (pattern réutilisable)
@@ -95,7 +95,7 @@ Toute lecture localStorage passe par `safeParse` + garde de forme : donnée illi
 
 ### 5. Parsing tolérant, format strict
 
-Le parser accepte les variantes bénignes (accents, CRLF, BOM, indentation, `*`, `[X]`) et **signale** tout ce qu'il ignore (warnings remontés à l'UI d'import). Le format contractuel est documenté dans `src/assets/semaine-exemple.md`.
+Le parser accepte les variantes bénignes (accents, CRLF, BOM, indentation, `*`, `[X]`) et **signale** tout ce qu'il ignore (warnings en mémoire, disponibles pour la future UI d'import). Le format contractuel est documenté dans `src/assets/semaine-exemple.md`.
 
 ---
 
