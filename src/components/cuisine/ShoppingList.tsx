@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react';
 import type { CourseItem } from '../../lib/model';
 import { imagePourRayon } from '../../lib/rayons';
 import { getChecks } from '../../lib/storage';
+import { capitalize } from '../../lib/text';
 import { Checklist } from '../Checklist';
-
-const capitalize = (slug: string): string => (slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : slug);
 
 export function ShoppingList({ items, semaine }: { items: CourseItem[]; semaine: string }) {
   const [checks, setChecks] = useState<Record<string, boolean>>(() => getChecks(semaine));

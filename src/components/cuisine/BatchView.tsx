@@ -2,8 +2,7 @@ import { useState } from 'react';
 import type { ChecklistItem, MicroBatchJour, RituelEtape } from '../../lib/model';
 import { Checklist } from '../Checklist';
 import { getChecks, setCheck } from '../../lib/storage';
-
-const capitalize = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+import { capitalize } from '../../lib/text';
 
 export function BatchView({
   items,
@@ -78,11 +77,9 @@ function RituelTimeline({ etapes, semaine }: { etapes: RituelEtape[]; semaine: s
                 aria-label={`${e.label} (${e.creneau})`}
               />
               <span className="rituel-corps">
-                <span className="rituel-h">
-                  <span className="rituel-label">
-                    {e.label}
-                    <span className="rituel-creneau">{e.creneau}</span>
-                  </span>
+                <span className="rituel-label">
+                  {e.label}
+                  <span className="rituel-creneau">{e.creneau}</span>
                 </span>
                 {e.detail && <span className="rituel-detail">{e.detail}</span>}
               </span>

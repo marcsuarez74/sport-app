@@ -686,6 +686,19 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     expect(container.querySelector('.rituel-timeline')).toBeNull();
     expect(container.querySelector('.micro-batch')).toBeNull();
   });
+
+  it('resynchronise la timeline quand la semaine change (render-phase reset)', () => {
+    const { rerender } = render(
+      <BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />,
+    );
+    setCheck('2026-S39', 'batch:rituel:four-a-180', true);
+    rerender(<BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S40" />);
+
+    expect(screen.getByText('0/2')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' })).not.toBeChecked();
+    expect(getChecks('2026-S39')).toEqual({ 'batch:rituel:four-a-180': true });
+    expect(getChecks('2026-S40')).toEqual({});
+  });
 });
 
 const profileData: ProfileData = {
