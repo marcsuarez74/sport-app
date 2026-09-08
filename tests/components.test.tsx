@@ -492,6 +492,32 @@ describe('MenuView — accordéon recette', () => {
     await user.click(screen.getByRole('button', { name: /B4 · Vinaigrette minute/ }));
     expect(screen.getByText(/huile d'olive \+ 1 moutarde/)).toBeInTheDocument();
   });
+
+  it('préfixe de recette borné : R1 ne matche pas une recette r10-…', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    renderMenu({
+      recettes: [{ id: 'r10-wok-special', nom: 'R10 · Wok spécial', temps: '10 min' }, ...RECETTES],
+      menu: [{ jour: 'Mercredi', dinerFamille: 'Wok spécial', recetteRefs: { dinerFamille: 'R1' } }],
+    });
+
+    // Avec un matching non borné, `r1` matcherait `r10-wok-special` → lien + fiche R10.
+    expect(screen.queryByRole('button', { name: /R10 · Wok spécial/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: /Wok spécial/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Wok spécial')).toBeInTheDocument();
+  });
+
+  it('base non résolue : fiche sans chips, sans crash', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu({
+      recettes: [{ ...RECETTES[0], bases: ['B9'] }],
+    });
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+
+    expect(screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^B9/ })).not.toBeInTheDocument();
+  });
 });
 
 describe('BatchView', () => {
