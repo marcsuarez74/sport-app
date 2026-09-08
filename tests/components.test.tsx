@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ChecklistItem, CourseItem, MenuDay, ProfileData } from '../src/lib/model';
+import type { BaseCuisine, ChecklistItem, CourseItem, MenuDay, ProfileData, Recette } from '../src/lib/model';
 import { addWeight, getChecks, getWeights, setCheck } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
 import { Checklist } from '../src/components/Checklist';
@@ -328,6 +328,169 @@ describe('MenuView v2', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+});
+
+describe('MenuView — accordéon recette', () => {
+  const RECETTES: Recette[] = [
+    {
+      id: 'r2-pates-bolognaise-salade',
+      nom: 'R2 · Pâtes bolognaise + salade',
+      temps: '25 min · plaque + casserole',
+      kcal: 620,
+      proteines: 42,
+      pour: '800 g haché 5 % · 2 boîtes tomates · 400 g pâtes',
+      bases: ['B4', 'B6'],
+      etapes: ["Oignons + ail à l'huile 5 min, haché 8 min.", 'Tomates + herbes, 15 min doux.'],
+      mel: 'bolo sur courgettes spaghetti + parmesan',
+      batch: 'double sauce → boîte mercredi',
+    },
+    { id: 'r4-wok', nom: 'R4 · Wok poulet', temps: '12 min', etapes: ['Wok bien chaud.'], mel: 'sans riz' },
+  ];
+  const BASES: BaseCuisine[] = [
+    {
+      id: 'b4-vinaigrette-minute',
+      nom: 'B4 · Vinaigrette minute',
+      texte: "3 c.à.s huile d'olive + 1 moutarde + jus d'½ citron + sel.",
+    },
+    {
+      id: 'b6-courgettes-spaghetti',
+      nom: 'B6 · Courgettes spaghetti',
+      texte: "Julienne à l'économe, 3-4 min poêle très chaude.",
+    },
+  ];
+  const MENU: MenuDay[] = [
+    { jour: 'Mercredi', dinerFamille: 'Pâtes bolognaise + salade', recetteRefs: { dinerFamille: 'R2' } },
+    { jour: 'Jeudi', dinerFamille: 'Wok poulet', recetteRefs: { dinerFamille: 'R4' } },
+  ];
+
+  const renderMenu = (over: { menu?: MenuDay[]; recettes?: Recette[]; bases?: BaseCuisine[] } = {}) =>
+    render(<MenuView menu={over.menu ?? MENU} recettes={over.recettes ?? RECETTES} bases={over.bases ?? BASES} />);
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("n'ouvre qu'une seule fiche à la fois : cliquer le 2e lien referme la 1re fiche", async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00')); // mercredi : Mercredi en tête
+    const user = userEvent.setup();
+    renderMenu();
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+    expect(screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /R4 · Wok poulet/ })).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(screen.getByRole('button', { name: /R4 · Wok poulet/ }));
+    expect(screen.getByRole('article', { name: 'R4 · Wok poulet' })).toBeInTheDocument();
+    expect(screen.queryByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('referme la fiche via le bouton ×', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu();
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+    const fermer = screen.getByRole('button', { name: 'Fermer la recette' });
+    expect(fermer).toHaveClass('recette-close');
+
+    await user.click(fermer);
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('affiche les chips de stats (kcal, protéines) dans la fiche', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu();
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+    expect(screen.getByText('🔥 ~620 kcal /pers')).toBeInTheDocument();
+    expect(screen.getByText('💪 42 g protéines')).toBeInTheDocument();
+  });
+
+  it('affiche la ligne méta ⏱ temps · pour 4', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu();
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+    const meta = screen
+      .getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })
+      .querySelector('.recette-meta')!;
+    expect(meta).toHaveTextContent('⏱ 25 min · plaque + casserole');
+    expect(meta).toHaveTextContent('pour 4');
+  });
+
+  it('déplie la description d’une base au clic sur sa chip, une seule à la fois, referme au 2e clic', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu();
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+
+    const chipB4 = screen.getByRole('button', { name: /B4 · Vinaigrette minute/ });
+    const chipB6 = screen.getByRole('button', { name: /B6 · Courgettes spaghetti/ });
+
+    await user.click(chipB4);
+    expect(screen.getByText(/huile d'olive \+ 1 moutarde/)).toBeInTheDocument();
+    expect(chipB4).toHaveAttribute('aria-expanded', 'true');
+    expect(chipB6).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(chipB6);
+    expect(screen.getByText(/poêle très chaude/)).toBeInTheDocument();
+    expect(screen.queryByText(/huile d'olive \+ 1 moutarde/)).not.toBeInTheDocument();
+
+    await user.click(chipB6);
+    expect(screen.queryByText(/poêle très chaude/)).not.toBeInTheDocument();
+    expect(chipB6).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('affiche les étapes numérotées et les lignes mélanie / batch', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu();
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+
+    const etapes = screen.getByRole('list');
+    expect(etapes).toHaveClass('recette-etapes');
+    expect(within(etapes).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+      "Oignons + ail à l'huile 5 min, haché 8 min.",
+      'Tomates + herbes, 15 min doux.',
+    ]);
+
+    expect(screen.getByText('bolo sur courgettes spaghetti + parmesan')).toHaveClass('recette-ligne', 'recette-mel');
+    expect(screen.getByText('double sauce → boîte mercredi')).toHaveClass('recette-ligne', 'recette-bat');
+  });
+
+  it('ref non résolue : ni lien recette ni fiche', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const { container } = renderMenu({
+      menu: [{ jour: 'Mercredi', dinerFamille: 'Pâtes bolognaise + salade', recetteRefs: { dinerFamille: 'R99' } }],
+    });
+
+    expect(container.querySelector('.menu-recette-link')).toBeNull();
+    expect(container.querySelector('.recette-card')).toBeNull();
+    expect(screen.getByText('Pâtes bolognaise + salade')).toBeInTheDocument();
+  });
+
+  it('préfixe de base borné : B4 ne matche pas une base b40-…', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    const user = userEvent.setup();
+    renderMenu({
+      bases: [{ id: 'b40-houmous', nom: 'B40 · Houmous', texte: 'Pois chiches + tahini.' }, ...BASES],
+    });
+
+    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+
+    expect(screen.getByRole('button', { name: /B4 · Vinaigrette minute/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /B40 · Houmous/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /B4 · Vinaigrette minute/ }));
+    expect(screen.getByText(/huile d'olive \+ 1 moutarde/)).toBeInTheDocument();
   });
 });
 

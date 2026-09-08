@@ -176,5 +176,6 @@ export function RecetteCard({
 function trouverBase(ref: string, bases: BaseCuisine[] | undefined): BaseCuisine | undefined {
   if (!bases) return undefined;
   const cible = ref.toLowerCase();
-  return bases.find((b) => b.id === cible || b.id.startsWith(cible));
+  // même discipline que trouverRecette : égalité exacte d'abord, puis préfixe borné (`b4` ne doit pas matcher `b40-…`)
+  return bases.find((b) => b.id === cible) ?? bases.find((b) => b.id.startsWith(cible + '-'));
 }
