@@ -215,7 +215,7 @@ describe('parseWeeklyFile — format v2 (recettes, bases, rituel, micro-batch)',
   it('extrait les bases du carnet', () => {
     expect(data.bases).toHaveLength(2);
     expect(data.bases![0].id).toBe('b4-vinaigrette-minute');
-    expect(data.bases![0].texte).toContain('huile d’olive');
+    expect(data.bases![0].texte).toContain("huile d'olive");
   });
 
   it('lie les repas aux recettes via → et retire la référence du texte', () => {
@@ -233,7 +233,7 @@ describe('parseWeeklyFile — format v2 (recettes, bases, rituel, micro-batch)',
       label: 'Four à 180°',
       detail: 'egg muffins ×10 lancés',
     });
- precious  });
+  });
 
   it('extrait le micro-batch par jour', () => {
     expect(data.microBatch).toEqual([
@@ -243,7 +243,7 @@ describe('parseWeeklyFile — format v2 (recettes, bases, rituel, micro-batch)',
   });
 
   it('garde les tâches batch hors sous-sections avec ids inchangés', () => {
-    expect(data.batch).toEqual([{ id: 'batch:egg-muffins-x10', label: 'Egg muffins ×10' }]);
+    expect(data.batch).toEqual([{ id: 'batch:egg-muffins-10', label: 'Egg muffins ×10' }]);
   });
 
   it('ne produit aucun warning pour une semaine v2 complète', () => {
@@ -268,6 +268,9 @@ Run: `npm test -- --run tests/parse.test.ts`
 Expected: FAIL — `data.recettes` undefined, etc.
 
 - [ ] **Step 2.3 : Implémenter dans `parse.ts`**
+
+> **Règles batch validées en revue T2 (commit 4d92a88) — s'appliquent aussi à l'échantillon T3 :**
+> une ligne vide termine la sous-section active ; `lignesBatch` n'est appelé qu'UNE fois dans `parseWeeklyFile` (les paires `[ligne, cur]` alimentent les 3 parseurs → warning unique par sous-section inconnue, dont les lignes sont ignorées) ; une ligne rituel (`… min · …`) ou micro-batch (`- <jour>: …`) qui atterrit hors sous-section est jetée AVEC warning ; kcal/proteines non numériques → `undefined` + warning ; ids recettes/bases enregistrés dans `seen` (doublon → warning).
 
 En haut de `parse.ts`, compléter l'import :
 
