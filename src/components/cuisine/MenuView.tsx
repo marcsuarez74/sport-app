@@ -1,7 +1,7 @@
-import type { MenuDay } from '../../lib/model';
+import type { MealKey, MenuDay } from '../../lib/model';
 import { todayKey } from '../../lib/dates';
 
-const ROWS: Array<[keyof MenuDay, string]> = [
+const ROWS: Array<[MealKey, string]> = [
   ['dejeunerMarc', 'Déjeuner Marc'],
   ['dejeunerMelanie', 'Déjeuner Mélanie'],
   ['dinerFamille', 'Dîner famille'],
