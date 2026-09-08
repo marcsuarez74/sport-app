@@ -54,7 +54,7 @@ Déjà présente mais trop discrète — la rendre clairement lisible : `Menu A`
 
 ## 6. Data model (additif)
 
-`WeeklyData` : `recettes?: Recette[]`, `batch.rituel?: RituelEtape[]`, `batch.microBatch?: { jour, quoi }[]`. `CourseItem` : inchangé (le rayon `keto` suffit). `MenuDay` : chaque repas gagne `recette?: string` (slug). `safeParse`/gardes : champs optionnels tolérés, anciennes données acceptées telles quelles.
+`WeeklyData` (implémenté, cf. `src/lib/model.ts`) : `recettes?: Recette[]`, `bases?: BaseCuisine[]`, et au **niveau racine** (pas dans `batch`) `rituel?: RituelEtape[]` + `microBatch?: { jour, quoi }[]`. `CourseItem` : inchangé (le rayon `keto` suffit). `MenuDay` : `recetteRefs?: Partial<Record<MealKey, string>>` (refs `→ slug` par repas). `safeParse`/gardes : champs optionnels tolérés, anciennes données acceptées telles quelles.
 
 ## 7. Tests & vérifications
 

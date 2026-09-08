@@ -58,9 +58,10 @@
 
 ## CSS
 
-- Un seul fichier `src/index.css` (~470 lignes) : pas de CSS-in-JS, pas de lib utilitaire (Tailwind), pas de `<style>` dans les composants
+- Un seul fichier `src/index.css` (~1 200 lignes) : pas de CSS-in-JS, pas de lib utilitaire (Tailwind), pas de `<style>` dans les composants
 - Variables CSS sur `:root` = tokens ; les composants ne codent **jamais** une couleur/rayon en dur (exception documentée : `ACCENTS` dans ProfileView, aligné sur les variables)
 - Transitions limitées aux propriétés bon marché (`background-color`, `color`, `transform`) + kill-switch `prefers-reduced-motion`
+- Carrousel micro-batch : `overflow-x: auto` natif (scrollbar masquée), zéro JS — ne pas le remplacer par un carrousel JS
 
 ---
 

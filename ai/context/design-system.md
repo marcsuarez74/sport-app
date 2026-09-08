@@ -17,14 +17,14 @@ Source de vérité : `src/index.css` (section `:root`). Toute valeur ici doit y 
 |---|---|---|
 | `--bg` | `#0f1115` | fond de page |
 | `--surface` | `#1a1d27` | cartes (`.menu-day`, `.course-group`, `.profile-section`) |
-| `--surface-2` | `#232735` | surfaces secondaires (`.batch-banner`, `.profile-icon-btn`) |
+| `--surface-2` | `#232735` | surfaces secondaires (`.batch-banner`, `.profile-icon-btn`, `.recette-card`, `.micro-jour`) |
 | `--border` | `#2e3345` | bordures de cartes, dots inactifs |
 | `--text` | `#f2f4f8` | texte principal (15,3:1 sur surface) |
 | `--muted` | `#9aa3b5` | texte secondaire (6,6:1 sur surface) |
 | `--accent` | `#5c6bc0` par défaut | **accent global** : onglets, checkboxes, focus, `.today`, bordures |
 | `--accent-strong` | `#485495` par défaut | accent **assombri** pour fonds portant du texte blanc (`.btn`, `.dock-tab-active`, CTA) — garantit ≥ 4,5:1 pour chaque profil |
-| `--accent-marc` | `#e07b39` | couleur perso Marc (onboarding, sparkline) |
-| `--accent-melanie` | `#3d9a6c` | couleur perso Mélanie (onboarding, sparkline) |
+| `--accent-marc` | `#e07b39` | couleur perso Marc (onboarding, sparkline, tag `.tag-marc`) |
+| `--accent-melanie` | `#3d9a6c` | couleur perso Mélanie (onboarding, sparkline, tag `.tag-keto`, encadré keto) |
 | `--danger` | `#ff6b6b` | erreurs (`.error`), `.profil-switch` |
 
 ⚠️ Ne jamais coder une couleur en dur dans un composant — utiliser `var(--token)`. Exceptions synchronisées : `ACCENTS` (ProfileView) + dégradés des cartes onboarding (`onboarding-card-marc/melanie`, alignés sur `--accent-*`).
@@ -55,7 +55,7 @@ Sans profil (onboarding) : accent neutre bleu-violet `#5c6bc0`. Tout nouveau sty
 | `--radius` | `16px` | cartes |
 | `--shadow` | `0 4px 16px rgb(0 0 0 / 0.4)` | élévation |
 
-Rayons dérivés : boutons et pills `12px`, badge `.today-badge` `999px`.
+Rayons dérivés : boutons et pills `12px`, badges/pills `999px` (`.today-badge`, `.menu-pill`, `.menu-tag`, `.past-badge`).
 
 ---
 
@@ -92,14 +92,25 @@ Pile système : `-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, san
 | `.btn` | action principale | fond `--accent-strong`, blanc, 700, min-height 48 px, active `scale(0.97)` |
 | `.tabbar-dock` / `.dock-tab` / `.dock-tab-active` | **dock flottant compact** de navigation (2 onglets : Cuisine / Mon suivi) | fixed centré `width: min(240px, 100vw-48px)` + `bottom calc(12px + safe-area)` ; `grid` 2 colonnes égales, gap 4px, padding 6px ; pill `999px`, fond `rgb(26 29 39 / 0.9)` + blur 12px + bordure + ombre ; **pilule glissante** = `::before` du dock (`--accent-strong`), `transform: translateX(calc(100% + 4px))` quand `data-active='suivi'`, transition `0.32s cubic-bezier(0.34, 1.56, 0.64, 1)` (rebond élastique) ; **actif** = blanc + label animé `dock-label-in` + icône `scale(1.18)` ; **inactif** = icône seule muted (`aria-label` porte le nom) ; ≥ 48 px, `aria-current="page"`, appui `scale(0.96)` |
 | `.cuisine-tabs .tab` | sous-onglets Cuisine (Courses / Menu / Batch) | pills `12px`, actif = `--surface-2` + barre accent inset |
+| `.week-title-row` + `.menu-pill` | bannière semaine : titre + pill du menu courant | row flex wrap (gap 10px) ; pill = fond `--accent-strong`, blanc 12px/800, radius 999px, glow `color-mix(--accent 35%)` — visible au-dessus des 3 sous-onglets |
 | `.course-group-header` + `img` | en-tête de groupe de courses | miniature 72×54 (`object-fit: cover`, radius 10px) via `imagePourRayon` (`src/lib/rayons.ts`), `loading="lazy"`, alt = libellé du rayon |
+| `.rayon-cnt` | compteur d'items d'un rayon | muted 13px/700, collé à droite (`margin-left: auto`) |
+| `.keto-box` / `.keto-title` | encadré keto de Mélanie (rayon `### Keto`) | fond `--accent-melanie` 12% + bordure 45% (`color-mix`), titre vert 15px/800 — affiché en dernier |
 | `.profile-icon-btn` | accès écran Profil | 48px, surface-2, icône SVG person `currentColor` |
 | `.profil-screen` / `.profil-switch` | écran Profil | sections `.profile-section` ; switch = bordure `--danger` (action sensible) |
 | `.greeting` | accueil personnalisé Mon suivi | muted, 14px/700 |
 | `.checklist` + `.done` | listes cochables | label min-height 48 px, checkbox 22 px `accent-color: --accent` ; done = barré + muted |
 | `.menu-day` / `.today` / `.today-badge` | cartes menu | today = bordure 2 px accent + glow `0 0 12px` + badge pill |
+| `.menu-day.past` + `.past-badge` | jours passés (regroupés en fin de liste) | titre muted, badge pill `--surface-2`/muted 12px/700 |
+| `.menu-tag` (`.tag-marc` `.tag-keto` `.tag-fam` `.tag-bat`) | tags de profil des repas | pills 11px/800 : Marc plein `--accent-marc`, Mé `--accent-melanie` 22%, Famille `--surface-2`, Batch `--accent-marc` 22% |
+| `.menu-row` / `.menu-row-text` | ligne repas (tag + texte) | tag `flex-shrink: 0`, texte `min-width: 0` (anti-débordement mobile) |
+| `.menu-recette-link` | lien « 📖 fiche recette » d'un repas | inline, `--accent` 700, souligné pointillé muted, `aria-expanded` (accordéon : une seule fiche ouverte) |
+| `.recette-card` + `.recette-*` | fiche recette dépliable (RecetteCard) | surface-2 + bordure gauche 3 px accent, radius 12px ; `.recette-stats` chips bordées ; `.recette-bchip` cliquable (état `.on` = bordure accent) ; `.recette-mel` / `.recette-bat` pastilles vert/orange via `color-mix` + `::before` émoji |
 | `.progress` + `progress` | progression courses | texte bold muted + barre native `accent-color` |
 | `.batch-banner` | rappel batch | fond `--surface-2`, bordure gauche 4 px accent |
+| `.batch-section` / `.batch-section-head` | cartes du Batch (rituel, micro-batch) | surface + bordure + radius tokens, titre 17px |
+| `.rituel-timeline` + `.rituel-etape` | timeline cochable du rituel dimanche | rail vertical 2px `--border` + dots 10px `--accent` (done = `--border`), lignes ≥ 48px, créneau muted à droite, done = barré + muted |
+| `.micro-batch` + `.micro-jour` | carrousel micro-batch | flex `overflow-x: auto` (scrollbar masquée), cartes fixes 128px `--surface-2` radius 12px, nom du jour uppercase muted |
 | `.error` | message d'erreur | `--danger`, 600, `role="alert"` |
 | `.warn-line` | avis lignes ignorées | ambre `#fbbf24` |
 | `.muted` | texte secondaire / états vides | `--muted` |

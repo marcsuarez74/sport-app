@@ -30,6 +30,15 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 - Mes infos (âge/taille, feedback « enregistrées ✓ » en `role="status"`), **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
 - Après changement : retour à l'onboarding, `data-profile` retiré de `<html>`
 
+## Onglet Cuisine (Courses / Menu / Batch)
+
+- **Pill du menu** : `.menu-pill` dans la bannière, à côté du `h1` — le menu courant reste visible sur les 3 sous-onglets (toujours un seul `h1`)
+- **Menu réordonné** : le jour courant passe en tête (badge « Aujourd'hui »), les jours passés suivent en fin de liste, atténués + badge « Passé » — le .md reste la source, le réordonnancement n'est qu'un rendu
+- **Fiches recettes en accordéon** : une seule fiche ouverte à la fois (re-clic ou bouton `×` pour fermer), `aria-expanded` sur le lien recette ET sur les chips de bases
+- **Tags de profil** : chaque repas porte un tag coloré (Marc / Mé / Famille / Batch) — jamais la couleur seule comme information
+- **Courses** : compteurs d'items par rayon (`.rayon-cnt`) et encadré keto dédié en dernier — le rayon `Keto` n'est pas un rayon comme les autres
+- **Batch** : rituel = timeline cochable (lignes ≥ 48px, coche barrée comme les checklists), micro-batch = carrousel horizontal (`overflow-x: auto` interne, scrollbar masquée — scroll natif du navigateur, jamais de carrousel JS)
+
 ## Composants — conventions
 
 - **Présentatifs et minces** : props descendantes, la logique reste dans `src/lib/`
