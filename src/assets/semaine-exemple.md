@@ -101,7 +101,6 @@ au: 2026-09-13
 temps: 45 min · four 200°
 kcal: 680
 proteines: 48
-bases: B7
 - pour 4: 6-8 cuisses · 600 g carottes · 600 g patates douces · 250 g riz · huile, paprika, thym
 1. Four 200°. Cuisses : huile + sel + paprika + thym, dans un plat avec les légumes en gros dés.
 2. Filet d'huile sur les légumes, four 40-45 min (retourner à mi-parcours).
