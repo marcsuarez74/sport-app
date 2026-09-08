@@ -643,7 +643,7 @@ progress {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  min-height: 44px;
+  min-height: 48px;
   cursor: pointer;
 }
 
@@ -666,6 +666,10 @@ progress {
 }
 
 .rituel-label {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 8px;
   font-weight: 800;
   font-size: 15px;
 }
