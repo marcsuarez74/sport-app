@@ -1,12 +1,12 @@
 ---
-semaine: 2026-S39
+semaine: 2026-S37
 menu: A
 titre: Menu A — Base poulet & bolo
-du: 2026-09-21
-au: 2026-09-27
+du: 2026-09-07
+au: 2026-09-13
 ---
 
-# Semaine 39
+# Semaine 37
 
 ## Courses
 ### Protéines
@@ -40,7 +40,6 @@ au: 2026-09-27
 - Pommes
 - Fruits rouges (skyr)
 - Citron
-- Avocats (Mé)
 ### Divers
 - Amandes/noix
 - Huile d'olive
@@ -48,18 +47,24 @@ au: 2026-09-27
 - Chocolat noir 70 %
 - Sauce soja, gingembre, miel
 - Parmesan (courgettes spaghetti Mé)
+### Keto
+- Avocats ×3-4
+- Beurre 250 g · crème fraîche
+- Chocolat noir ≥ 85 %
+- Olives 1 bocal
+- Baies surgelées 300 g
 
 ## Menu
 ### Lundi
 - dejeuner-marc: Boîte dinde-quinoa (batch dim) + légumes
 - dejeuner-melanie: Restes dinde + gratin courgettes + ½ avocat
-- diner-famille: Cuisses poulet rôties + carottes/patates douces + riz
+- diner-famille: Cuisses poulet rôties + carottes/patates douces + riz → R1
 - diner-melanie: Poulet + légumes rôtis + filet huile d'olive (sans riz/patate douce)
 - batch: Double riz + légumes rôtis → boîte mardi Marc
 ### Mardi
 - dejeuner-marc: Boîte poulet-riz (lun)
 - dejeuner-melanie: Restes poulet + œuf dur + crudités
-- diner-famille: Pâtes bolognaise (haché 5 %) + salade
+- diner-famille: Pâtes bolognaise (haché 5 %) + salade → R2
 - diner-melanie: Bolo sur courgettes spaghetti + parmesan
 - batch: Double sauce bolo → boîte mer + 1 congel · courgettes en spaghetti à la mandoline (5 min)
 ### Mercredi
@@ -87,11 +92,72 @@ au: 2026-09-27
 ### Dimanche
 - dejeuner-marc: Omelette + tartines + fruit (repos 2 300 kcal)
 - dejeuner-melanie: Restes / œufs durs + salade
-- diner-famille: Rôti de dinde + gratin de courgettes + quinoa
+- diner-famille: Rôti de dinde + gratin de courgettes + quinoa → R7
 - diner-melanie: Dinde + gratin (déjà keto !) sans quinoa
 - batch: GROS BATCH — cf. section Batch
 
+## Recettes
+### R1 · Cuisses de poulet rôties + légumes + riz
+temps: 45 min · four 200°
+kcal: 680
+proteines: 48
+bases: B7
+- pour 4: 6-8 cuisses · 600 g carottes · 600 g patates douces · 250 g riz · huile, paprika, thym
+1. Four 200°. Cuisses : huile + sel + paprika + thym, dans un plat avec les légumes en gros dés.
+2. Filet d'huile sur les légumes, four 40-45 min (retourner à mi-parcours).
+3. Riz en parallèle — cuire en double (boîte).
+- mel: pas de riz ni patate douce : poulet + légumes rôtis + filet d'huile d'olive
+- batch: double riz + légumes → boîte de mardi
+
+### R2 · Pâtes bolognaise + salade
+temps: 25 min · plaque + casserole
+kcal: 620
+proteines: 42
+bases: B4, B6
+- pour 4: 800 g haché 5 % · 2 oignons · ail · 2 boîtes tomates + passata · 400 g pâtes · parmesan · salade
+1. Oignons + ail à l'huile 5 min, haché 8 min.
+2. Tomates + herbes, 15 min doux. Pâtes al dente en parallèle.
+3. Salade + vinaigrette minute.
+- mel: bolo sur courgettes spaghetti + parmesan
+- batch: double sauce → boîte mercredi + 1 portion congelée
+
+### R7 · Rôti de dinde + gratin courgettes + quinoa
+temps: 60 min · four 180°
+kcal: 710
+proteines: 52
+- pour 4: rôti de dinde ~800 g (en prévoir 2) · 4 courgettes · 15 cl crème + 80 g fromage râpé · 300 g quinoa
+1. Four 180°. Rôti : huile + herbes + sel, 50-55 min (repos 10 min avant découpe).
+2. Gratin : courgettes précuites 5 min + crème + fromage, gratinées avec le rôti 25 min.
+3. Quinoa 15 min — en double.
+- mel: dinde + gratin de courgettes (déjà keto !) sans quinoa
+- batch: GROS BATCH : egg muffins ×10 · dinde double → boîte lun · quinoa double · légumes de la semaine
+
+## Bases
+### B3 · Œufs durs
+9 min 30 dans l'eau bouillante → eau glacée. Batch dim ×6-8 + mer + sam.
+
+### B4 · Vinaigrette minute
+3 c.à.s huile d'olive + 1 moutarde + jus d'½ citron + sel. Le pot de 3 jours se garde au frigo.
+
+### B6 · Courgettes spaghetti
+2 courgettes à la julienne (mandoline/économe), 3-4 min poêle très chaude avec huile + sel. Jamais à l'avance — 5 min le soir même.
+
+### B7 · Purées maison
+PdT : 1 kg vapeur 20 min + 15 cl lait chaud + 30 g beurre. Chou-fleur (Mé) : vapeur 15 min + 20 g beurre + 2 c.à.s crème, mixer — 5 g nets seulement.
+
 ## Batch
+### Rituel dimanche
+- 0-5 min · Four à 180° — egg muffins ×10 lancés, on fait le reste
+- 5-30 min · Cuissons en double — dîner du soir ×2 + féculent ×2 → boîte lundi
+- 30-35 min · Œufs durs ×6-8 — boxes de la semaine pour Mé
+- 35-50 min · Légumes + vinaigrette — laver, couper, ranger
+- 50-60 min · Montage des boxes — boîte lundi Marc + 1 box keto Mé
+
+### Micro-batch
+- lundi: doubler le plat (boîtes mar/mer)
+- mardi: doubler la sauce + courgettes en julienne (5 min le soir)
+- samedi: œufs durs ×6-8
+
 - [ ] Egg muffins ×10
 - [ ] 6-8 œufs durs (boxes keto de Mé)
 - [ ] Doubler dinde + quinoa → boîte lundi Marc

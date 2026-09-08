@@ -6,11 +6,11 @@ import { parseWeeklyFile } from '../src/lib/parse';
 import { saveProfile, saveWeek } from '../src/lib/storage';
 import type { ProfileKey } from '../src/lib/model';
 
-const fixture = (semaine = '2026-S39', extraCourse = 'Carottes') => `---
+const fixture = (semaine = '2026-S37', extraCourse = 'Carottes') => `---
 semaine: ${semaine}
 menu: A
-du: 2026-09-21
-au: 2026-09-27
+du: 2026-09-07
+au: 2026-09-13
 ---
 
 ## courses
@@ -78,8 +78,8 @@ describe('App shell', () => {
     initProfile();
     render(<App />);
 
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
-    expect(screen.getByText('21/09 → 27/09')).toBeInTheDocument();
+    expect(screen.getByText('Semaine 2026-S37')).toBeInTheDocument();
+    expect(screen.getByText('07/09 → 13/09')).toBeInTheDocument();
     expect(screen.queryByText(/Importer/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Charger la semaine/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Changer de semaine/ })).not.toBeInTheDocument();
@@ -91,7 +91,7 @@ describe('App shell', () => {
     saveWeek(fixture(), parsed.data);
     render(<App />);
 
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
+    expect(screen.getByText('Semaine 2026-S37')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cuisine' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mon suivi' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Marc' })).not.toBeInTheDocument();
@@ -129,7 +129,7 @@ describe('App shell', () => {
 
     render(<App />);
 
-    expect(screen.getByText('Semaine 2026-S39')).toBeInTheDocument();
+    expect(screen.getByText('Semaine 2026-S37')).toBeInTheDocument();
     expect(screen.queryByText('Importer un .md')).not.toBeInTheDocument();
   });
 });
@@ -169,7 +169,7 @@ describe('Design system & sémantique', () => {
     initProfile();
     render(<App />);
 
-    const h1 = screen.getByRole('heading', { level: 1, name: 'Semaine 2026-S39' });
+    const h1 = screen.getByRole('heading', { level: 1, name: 'Semaine 2026-S37' });
     expect(h1).toHaveClass('week-title');
   });
 
@@ -209,16 +209,16 @@ describe('Design system & sémantique', () => {
   });
 });
 
-describe("Semaine d'exemple — contenu réel (Menu A, S39)", () => {
+describe("Semaine d'exemple — contenu réel (Menu A, S37)", () => {
   it('se parse sans warning avec meta, menu, courses, batch et profils complets', () => {
     const { data, warnings } = parseWeeklyFile(sampleRaw);
 
     expect(warnings).toEqual([]);
     expect(data.meta).toEqual({
-      semaine: '2026-S39',
+      semaine: '2026-S37',
       menu: 'A',
-      du: '2026-09-21',
-      au: '2026-09-27',
+      du: '2026-09-07',
+      au: '2026-09-13',
       titre: 'Menu A — Base poulet & bolo',
     });
 

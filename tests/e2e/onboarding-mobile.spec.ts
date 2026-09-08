@@ -43,7 +43,7 @@ test.describe('Onboarding — formulaire poids/âge/taille sur mobile', () => {
     await page.getByRole('button', { name: /C'est parti/ }).click();
 
     // Profil enregistré + semaine d'exemple auto-chargée → shell direct
-    await expect(page.getByText('Semaine 2026-S39')).toBeVisible();
+    await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
     const profil = await page.evaluate(() => JSON.parse(localStorage.getItem('sportapp:profile')!));
     expect(profil).toEqual({ id: 'melanie', age: 38, taille: 165 });
   });

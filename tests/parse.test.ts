@@ -1,3 +1,4 @@
+import exemple from '../src/assets/semaine-exemple.md?raw';
 import { parseWeeklyFile, slugify } from '../src/lib/parse';
 
 const FULL_WEEK = `---
@@ -783,5 +784,80 @@ describe('parseWeeklyFile — rétrocompatibilité v1', () => {
     expect(data.bases).toBeUndefined();
     expect(data.rituel).toBeUndefined();
     expect(data.microBatch).toBeUndefined();
+  });
+});
+
+describe('semaine-exemple.md — la sample réelle (v2, semaine courante)', () => {
+  const { data, warnings } = parseWeeklyFile(exemple);
+
+  it('frontmatter aligné sur la semaine courante : S37, du = lundi, au = dimanche', () => {
+    expect(data.meta.semaine).toBe('2026-S37');
+    expect(data.meta.du).toBe('2026-09-07');
+    expect(data.meta.au).toBe('2026-09-13');
+    const du = new Date('2026-09-07T12:00:00');
+    const au = new Date('2026-09-13T12:00:00');
+    expect(du.getDay()).toBe(1); // lundi
+    expect(au.getDay()).toBe(0); // dimanche
+    // Le code semaine du frontmatter == numéro de semaine ISO de `du`
+    const [y, m, d] = data.meta.du.split('-').map(Number);
+    const jeudi = new Date(y, m - 1, d + 3);
+    const debutAnnee = new Date(jeudi.getFullYear(), 0, 1);
+    const semaine = Math.ceil(((jeudi.getTime() - debutAnnee.getTime()) / 86400000 + 1) / 7);
+    expect(data.meta.semaine).toBe(`2026-S${String(semaine).padStart(2, '0')}`);
+  });
+
+  it('ne produit aucun warning', () => {
+    expect(warnings).toEqual([]);
+  });
+
+  it('contient des recettes, des bases, un rituel et un micro-batch', () => {
+    expect(data.recettes!.length).toBeGreaterThanOrEqual(3);
+    expect(data.bases!.length).toBeGreaterThanOrEqual(3);
+    expect(data.rituel!.length).toBeGreaterThanOrEqual(5);
+    expect(data.microBatch!.length).toBeGreaterThanOrEqual(3);
+    expect(data.rituel![0].label).toContain('180');
+  });
+
+  it('le menu contient 7 jours ordonnés du lundi au dimanche', () => {
+    expect(data.menu.map((d) => d.jour)).toEqual([
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche',
+    ]);
+  });
+
+  it('les refs → du menu pointent toutes vers des recettes existantes', () => {
+    for (const day of data.menu) {
+      for (const [repas, ref] of Object.entries(day.recetteRefs ?? {})) {
+        if (!ref) continue;
+        const cible = ref.toLowerCase();
+        const trouvée = data.recettes!.some(
+          (r) => r.id === cible || r.id.startsWith(cible + '-'),
+        );
+        expect(trouvée, `ref ${ref} (${repas}, jour ${day.jour}) introuvable`).toBe(true);
+      }
+    }
+  });
+
+  it('les bases référencées par les recettes existent', () => {
+    for (const r of data.recettes ?? []) {
+      for (const b of r.bases ?? []) {
+        expect(data.bases!.some((base) => base.id.startsWith(b.toLowerCase())), b).toBe(true);
+      }
+    }
+  });
+
+  it('le rayon Keto existe dans les courses', () => {
+    expect(data.courses.some((c) => c.rayon === 'keto')).toBe(true);
+  });
+
+  it('le carnet contient les recettes clés du carnet papier', () => {
+    const ids = data.recettes!.map((r) => r.id);
+    expect(ids).toContain('r1-cuisses-de-poulet-roties-legumes-riz');
+    expect(ids).toContain('r2-pates-bolognaise-salade');
   });
 });
