@@ -9,6 +9,7 @@ import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
 import { BatchView } from '../src/components/cuisine/BatchView';
 import { ProfileView } from '../src/components/ProfileView';
+import { WeekBanner } from '../src/components/WeekBanner';
 
 const items: ChecklistItem[] = [
   { id: 'repas-a', label: 'Préparer les repas' },
@@ -450,5 +451,17 @@ describe('ProfileView', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+});
+
+describe('WeekBanner', () => {
+  it('affiche le menu courant en pill à côté du titre', () => {
+    render(
+      <WeekBanner meta={{ semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' }} />,
+    );
+    const pill = screen.getByText('Menu A');
+    expect(pill).toHaveClass('menu-pill');
+    expect(pill.parentElement).toHaveClass('week-title-row');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S39');
   });
 });
