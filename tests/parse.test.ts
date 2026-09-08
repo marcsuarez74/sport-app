@@ -515,3 +515,151 @@ au: 2026-09-27
     ).toThrow(/Frontmatter incomplet/);
   });
 });
+
+const V2_WEEK = `---
+semaine: 2026-S39
+menu: A
+du: 2026-09-21
+au: 2026-09-27
+---
+
+## Courses
+### Protéines
+- Poulet 600 g
+
+### Keto
+- Avocats ×3-4
+- Chocolat noir ≥ 85 %
+
+## Menu
+### Mardi
+- dejeuner-marc: Boîte poulet-riz
+- diner-famille: Pâtes bolognaise + salade → R2
+- diner-melanie: Bolo sur courgettes + parmesan → r2
+- batch: Double sauce → boîte mer
+
+## Recettes
+### R2 · Pâtes bolognaise + salade
+temps: 25 min · plaque + casserole
+kcal: 620
+proteines: 42
+bases: B4, B6
+- pour 4: 800 g haché 5 % · 2 boîtes tomates · 400 g pâtes
+1. Oignons + ail à l'huile 5 min, haché 8 min.
+2. Tomates + herbes, 15 min doux.
+3. Pâtes al dente en parallèle.
+- mel: bolo sur courgettes spaghetti + parmesan
+- batch: double sauce → boîte mercredi
+
+### R7 · Rôti de dinde + gratin courgettes
+temps: 60 min · four 180°
+
+## Bases
+### B4 · Vinaigrette minute
+3 c.à.s huile d'olive + 1 moutarde + jus d'½ citron + sel.
+
+### B6 · Courgettes spaghetti
+Julienne à l'économe, 3-4 min poêle très chaude, jamais à l'avance.
+
+## Batch
+### Rituel dimanche
+- 0-5 min · Four à 180° — egg muffins ×10 lancés
+- 5-30 min · Cuissons en double — dîner ×2 + féculent ×2
+
+### Micro-batch
+- lundi: doubler le plat
+- mardi: doubler la sauce
+
+- [ ] Egg muffins ×10
+
+## Marc
+### Cibles
+- 2200 kcal
+
+### Séances
+- [ ] PPG lundi
+
+### Rappels
+- Pesée le lundi
+
+## Melanie
+### Cibles
+- 1600 kcal
+
+### Séances
+- [ ] Yoga mardi
+
+### Rappels
+- Pesée le lundi
+`;
+
+describe('parseWeeklyFile — format v2 (recettes, bases, rituel, micro-batch)', () => {
+  const { data, warnings } = parseWeeklyFile(V2_WEEK);
+
+  it('extrait les recettes avec tous leurs champs', () => {
+    expect(data.recettes).toHaveLength(2);
+    const r2 = data.recettes![0];
+    expect(r2.id).toBe('r2-pates-bolognaise-salade');
+    expect(r2.nom).toBe('R2 · Pâtes bolognaise + salade');
+    expect(r2.temps).toBe('25 min · plaque + casserole');
+    expect(r2.kcal).toBe(620);
+    expect(r2.proteines).toBe(42);
+    expect(r2.bases).toEqual(['B4', 'B6']);
+    expect(r2.pour).toContain('800 g haché');
+    expect(r2.etapes).toEqual([
+      "Oignons + ail à l'huile 5 min, haché 8 min.",
+      'Tomates + herbes, 15 min doux.',
+      'Pâtes al dente en parallèle.',
+    ]);
+    expect(r2.mel).toContain('courgettes spaghetti');
+    expect(r2.batch).toContain('double sauce');
+  });
+
+  it('extrait les bases du carnet', () => {
+    expect(data.bases).toHaveLength(2);
+    expect(data.bases![0].id).toBe('b4-vinaigrette-minute');
+    expect(data.bases![0].texte).toContain("huile d'olive");
+  });
+
+  it('lie les repas aux recettes via → et retire la référence du texte', () => {
+    const mardi = data.menu[0];
+    expect(mardi.recetteRefs).toEqual({ dinerFamille: 'R2', dinerMelanie: 'r2' });
+    expect(mardi.dinerFamille).toBe('Pâtes bolognaise + salade');
+    expect(mardi.dejeunerMarc).toBe('Boîte poulet-riz');
+  });
+
+  it('extrait le rituel du dimanche avec créneaux et ids stables', () => {
+    expect(data.rituel).toHaveLength(2);
+    expect(data.rituel![0]).toEqual({
+      id: 'batch:rituel:four-a-180',
+      creneau: '0-5 min',
+      label: 'Four à 180°',
+      detail: 'egg muffins ×10 lancés',
+    });
+  });
+
+  it('extrait le micro-batch par jour', () => {
+    expect(data.microBatch).toEqual([
+      { jour: 'lundi', quoi: 'doubler le plat' },
+      { jour: 'mardi', quoi: 'doubler la sauce' },
+    ]);
+  });
+
+  it('garde les tâches batch hors sous-sections avec ids inchangés', () => {
+    expect(data.batch).toEqual([{ id: 'batch:egg-muffins-10', label: 'Egg muffins ×10' }]);
+  });
+
+  it('ne produit aucun warning pour une semaine v2 complète', () => {
+    expect(warnings).toEqual([]);
+  });
+});
+
+describe('parseWeeklyFile — rétrocompatibilité v1', () => {
+  it('une semaine sans blocs v2 ne définit pas les champs optionnels', () => {
+    const { data } = parseWeeklyFile(FULL_WEEK);
+    expect(data.recettes).toBeUndefined();
+    expect(data.bases).toBeUndefined();
+    expect(data.rituel).toBeUndefined();
+    expect(data.microBatch).toBeUndefined();
+  });
+});
