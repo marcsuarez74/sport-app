@@ -24,7 +24,7 @@ Principe : **additif** — tout ce qui existait reste valable ; les nouveaux blo
   - `### Micro-batch` : `- lundi: doubler le plat` … → carrousel par jour (non cochable)
 - `## Courses` : un `### Keto Mélanie` (rayon classique côté parser) devient l'**encadré vert** dans l'UI (style dédié, compteur propre). Ids stables : `courses:keto:{slug}`.
 
-`src/assets/semaine-exemple.md` migre vers v2 (avec 2-3 recettes réelles du carnet, le rituel, le micro-batch, l'encadré keto) et reste l'exemple canonique du README.
+`src/assets/semaine-exemple.md` migre vers v2 (avec 2-3 recettes réelles du carnet, le rituel, le micro-batch, l'encadré keto) et reste l'exemple canonique du README. **Elle est alignée sur la semaine en cours** (S37 : 2026-09-07 → 2026-09-13) et devra être rafraîchie chaque semaine jusqu'à la convention template — un test de cohérence garantit du=lundi, au=dimanche et le code semaine ISO.
 
 ## 2. Onglet Courses (maquette A)
 
