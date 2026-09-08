@@ -209,29 +209,38 @@ const menuFixture: MenuDay[] = [
 
 describe('MenuView', () => {
   it('renders one card per day with the day name in an h3', () => {
+    vi.setSystemTime(new Date('2026-09-21T10:00:00')); // lundi : jour courant en tête, ordre conservé
     const { container } = render(<MenuView menu={menuFixture} />);
     expect(container.querySelectorAll('section.menu-day')).toHaveLength(3);
     const headings = screen.getAllByRole('heading', { level: 3 });
     expect(headings.map((h) => h.textContent)).toEqual(['Lundi', 'Mardi', 'Mercredi']);
   });
 
-  it('renders present fields with exact labels in spec order and hides absent ones', () => {
+  it('renders present fields as profile tags in spec order and hides absent ones', () => {
     render(<MenuView menu={menuFixture} />);
     const lundi = screen.getByRole('heading', { name: 'Lundi' }).closest('section')!;
-    const lines = Array.from(lundi.querySelectorAll('.menu-row')).map((el) => el.textContent);
-    expect(lines).toEqual([
-      "Déjeuner Marc Flocons d'avoine",
-      'Déjeuner Mélanie Skyr et fruits rouges',
-      'Dîner famille Poulet rôti et légumes',
-      'Assiette keto Mé Saumon et brocoli',
-      'Batch du jour Quinoa',
+    const rows = Array.from(lundi.querySelectorAll('.menu-row'));
+    expect(rows.map((el) => el.querySelector('.menu-tag')!.textContent)).toEqual([
+      'Marc',
+      'Mé',
+      'Famille',
+      'Mé',
+      'Batch',
+    ]);
+    expect(rows.map((el) => el.querySelector('.menu-row-text')!.textContent)).toEqual([
+      "Flocons d'avoine",
+      'Skyr et fruits rouges',
+      'Poulet rôti et légumes',
+      'Saumon et brocoli',
+      'Quinoa',
     ]);
 
     const mardi = screen.getByRole('heading', { name: 'Mardi' }).closest('section')!;
     expect(mardi.querySelectorAll('.menu-row')).toHaveLength(1);
-    expect(mardi.querySelector('.menu-row')!.textContent).toBe('Déjeuner Marc Œufs brouillés');
-    expect(within(mardi).queryByText('Assiette keto Mé')).toBeNull();
-    expect(within(mardi).queryByText('Batch du jour')).toBeNull();
+    expect(mardi.querySelector('.menu-row .menu-tag')!.textContent).toBe('Marc');
+    expect(mardi.querySelector('.menu-row .menu-row-text')!.textContent).toBe('Œufs brouillés');
+    expect(mardi.querySelector('.menu-tag.tag-keto')).toBeNull();
+    expect(mardi.querySelector('.menu-tag.tag-bat')).toBeNull();
   });
 
   it('highlights the current day card with the today class and badge', () => {
@@ -273,6 +282,48 @@ describe('MenuView', () => {
     );
     expect(container.querySelector('section.menu-day.today')).toBeNull();
     expect(container.querySelector('.today-badge')).toBeNull();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+});
+
+describe('MenuView v2', () => {
+  const MENU: MenuDay[] = [
+    { jour: 'Lundi', dejeunerMarc: 'Boîte dinde', dinerFamille: 'Poulet rôties', recetteRefs: { dinerFamille: 'R1' } },
+    { jour: 'Mardi', dinerFamille: 'Gratin' },
+    { jour: 'Mercredi', dinerFamille: 'Omelette' },
+    { jour: 'Jeudi', dinerFamille: 'Wok' },
+    { jour: 'Vendredi', dinerFamille: 'Tacos' },
+    { jour: 'Samedi', dinerFamille: 'Soupe' },
+    { jour: 'Dimanche', dinerFamille: 'Rôti de dinde' },
+  ];
+
+  it('commence la liste par le jour courant puis boucle (mercredi simulé)', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    render(<MenuView menu={MENU} />);
+    const jours = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    expect(jours).toEqual(['Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche', 'Lundi', 'Mardi']);
+  });
+
+  it('marque les jours passés (avant aujourd’hui) avec la classe past', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    render(<MenuView menu={MENU} />);
+    expect(screen.getByText('Lundi', { selector: '.menu-day.past h3' })).toBeInTheDocument();
+    expect(screen.getByText('Mardi', { selector: '.menu-day.past h3' })).toBeInTheDocument();
+    expect(screen.getByText('Mercredi', { selector: '.menu-day.today h3' })).toBeInTheDocument();
+    expect(screen.getAllByText('Passé')).toHaveLength(2);
+  });
+
+  it('affiche des tags de profil au lieu des labels longs', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    render(<MenuView menu={MENU} />);
+    const lundi = screen.getByText('Lundi', { selector: '.menu-day.past h3' }).closest('section')!;
+    expect(lundi.querySelector('.menu-tag.tag-marc')!.textContent).toBe('Marc');
+    expect(lundi.querySelector('.menu-tag.tag-fam')!.textContent).toBe('Famille');
+    expect(screen.getAllByText('Famille', { selector: '.menu-tag' })).toHaveLength(7);
+    expect(screen.queryByText(/Déjeuner Marc/)).not.toBeInTheDocument();
   });
 
   afterEach(() => {
