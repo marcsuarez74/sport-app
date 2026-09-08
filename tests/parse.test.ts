@@ -787,6 +787,10 @@ describe('parseWeeklyFile — rétrocompatibilité v1', () => {
   });
 });
 
+// ⚠️ La sample est alignée sur la semaine COURANTE (S37 au 08/09/2026) tant qu'il n'y a pas
+// de template hebdo. Pour la rafraîchir, bump en lockstep : frontmatter + `# Semaine` de
+// src/assets/semaine-exemple.md, ce describe (dates), tests/app.test.tsx (fixture + meta +
+// dates bannière), tests/profil-screen.test.tsx, tests/e2e/{onboarding-mobile,dock}.spec.ts.
 describe('semaine-exemple.md — la sample réelle (v2, semaine courante)', () => {
   const { data, warnings } = parseWeeklyFile(exemple);
 
