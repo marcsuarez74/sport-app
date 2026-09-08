@@ -44,11 +44,15 @@ Principe : **additif** — tout ce qui existait reste valable ; les nouveaux blo
 - Tâches batch existantes cochables en dessous (inchangées)
 - État vide : si la semaine n'a ni rituel ni micro-batch → affichage actuel (bannière + checklist)
 
-## 5. Data model (additif)
+## 5. Bannière de semaine (shell, au-dessus des 2 onglets)
+
+Déjà présente mais trop discrète — la rendre clairement lisible : `Menu A` devient une **pill accent** à côté du titre `Semaine 2026-S39` (le menu courant est ainsi visible en permanence sur les 3 onglets), dates en dessous, titre du menu en muted. Un seul h1 conservé (semaine).
+
+## 6. Data model (additif)
 
 `WeeklyData` : `recettes?: Recette[]`, `batch.rituel?: RituelEtape[]`, `batch.microBatch?: { jour, quoi }[]`. `CourseItem` : inchangé (le rayon `keto` suffit). `MenuDay` : chaque repas gagne `recette?: string` (slug). `safeParse`/gardes : champs optionnels tolérés, anciennes données acceptées telles quelles.
 
-## 6. Tests & vérifications
+## 7. Tests & vérifications
 
 - TDD : parser v2 (recettes, rituel, micro-batch, keto, refs `→ slug`), rétro-compat (semaine v1 sans nouveaux blocs), ids stables
 - Composants : compteurs par rayon, encadré keto, accordéon recette (un seul ouvert), timeline, carrousel, tags de profil
