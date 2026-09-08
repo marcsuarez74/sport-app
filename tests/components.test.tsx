@@ -192,6 +192,77 @@ describe('ShoppingList', () => {
     );
     expect(screen.getByRole('heading', { level: 3, name: 'Epicerie' })).toBeInTheDocument();
   });
+
+  it('affiche un compteur fait/total par rayon', () => {
+    render(
+      <ShoppingList
+        semaine="2026-S39"
+        items={[
+          { id: 'courses:legumes:a', rayon: 'legumes', label: 'Épinards' },
+          { id: 'courses:legumes:b', rayon: 'legumes', label: 'Carottes' },
+          { id: 'courses:fruits:c', rayon: 'fruits', label: 'Pommes' },
+        ]}
+      />,
+    );
+    expect(screen.getByText('0/2', { selector: '.rayon-cnt' })).toBeInTheDocument();
+    expect(screen.getByText('0/1', { selector: '.rayon-cnt' })).toBeInTheDocument();
+  });
+
+  it('met à jour le compteur du rayon après un clic, y compris celui du rayon keto', async () => {
+    const user = userEvent.setup();
+    render(
+      <ShoppingList
+        semaine="2026-S39"
+        items={[
+          { id: 'courses:keto:avocats', rayon: 'keto', label: 'Avocats ×3-4' },
+          { id: 'courses:legumes:a', rayon: 'legumes', label: 'Épinards' },
+          { id: 'courses:legumes:b', rayon: 'legumes', label: 'Carottes' },
+        ]}
+      />,
+    );
+    await user.click(screen.getByRole('checkbox', { name: 'Épinards' }));
+    expect(screen.getByText('1/2', { selector: '.rayon-cnt' })).toBeInTheDocument();
+    expect(screen.getByText('0/1', { selector: '.rayon-cnt' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox', { name: 'Avocats ×3-4' }));
+    expect(screen.getByText('1/1', { selector: '.rayon-cnt' })).toBeInTheDocument();
+  });
+
+  it('rend le rayon Keto en encadré dédié, en dernier', () => {
+    render(
+      <ShoppingList
+        semaine="2026-S39"
+        items={[
+          { id: 'courses:keto:avocats', rayon: 'keto', label: 'Avocats ×3-4' },
+          { id: 'courses:legumes:a', rayon: 'legumes', label: 'Épinards' },
+        ]}
+      />,
+    );
+    expect(screen.getByText('Les extras keto de Mélanie')).toBeInTheDocument();
+    const keto = screen.getByText('Les extras keto de Mélanie').closest('section');
+    const legumes = screen.getByText('Legumes').closest('section');
+    // keto suit legumes dans l'ordre du document : encadré en DERNIERE position
+    expect(legumes!.compareDocumentPosition(keto!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(keto).toHaveClass('keto-box');
+    expect(screen.queryByAltText('Keto')).not.toBeInTheDocument();
+  });
+
+  it('le rayon keto se coche comme un rayon normal et persiste', async () => {
+    const user = userEvent.setup();
+    render(
+      <ShoppingList
+        semaine="2026-S39"
+        items={[{ id: 'courses:keto:avocats', rayon: 'keto', label: 'Avocats ×3-4' }]}
+      />,
+    );
+    const avocats = screen.getByRole('checkbox', { name: 'Avocats ×3-4' });
+    await user.click(avocats);
+    expect(avocats).toBeChecked();
+    expect(getChecks('2026-S39')).toEqual({ 'courses:keto:avocats': true });
+    await user.click(avocats);
+    expect(avocats).not.toBeChecked();
+    expect(getChecks('2026-S39')).toEqual({ 'courses:keto:avocats': false });
+  });
 });
 
 const menuFixture: MenuDay[] = [

@@ -340,6 +340,32 @@ p {
   margin: 0;
 }
 
+.rayon-cnt {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.keto-box {
+  background: color-mix(in srgb, var(--accent-melanie) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent-melanie) 45%, transparent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.keto-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--accent-melanie);
+}
+
 /* ---------- Boutons ---------- */
 
 button {
