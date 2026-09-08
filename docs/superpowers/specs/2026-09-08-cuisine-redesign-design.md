@@ -32,6 +32,7 @@ Principe : **additif** — tout ce qui existait reste valable ; les nouveaux blo
 
 ## 3. Onglet Menu (maquette A)
 
+- **Le jour courant est toujours le premier** de la liste : les jours sont réordonnés à partir d'aujourd'hui (mercredi → Mercredi, Jeudi… Mardi), l'ordre du fichier .md n'a plus d'importance pour l'affichage
 - Chaque repas = ligne avec **tag de profil** : `Marc` (orange), `Mé` (vert), `Famille` (neutre), `Batch` (ambre) — remplace les labels texte « Déjeuner Marc » etc. (les 5 clés du parser restent les mêmes, seul l'affichage change)
 - Si le repas référence une recette → titre souligné pointillé, cliquable : la **recette se déplie sous le jour** (accordéon, un seul déplié à la fois) : titre + ⏱, ingrédients « pour 4 », étapes numérotées, ligne 🟢 Mé, ligne 📦 Batch
 - Carte « aujourd'hui » inchangée (bordure accent + badge)
