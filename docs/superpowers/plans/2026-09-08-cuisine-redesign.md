@@ -287,10 +287,17 @@ import type {
 } from './model';
 ```
 
-Et resserrer `MENU_KEYS` (revue T1 : `keyof MenuDay` inclut désormais `jour`/`recetteRefs`) :
+Et resserrer `MENU_KEYS` (revue T1 : `keyof MenuDay` inclut désormais `jour`/`recetteRefs`) — remplacer la déclaration existante par :
 
 ```ts
 const MENU_KEYS: Record<string, MealKey> = {
+  'dejeuner-marc': 'dejeunerMarc',
+  'dejeuner-melanie': 'dejeunerMelanie',
+  'diner-famille': 'dinerFamille',
+  'diner-melanie': 'dinerMelanie',
+  batch: 'batch',
+};
+```
 
 Dans `parseWeeklyFile`, remplacer le bloc de parsing des sections par :
 
