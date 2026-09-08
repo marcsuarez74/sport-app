@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test';
 // Contrat de maintenance : la semaine d'exemple (S37, 2026-09-07 → 2026-09-13)
 // doit couvrir la semaine courante. Quand on la rafraîchit, mettre à jour
 // « Semaine 2026-S37 » et les compteurs exacts ci-dessous (même contrat que
-// les tests unitaires). Le jour courant, lui, reste calculé à l'exécution.
+// les tests unitaires). Hypothèses à préserver aussi : le frontmatter garde
+// `menu: A` (pill assertée), et la 1ʳᵉ recette liée dans l'ordre tournant
+// (R1/R2/R7) garde kcal/protéines + étapes — sinon le test fiche échoue
+// certains jours seulement. Le jour courant, lui, reste calculé à l'exécution.
 const ORIGIN = process.env.E2E_PREVIEW ? 'http://localhost:4173' : 'http://localhost:5173';
 const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
@@ -43,7 +46,7 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await page.goto(ORIGIN);
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Menu' }).first().click();
+    await page.getByRole('button', { name: 'Menu' }).click();
     await expect(page.locator('.menu-day').first()).toBeVisible();
 
     // même calcul que todayKey() — pas de jour codé en dur (dépend de la date d'exécution)
@@ -58,7 +61,7 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await page.goto(ORIGIN);
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Menu' }).first().click();
+    await page.getByRole('button', { name: 'Menu' }).click();
     const lien = page.locator('.menu-recette-link').first();
     await lien.click();
 
@@ -97,7 +100,7 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await page.goto(ORIGIN);
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Batch' }).first().click();
+    await page.getByRole('button', { name: 'Batch' }).click();
     await expect(page.locator('.rituel-timeline')).toBeVisible();
     await expect(page.locator('.rituel-etape')).toHaveCount(5);
     await expect(page.locator('.rituel-creneau').first()).toBeVisible();
@@ -113,7 +116,7 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
       await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
 
       for (const onglet of ['Courses', 'Menu', 'Batch']) {
-        await page.getByRole('button', { name: onglet }).first().click();
+        await page.getByRole('button', { name: onglet }).click();
         await assertPasDeDebordement(page);
       }
     });
