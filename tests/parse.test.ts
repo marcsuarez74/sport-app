@@ -850,7 +850,11 @@ describe('semaine-exemple.md — la sample réelle (v2, semaine courante)', () =
   it('les bases référencées par les recettes existent', () => {
     for (const r of data.recettes ?? []) {
       for (const b of r.bases ?? []) {
-        expect(data.bases!.some((base) => base.id.startsWith(b.toLowerCase())), b).toBe(true);
+        const cible = b.toLowerCase();
+        expect(
+          data.bases!.some((base) => base.id === cible || base.id.startsWith(cible + '-')),
+          b,
+        ).toBe(true);
       }
     }
   });
