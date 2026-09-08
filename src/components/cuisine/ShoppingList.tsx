@@ -42,12 +42,12 @@ export function ShoppingList({ items, semaine }: { items: CourseItem[]; semaine:
           const faits = groupItems.filter((it) => checks[it.id]).length;
           return rayon === 'keto' ? (
             <section className="keto-box" key={rayon}>
-              <div className="keto-title">
+              <h3 className="keto-title">
                 <span aria-hidden="true">🟢</span> Les extras keto de Mélanie{' '}
                 <span className="rayon-cnt">
                   {faits}/{groupItems.length}
                 </span>
-              </div>
+              </h3>
               <Checklist
                 items={groupItems}
                 semaine={semaine}
