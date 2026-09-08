@@ -11,10 +11,13 @@ Redessiner Courses / Menu / Batch pour coller au carnet de recettes papier (sour
 Principe : **additif** — tout ce qui existait reste valable ; les nouveaux blocs sont optionnels. Le parser (`parse.ts`) accepte les deux générations : une semaine ancienne s'affiche sans recettes/rituel, une semaine v2 affiche tout. Les ids de coches existants ne changent **jamais**.
 
 - `## Recettes` (nouveau, optionnel) : une `### <slug recette>` par recette, avec :
-  - `temps: 25 min` (optionnel, affiché ⏱)
+  - `temps: 25 min · plaque + casserole` (optionnel, affiché ⏱ + matériel)
+  - `kcal: 620` et `proteines: 42` (optionnels, **par personne** → chips `🔥 ~620 kcal /pers` · `💪 42 g protéines` dans la fiche)
+  - `bases: B4, B6` (optionnel : slugs de bases du carnet → chips cliquables 🧂, description dépliante)
   - `- pour 4: <ingrédients>` (ligne unique, optionnelle)
   - étapes = liste numérotée `1.` `2.` `3.` (optionnelle)
   - `- mel: <adaptation keto>` et `- batch: <consigne>` (lignes colorées dans l'UI)
+- `## Bases` (nouveau, optionnel) : les bases du carnet (une `### <slug base>` + texte) — servent aux chips des recettes
 - `## Menu` : les lignes repas peuvent référencer une recette par `→ <slug>` en fin de texte → le titre devient cliquable (recette dépliée sous le jour). Sans référence, affichage actuel.
 - `## Batch` : inchangé (`- [ ]` tâches) **+** deux sous-sections optionnelles :
   - `### Rituel dimanche` : étapes `- 0-5 min · Four à 180° — egg muffins ×10` (créneau + tâche) → cochables (id `batch:rituel:{slug-étape}`)
@@ -35,7 +38,7 @@ Principe : **additif** — tout ce qui existait reste valable ; les nouveaux blo
 - **Le jour courant est toujours le premier** de la liste : les jours sont réordonnés à partir d'aujourd'hui (mercredi → Mercredi, Jeudi… Mardi), l'ordre du fichier .md n'a plus d'importance pour l'affichage
 - **Jours passés** (affichés en fin de liste après la boucle) : carte atténuée (opacité réduite, titre muted) + badge neutre « Passé » — toujours consultables (recettes dépliables), mais visuellement en retrait ; le jour courant garde sa bordure accent + badge « Aujourd'hui »
 - Chaque repas = ligne avec **tag de profil** : `Marc` (orange), `Mé` (vert), `Famille` (neutre), `Batch` (ambre) — remplace les labels texte « Déjeuner Marc » etc. (les 5 clés du parser restent les mêmes, seul l'affichage change)
-- Si le repas référence une recette → titre souligné pointillé, cliquable : la **recette se déplie sous le jour** (accordéon, un seul déplié à la fois) : titre + ⏱, ingrédients « pour 4 », étapes numérotées, ligne 🟢 Mé, ligne 📦 Batch
+- Si le repas référence une recette → titre souligné pointillé, cliquable : la **recette se déplie sous le jour** (accordéon, un seul déplié à la fois) : titre + ⏱ + matériel, chips stats 🔥 kcal / 💪 protéines (par personne), ingrédients « pour 4 », chips 🧂 des bases (cliquables → description dépliante), étapes numérotées, ligne 🟢 Mé, ligne 📦 Batch
 - Carte « aujourd'hui » inchangée (bordure accent + badge)
 
 ## 4. Onglet Batch (maquette A)
