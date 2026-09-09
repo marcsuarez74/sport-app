@@ -1,4 +1,5 @@
 import type { MealKey, MenuDay, ProfileKey, Recette } from './model';
+import { todayKey } from './dates';
 import type { WeightEntry } from './storage';
 
 const JOUR_MS = 86_400_000;
@@ -29,6 +30,10 @@ export const recetteParRef = (ref: string, recettes: Recette[]): Recette | undef
   const cible = ref.toLowerCase();
   return recettes.find((r) => r.id === cible) ?? recettes.find((r) => r.id.startsWith(`${cible}-`));
 };
+
+// Le jour du menu correspondant à aujourd'hui (trim + casse ignorés), undefined sinon.
+export const trouverJourDuJour = (menu: MenuDay[]): MenuDay | undefined =>
+  menu.find((d) => d.jour.trim().toLowerCase() === todayKey());
 
 // Somme des kcal des repas qui concernent le profil actif (batch exclu).
 export const kcalDuJour = (

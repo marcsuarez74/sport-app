@@ -25,6 +25,8 @@ function App() {
   const [week] = useState<ImportedWeek>(() => loadWeek() ?? semaineExemple());
   const [tab, setTab] = useState<TabId>('cuisine');
   const [profilOuvert, setProfilOuvert] = useState(false);
+  // StatCards lit le storage au montage : onWeightsChanged (pesée ajoutée) incrémente
+  // weightsBump pour remonter StatCards et relire les pesées.
   const [weightsBump, setWeightsBump] = useState(0);
 
   if (profile) {

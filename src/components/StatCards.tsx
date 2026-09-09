@@ -1,16 +1,25 @@
 import { useState } from 'react';
 import type { UserProfile, WeeklyData } from '../lib/model';
-import { todayKey } from '../lib/dates';
 import { getChecks, getWeights } from '../lib/storage';
-import { compteChecklist, kcalDuJour, poidsActuel, variationPoids7j } from '../lib/stats';
+import {
+  compteChecklist,
+  kcalDuJour,
+  poidsActuel,
+  trouverJourDuJour,
+  variationPoids7j,
+} from '../lib/stats';
 
 export function StatCards({ data, profile }: { data: WeeklyData; profile: UserProfile }) {
+  // Invariant : le profil actif ne change jamais en place — un changement passe par
+  // removeProfile → Onboarding, qui démonte tout le sous-arbre suivi. Si un changement
+  // de profil en place était un jour ajouté, il faudrait ici un render-phase reset
+  // (pattern syncedProfile) pour relire les pesées du nouveau profil.
   const [weights] = useState(() => getWeights(profile.id));
   const checks = getChecks(data.meta.semaine);
 
   const actuel = poidsActuel(weights);
   const variation = variationPoids7j(weights);
-  const jour = data.menu.find((d) => d.jour.trim().toLowerCase() === todayKey());
+  const jour = trouverJourDuJour(data.menu);
   const kcal = kcalDuJour(jour, data.recettes ?? [], profile.id);
   const seances = compteChecklist(checks, data.profiles[profile.id].seances);
   const courses = compteChecklist(checks, data.courses);

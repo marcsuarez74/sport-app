@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { BaseCuisine, MealKey, MenuDay, Recette } from '../../lib/model';
-import { todayKey } from '../../lib/dates';
+import { trouverJourDuJour } from '../../lib/stats';
 
 const MEALS: Array<[MealKey, string, string]> = [
   ['dejeunerMarc', 'Marc', 'tag-marc'],
@@ -17,8 +17,8 @@ function trouverRecette(ref: string, recettes: Recette[]): Recette | undefined {
 }
 
 function ordreDepuisAujourdhui(menu: MenuDay[]): { ordered: MenuDay[]; nbPasse: number } {
-  const t = todayKey();
-  const idx = menu.findIndex((d) => d.jour.trim().toLowerCase() === t);
+  const jourCourant = trouverJourDuJour(menu);
+  const idx = jourCourant ? menu.indexOf(jourCourant) : -1;
   if (idx <= 0) return { ordered: menu, nbPasse: 0 };
   return { ordered: [...menu.slice(idx), ...menu.slice(0, idx)], nbPasse: idx };
 }
@@ -41,10 +41,12 @@ export function MenuView({
   const { ordered, nbPasse } = ordreDepuisAujourdhui(menu);
   const pastFrom = ordered.length - nbPasse;
 
+  const jourDuJour = trouverJourDuJour(menu);
+
   return (
     <>
       {ordered.map((day, i) => {
-        const isToday = i === 0 && nbPasse < ordered.length && day.jour.trim().toLowerCase() === todayKey();
+        const isToday = i === 0 && nbPasse < ordered.length && day === jourDuJour;
         const isPast = i >= pastFrom;
         const recetteParRepas = new Map<MealKey, Recette>();
         for (const [key] of MEALS) {

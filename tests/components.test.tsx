@@ -780,6 +780,24 @@ describe('StatCards', () => {
     expect(screen.getByText(/objectif 2\s?000/)).toBeInTheDocument();
   });
 
+  it('badge de variation : perte vers l’objectif → classe stat-delta-bon', () => {
+    addWeight('marc', '2026-09-02', 78);
+    addWeight('marc', '2026-09-08', 77.4);
+    render(
+      <StatCards data={data} profile={{ id: 'marc', age: 41, taille: 178, poidsObjectif: 70 }} />,
+    );
+    expect(screen.getByText(/vs 7 j/)).toHaveClass('stat-delta-bon');
+  });
+
+  it('badge de variation : prise de poids vers l’objectif → classe stat-delta-alerte', () => {
+    addWeight('marc', '2026-09-02', 78);
+    addWeight('marc', '2026-09-08', 78.5);
+    render(
+      <StatCards data={data} profile={{ id: 'marc', age: 41, taille: 178, poidsObjectif: 70 }} />,
+    );
+    expect(screen.getByText(/vs 7 j/)).toHaveClass('stat-delta-alerte');
+  });
+
   it('poids et kcal sans données s’affichent en tiret (aucun crash)', () => {
     render(
       <StatCards data={{ ...data, menu: [] }} profile={{ id: 'melanie', age: 38, taille: 165 }} />,
