@@ -558,18 +558,6 @@ progress {
   line-height: 1.45;
 }
 
-.menu-recette-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--accent);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline dotted var(--muted);
-  text-underline-offset: 3px;
-}
-
 .today {
   border: 2px solid var(--accent);
   box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
