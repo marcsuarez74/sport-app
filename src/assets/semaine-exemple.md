@@ -46,7 +46,7 @@ au: 2026-09-13
 - Tomates concassées
 - Chocolat noir 70 %
 - Sauce soja, gingembre, miel
-- Parmesan (courgettes spaghetti Mé)
+- Parmesan (courgettes spaghetti Mél)
 ### Keto
 - Avocats ×3-4
 - Beurre 250 g · crème fraîche
@@ -212,15 +212,15 @@ image: https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80&a
 2 courgettes à la julienne (mandoline/économe), 3-4 min poêle très chaude avec huile + sel. Jamais à l'avance — 5 min le soir même.
 
 ### B7 · Purées maison
-PdT : 1 kg vapeur 20 min + 15 cl lait chaud + 30 g beurre. Chou-fleur (Mé) : vapeur 15 min + 20 g beurre + 2 c.à.s crème, mixer — 5 g nets seulement.
+PdT : 1 kg vapeur 20 min + 15 cl lait chaud + 30 g beurre. Chou-fleur (Mél) : vapeur 15 min + 20 g beurre + 2 c.à.s crème, mixer — 5 g nets seulement.
 
 ## Batch
 ### Rituel dimanche
 - 0-5 min · Four à 180° — egg muffins ×10 lancés, on fait le reste
 - 5-30 min · Cuissons en double — dîner du soir ×2 + féculent ×2 → boîte lundi
-- 30-35 min · Œufs durs ×6-8 — boxes de la semaine pour Mé
+- 30-35 min · Œufs durs ×6-8 — boxes de la semaine pour Mél
 - 35-50 min · Légumes + vinaigrette — laver, couper, ranger
-- 50-60 min · Montage des boxes — boîte lundi Marc + 1 box keto Mé
+- 50-60 min · Montage des boxes — boîte lundi Marc + 1 box keto Mél
 
 ### Micro-batch
 - lundi: doubler le plat (boîtes mar/mer)
@@ -228,7 +228,7 @@ PdT : 1 kg vapeur 20 min + 15 cl lait chaud + 30 g beurre. Chou-fleur (Mé) : va
 - samedi: œufs durs ×6-8
 
 - [ ] Egg muffins ×10
-- [ ] 6-8 œufs durs (boxes keto de Mé)
+- [ ] 6-8 œufs durs (boxes keto de Mél)
 - [ ] Doubler dinde + quinoa → boîte lundi Marc
 - [ ] Légumes de la semaine lavés/coupés
 - [ ] Vinaigrette olive-citron

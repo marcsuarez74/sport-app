@@ -4,9 +4,9 @@ import { trouverJourDuJour } from '../../lib/stats';
 
 const MEALS: Array<[MealKey, string, string]> = [
   ['dejeunerMarc', 'Marc', 'tag-marc'],
-  ['dejeunerMelanie', 'Mé', 'tag-keto'],
+  ['dejeunerMelanie', 'Mél', 'tag-keto'],
   ['dinerFamille', 'Famille', 'tag-fam'],
-  ['dinerMelanie', 'Mé', 'tag-keto'],
+  ['dinerMelanie', 'Mél', 'tag-keto'],
   ['batch', 'Batch', 'tag-bat'],
 ];
 

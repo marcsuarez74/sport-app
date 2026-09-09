@@ -100,8 +100,11 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await expect(page.locator('.rituel-etape')).toHaveCount(5);
     await expect(page.locator('.rituel-creneau').first()).toBeVisible();
 
+    await expect(page.locator('.batch-banner')).toHaveCount(0);
+
     await expect(page.locator('.micro-batch')).toBeVisible();
     await expect(page.locator('.micro-jour')).toHaveCount(3);
+    await expect(page.locator('.micro-dots i')).toHaveCount(3);
   });
 
   for (const largeur of [320, 375]) {

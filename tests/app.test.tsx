@@ -32,6 +32,9 @@ au: 2026-09-13
 
 ## batch
 
+### Rituel dimanche
+- 0-5 min · Four à 180° — egg muffins ×10 lancés
+
 - [ ] Riz (4 parts)
 
 ## marc
@@ -113,7 +116,7 @@ describe('App shell', () => {
     expect(screen.getByRole('heading', { name: 'Lundi', level: 3 })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Batch' }));
-    expect(screen.getByText(/Riz/)).toBeInTheDocument();
+    expect(screen.getByText(/muffins/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Mon suivi' }));
     expect(screen.getByText(/Salut Marc/)).toBeInTheDocument();
