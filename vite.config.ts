@@ -47,6 +47,15 @@ export default defineConfig({
               cacheableResponse: { statuses: [200] },
             },
           },
+          {
+            urlPattern: /^https:\/\/images\.unsplash\.com\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
         ],
       },
       // Les icônes sont déjà pré-cachées par le glob **/*.png : on désactive la

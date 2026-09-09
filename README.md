@@ -94,6 +94,9 @@ Règles du format :
 - `## Courses` : une `### Rayon` par sous-section, les items sont des listes `-` ; un rayon `### Keto` est rendu en **encadré dédié** (en fin de liste).
 - `## Menu` : une `### Jour` par jour, chaque repas est une ligne `- clé: texte` avec exactement **5 clés valides** : `dejeuner-marc`, `dejeuner-melanie`, `diner-famille`, `diner-melanie`, `batch`. Une clé inconnue génère un avertissement (non bloquant). Une référence `→ R1` en fin de ligne lie le repas à une recette de `## Recettes` (fiche dépliable dans l'app).
 - `## Recettes` (optionnel) : une `### R1 · Nom` par recette, avec `temps:`, `kcal:`, `proteines:`, `bases: B4, B6` (renvois vers `## Bases`), la liste d'ingrédients `- pour 4: …`, les étapes numérotées `1. …` et les adaptations `- mel: …` / `- batch: …`.
+  - `glucides:` / `lipides:` (optionnels, g par personne — chips 🌾 C / 💧 F de la fiche)
+  - `score:` (optionnel, entier 0-10 — health score en barre segmentée)
+  - `image:` (optionnel, URL https — photo du plat, mise en cache PWA après 1ʳᵉ vue)
 - `## Bases` (optionnel) : une `### B4 · Nom` par base + un texte court (technique réutilisable).
 - `## Batch` : la checklist `- [ ]`, plus deux blocs optionnels — `### Rituel dimanche` (étapes `- <créneau> · <label> — <détail>`, cochables en timeline) et `### Micro-batch` (`- jour: quoi`, carrousel horizontal).
 - Puis `## Marc` et `## Melanie` (accents acceptés — `Mélanie` == `Melanie`), chacune avec les sous-sections `### Cibles`, `### Séances`, `### Rappels`.
