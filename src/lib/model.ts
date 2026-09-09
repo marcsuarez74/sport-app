@@ -35,6 +35,10 @@ export interface Recette {
   temps?: string;
   kcal?: number;
   proteines?: number;
+  glucides?: number;
+  lipides?: number;
+  score?: number;
+  image?: string;
   pour?: string;
   bases?: string[];
   etapes?: string[];

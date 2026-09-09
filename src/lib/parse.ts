@@ -329,22 +329,34 @@ function parseRecettes(text: string, warnings: string[], seen: Set<string>): Rec
       warnings.push(`Ligne ignorée (recettes) : « ${preview(line)} »`);
       continue;
     }
-    const kv = line.match(/^(temps|kcal|proteines|bases)\s*:\s*(.+?)\s*$/);
+    const kv = line.match(/^(temps|kcal|proteines|glucides|lipides|score|image|bases)\s*:\s*(.+?)\s*$/);
     if (kv) {
       if (kv[1] === 'temps') rec.temps = kv[2];
-      else if (kv[1] === 'kcal') {
-        const kcal = nombreValide(kv[2]);
-        if (kcal === undefined)
-          warnings.push(`Valeur kcal invalide pour la recette « ${rec.nom} » : ligne ignorée.`);
-        else rec.kcal = kcal;
-      } else if (kv[1] === 'proteines') {
-        const proteines = nombreValide(kv[2]);
-        if (proteines === undefined)
+      else if (kv[1] === 'bases') rec.bases = kv[2].split(',').map((b) => b.trim());
+      else if (kv[1] === 'image') {
+        if (kv[2].startsWith('https://')) rec.image = kv[2];
+        else
           warnings.push(
-            `Valeur proteines invalide pour la recette « ${rec.nom} » : ligne ignorée.`,
+            `Valeur image invalide pour la recette « ${rec.nom} » : ligne ignorée.`,
           );
-        else rec.proteines = proteines;
-      } else rec.bases = kv[2].split(',').map((b) => b.trim());
+      } else if (kv[1] === 'score') {
+        const n = Number(kv[2]);
+        if (Number.isInteger(n) && n >= 0 && n <= 10) rec.score = n;
+        else
+          warnings.push(
+            `Valeur score invalide pour la recette « ${rec.nom} » : ligne ignorée.`,
+          );
+      } else {
+        const n = nombreValide(kv[2]);
+        if (n === undefined)
+          warnings.push(
+            `Valeur ${kv[1]} invalide pour la recette « ${rec.nom} » : ligne ignorée.`,
+          );
+        else if (kv[1] === 'kcal') rec.kcal = n;
+        else if (kv[1] === 'proteines') rec.proteines = n;
+        else if (kv[1] === 'glucides') rec.glucides = n;
+        else rec.lipides = n;
+      }
       continue;
     }
     const pour = line.match(/^\s*[-*]\s+pour\s*(?:\d+\s*)?\s*:\s*(.+?)\s*$/);
