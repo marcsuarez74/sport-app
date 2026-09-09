@@ -272,4 +272,24 @@ describe("Semaine d'exemple — contenu réel (Menu A, S37)", () => {
     expect(data.profiles.melanie.seances).toHaveLength(3);
     expect(data.profiles.melanie.rappels).toHaveLength(2);
   });
+
+  it('lie une recette à au moins un repas de chaque jour, avec données complètes', () => {
+    const { data, warnings } = parseWeeklyFile(sampleRaw);
+
+    expect(warnings).toEqual([]);
+    // R1-R7 : 7 recettes, chaque jour a son diner-famille lié + mercredi aussi le déjeuner Marc
+    expect(data.recettes).toHaveLength(7);
+    for (const day of data.menu) {
+      expect(Object.keys(day.recetteRefs ?? {})).toContain('dinerFamille');
+    }
+    expect(data.menu.find((d) => d.jour === 'Mercredi')?.recetteRefs).toEqual({
+      dejeunerMarc: expect.any(String),
+      dinerFamille: expect.any(String),
+    });
+    // toutes les recettes liées portent kcal + étapes (contrat e2e « fiche recette »)
+    for (const recette of data.recettes!) {
+      expect(recette.kcal).toBeTruthy();
+      expect(recette.etapes?.length).toBeGreaterThanOrEqual(1);
+    }
+  });
 });

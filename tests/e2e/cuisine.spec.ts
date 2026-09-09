@@ -4,9 +4,9 @@ import { expect, test } from '@playwright/test';
 // doit couvrir la semaine courante. Quand on la rafraîchit, mettre à jour
 // « Semaine 2026-S37 » et les compteurs exacts ci-dessous (même contrat que
 // les tests unitaires). Hypothèses à préserver aussi : le frontmatter garde
-// `menu: A` (pill assertée), et la 1ʳᵉ recette liée dans l'ordre tournant
-// (R1/R2/R7) garde kcal/protéines + étapes — sinon le test fiche échoue
-// certains jours seulement. Le jour courant, lui, reste calculé à l'exécution.
+// `menu: A` (pill assertée), et CHAQUE jour a un diner-famille lié (R1-R7)
+// avec kcal/protéines + étapes — le test fiche recette clique la 1ʳᵉ carte
+// quel que soit le jour d'exécution. Le jour courant, lui, reste calculé.
 const ORIGIN = process.env.E2E_PREVIEW ? 'http://localhost:4173' : 'http://localhost:5173';
 const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 

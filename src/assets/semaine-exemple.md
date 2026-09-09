@@ -68,25 +68,25 @@ au: 2026-09-13
 - diner-melanie: Bolo sur courgettes spaghetti + parmesan
 - batch: Double sauce bolo → boîte mer + 1 congel · courgettes en spaghetti à la mandoline (5 min)
 ### Mercredi
-- dejeuner-marc: Boîte bolo
+- dejeuner-marc: Boîte bolo → R2
 - dejeuner-melanie: Bolo sur courgettes (restes)
-- diner-famille: Omelette fromage-herbes (ta part : 4 œufs + jambon) + pommes vapeur + salade
+- diner-famille: Omelette fromage-herbes (ta part : 4 œufs + jambon) + pommes vapeur + salade → R3
 - diner-melanie: Omelette + salade + avocat (sans pommes)
 - batch: Zéro prep — soirée danse Maëlle 16h
 ### Jeudi
 - dejeuner-marc: Boîte bolo
 - dejeuner-melanie: Box thon-avocat ou restes omelette + salade
-- diner-famille: Wok poulet + légumes surgelés + riz (reste lun)
+- diner-famille: Wok poulet + légumes surgelés + riz (reste lun) → R4
 - diner-melanie: Wok sans riz + légumes verts + sauce soja-sésame
 ### Vendredi
 - dejeuner-marc: À la maison après course : restes ou wrap/omelette
 - dejeuner-melanie: Box césar (poulet + parmesan + œuf + vinaigrette)
-- diner-famille: Tacos maison : galettes + haché (reste bolo) + crudités + yaourt-citron
+- diner-famille: Tacos maison : galettes + haché (reste bolo) + crudités + yaourt-citron → R5
 - diner-melanie: Taco bowl sans galette + guacamole
 ### Samedi
 - dejeuner-marc: GROS déjeuner récup post-sortie (~10h30, 800-900 kcal)
 - dejeuner-melanie: Assiette keto du déjeuner familial (protéine + légumes + avocat, pas de féculent)
-- diner-famille: Soupe butternut-carotte + tartines complet + œufs durs/fromage
+- diner-famille: Soupe butternut-carotte + tartines complet + œufs durs/fromage → R6
 - diner-melanie: Soupe portion réduite + œufs + fromage (sans tartines)
 - batch: 6-8 œufs durs (boxes de la semaine)
 ### Dimanche
@@ -127,6 +127,64 @@ bases: B4, B6
 3. Salade + vinaigrette minute.
 - mel: bolo sur courgettes spaghetti + parmesan
 - batch: double sauce → boîte mercredi + 1 portion congelée
+
+### R3 · Omelette fromage-jambon + pommes vapeur
+temps: 15 min · plaque
+kcal: 520
+proteines: 36
+glucides: 38
+lipides: 24
+score: 7
+image: https://images.unsplash.com/photo-1510693206972-df098062cb71?w=800&q=80&auto=format&fit=crop
+- pour 4: 10 œufs · 4 tranches jambon · 80 g râpé · 700 g pommes de terre · salade
+1. Pommes vapeur 15 min (vapeur ou cocotte).
+2. Œufs battus + fromage, omelette 8 min à couvert — jambon plié à la fin.
+3. Salade + vinaigrette minute.
+- mel: omelette + salade + ½ avocat (sans pommes)
+
+### R4 · Wok poulet + légumes + riz
+temps: 15 min · wok
+kcal: 610
+proteines: 44
+glucides: 62
+lipides: 18
+score: 7
+image: https://images.unsplash.com/photo-1512058564366-18510be2db19?w=800&q=80&auto=format&fit=crop
+- pour 4: 600 g escalopes de poulet · 800 g légumes wok surgelés · riz restant (lun) · sauce soja + sésame
+1. Wok très chaud : poulet en dés 6-7 min.
+2. Légumes surgelés 6-8 min, sauce soja + sésame en fin de cuisson.
+3. Riz restant réchauffé à la poêle.
+- mel: sans riz : poulet + légumes verts + sauce soja-sésame
+
+### R5 · Tacos maison au haché
+temps: 20 min · plaque
+kcal: 640
+proteines: 38
+glucides: 58
+lipides: 26
+score: 5
+image: https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80&auto=format&fit=crop
+- pour 4: 8 galettes de blé · haché bolo (reste mer) · 2 tomates · ½ concombre · yaourt + citron · salade
+1. Haché bolo réchauffé 5 min à la poêle.
+2. Galettes chauffées à sec 30 s par face.
+3. Bar à tacos : chacun compose (crudités + sauce yaourt-citron).
+- mel: taco bowl sans galette + guacamole
+
+### R6 · Soupe butternut-carotte + tartines
+temps: 30 min · casserole
+kcal: 480
+proteines: 22
+glucides: 54
+lipides: 16
+score: 8
+image: https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80&auto=format&fit=crop
+bases: B3
+- pour 4: 1 butternut · 4 carottes · 1 oignon · 1 l bouillon · filet crème · pain complet · 6 œufs durs · comté
+1. Oignon + butternut + carottes en dés, 5 min à l'huile.
+2. Bouillon, 20 min doux, mixer + filet de crème.
+3. Tartines complet + œufs durs (B3) + fromage à côté.
+- mel: soupe portion réduite + œufs + fromage (sans tartines)
+- batch: œufs durs ×6-8 → boxes de la semaine
 
 ### R7 · Rôti de dinde + gratin courgettes + quinoa
 temps: 60 min · four 180°
