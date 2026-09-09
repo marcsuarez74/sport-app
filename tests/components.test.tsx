@@ -4,7 +4,7 @@ import type { BaseCuisine, ChecklistItem, CourseItem, MenuDay, ProfileData, Rece
 import { addWeight, getChecks, getWeights, setCheck } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
 import { Checklist } from '../src/components/Checklist';
-import { Sparkline } from '../src/components/Sparkline';
+import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
 import { BatchView } from '../src/components/cuisine/BatchView';
@@ -72,32 +72,33 @@ describe('Checklist', () => {
   });
 });
 
-describe('Sparkline', () => {
-  it('shows a hint and no svg with fewer than 2 values', () => {
-    const { container } = render(<Sparkline values={[80.5]} />);
-    expect(screen.getByText('Ajoutez au moins 2 pesées.')).toBeInTheDocument();
-    expect(container.querySelector('svg')).toBeNull();
+describe('WeightChart', () => {
+  const base = [
+    { date: '2026-01-05', kg: 85 },
+    { date: '2026-03-02', kg: 82 },
+    { date: '2026-05-04', kg: 80.5 },
+    { date: '2026-09-07', kg: 78 },
+  ];
+
+  it('affiche départ, actuel, objectif et les dates d axe', () => {
+    render(<WeightChart weights={base} objectif={72} />);
+    expect(screen.getAllByText('85 kg').length).toBeGreaterThanOrEqual(1); // chip + point de départ
+    expect(screen.getAllByText('78 kg').length).toBeGreaterThanOrEqual(1); // chip + point actuel
+    expect(screen.getByText('72 kg')).toBeInTheDocument(); // objectif (chip seul)
+    expect(screen.getByText(/05\/01/)).toBeInTheDocument(); // 1re pesée
+    expect(screen.getByText(/07\/09/)).toBeInTheDocument(); // dernière
+    expect(screen.getByRole('img', { name: /courbe de poids/i })).toBeInTheDocument();
   });
 
-  it('renders a polyline with one point per value, scaled 0-100, colored', () => {
-    const { container } = render(<Sparkline values={[80.5, 82, 81]} color="#ff8800" />);
-    const svg = screen.getByRole('img', { name: 'évolution du poids' });
-    expect(container.querySelector('svg')).toBe(svg);
-    const polyline = svg.querySelector('polyline');
-    expect(polyline).not.toBeNull();
-    expect(polyline!.getAttribute('stroke')).toBe('#ff8800');
-
-    const pairs = polyline!.getAttribute('points')!.split(' ').map((p) => p.split(',').map(Number));
-    expect(pairs).toHaveLength(3);
-    expect(pairs.map(([x]) => x)).toEqual([0, 50, 100]);
-    const ys = pairs.map(([, y]) => y);
-    expect(Math.min(...ys)).toBe(0);
-    expect(Math.max(...ys)).toBe(100);
+  it('affiche « — » à la place de l objectif absent', () => {
+    render(<WeightChart weights={base} />);
+    expect(screen.getByText('—')).toBeInTheDocument();
   });
 
-  it('defaults to the brand color', () => {
-    const { container } = render(<Sparkline values={[1, 2]} />);
-    expect(container.querySelector('polyline')!.getAttribute('stroke')).toBe('#5c6bc0');
+  it('invite à ajouter des pesées en dessous de 2 points', () => {
+    render(<WeightChart weights={[{ date: '2026-09-07', kg: 78 }]} />);
+    expect(screen.getByText(/Ajoutez au moins 2 pesées/)).toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 });
 

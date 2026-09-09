@@ -569,7 +569,7 @@ progress {
 
 .today {
   border: 2px solid var(--accent);
-  box-shadow: 0 0 12px rgb(255 162 87 / 0.35);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .today-badge {
@@ -795,6 +795,103 @@ progress {
 .weight-form .weight-date {
   flex: 1 1 120px;
   min-width: 0;
+}
+
+.weight-chart {
+  margin: 10px 0;
+}
+
+.weight-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.weight-chip {
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.weight-chip strong {
+  display: block;
+  font-size: 14px;
+}
+
+.weight-actuel {
+  color: var(--accent);
+}
+
+.weight-objectif {
+  color: var(--accent-2);
+}
+
+.weight-curve {
+  width: 100%;
+  height: auto;
+  margin-top: 12px;
+}
+
+.weight-grid {
+  stroke: var(--surface-2);
+  stroke-width: 1;
+}
+
+.weight-grid + text,
+.weight-mois {
+  fill: var(--muted);
+  font-size: 8px;
+  font-family: inherit;
+}
+
+.weight-objectif-ligne {
+  stroke: var(--accent-2);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+}
+
+.weight-objectif-texte {
+  fill: var(--accent-2);
+  font-size: 8px;
+  font-family: inherit;
+  opacity: 0.85;
+}
+
+.weight-ligne {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.weight-point {
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.weight-point-actuel {
+  fill: var(--accent);
+  stroke: var(--surface);
+}
+
+.weight-label {
+  fill: var(--muted);
+  font-size: 8.5px;
+  font-family: inherit;
+}
+
+.weight-label-actuel {
+  fill: var(--text);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.weight-axe {
+  stroke: var(--border);
+  stroke-width: 1;
 }
 
 /* ---------- Onboarding ---------- */
