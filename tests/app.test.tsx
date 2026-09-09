@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
 import { parseWeeklyFile } from '../src/lib/parse';
-import { saveProfile, saveWeek } from '../src/lib/storage';
+import { saveProfile, saveWeek, upsertWeek } from '../src/lib/storage';
 import type { ProfileKey } from '../src/lib/model';
 
 const fixture = (semaine = '2026-S37', extraCourse = 'Carottes') => `---
@@ -62,6 +62,87 @@ au: 2026-09-13
 
 // Toute vue shell suppose un profil choisi (onboarding passé).
 const initProfile = (id: ProfileKey = 'marc') => saveProfile({ id, age: 41, taille: 178 });
+
+const fixtureSemaine = (
+  semaine: string,
+  du: string,
+  au: string,
+  menu = 'A',
+  plat = 'Poulet rôti',
+) => `---
+semaine: ${semaine}
+menu: ${menu}
+du: ${du}
+au: ${au}
+---
+
+## Courses
+
+### Proteines
+- [ ] ${plat} 600 g
+
+## Menu
+
+### Lundi
+- dejeuner-marc: ${plat}
+- dejeuner-melanie: ${plat} keto
+- diner-famille: ${plat} au four
+- diner-melanie: ${plat} keto
+- batch: Doubler ${plat}
+
+### Mardi
+- dejeuner-marc: Restes
+- dejeuner-melanie: Box
+- diner-famille: ${plat} pâtes
+- diner-melanie: ${plat} sans pâtes
+
+### Mercredi
+- diner-famille: ${plat} wok
+
+### Jeudi
+- diner-famille: ${plat} gratin
+
+### Vendredi
+- diner-famille: ${plat} tacos
+
+### Samedi
+- diner-famille: ${plat} soupe
+
+### Dimanche
+- diner-famille: ${plat} rôti
+
+## Batch
+
+### Rituel dimanche
+- 0-5 min · Four à 180° — egg muffins ×10
+
+### Micro-batch
+- lundi: doubler le plat
+
+- [ ] Egg muffins ×10
+
+## Marc
+
+### Cibles
+- 2 450 kcal
+
+### Seances
+- [ ] Lundi — Muscu
+
+### Rappels
+- Pesée lun/mer/ven
+
+## Melanie
+
+### Cibles
+- 1 450 kcal
+
+### Seances
+- [ ] Mardi — Pilates
+
+### Rappels
+- Jeûne 16:8
+`;
 
 describe('App shell', () => {
   beforeEach(() => {
@@ -294,5 +375,50 @@ describe("Semaine d'exemple — contenu réel (Menu A, S37)", () => {
       expect(recette.kcal).toBeTruthy();
       expect(recette.etapes?.length).toBeGreaterThanOrEqual(1);
     }
+  });
+});
+
+describe('App — multi-semaines', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    saveProfile({ id: 'marc', age: 41, taille: 178 });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('ouvre sur la semaine contenant aujourd’hui et navigue par chevrons', async () => {
+    // Écart plan/réalité : userEvent + vi.useFakeTimers pend sous React act
+    // (setImmediate faked) — la date mockée seule (setSystemTime) suffit.
+    vi.setSystemTime(new Date('2026-09-15T10:00:00')); // mardi, dans S38
+    const user = userEvent.setup();
+    const raw38 = fixtureSemaine('2026-S38', '2026-09-14', '2026-09-20', 'B', 'Chili con carne');
+    const raw39 = fixtureSemaine('2026-S39', '2026-09-21', '2026-09-27', 'C', 'Quiche lorraine');
+    upsertWeek(raw38, parseWeeklyFile(raw38).data);
+    upsertWeek(raw39, parseWeeklyFile(raw39).data);
+    render(<App />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S38');
+    expect(screen.getByText('Menu B')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Semaine suivante' }));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S39');
+    expect(screen.getByText('Menu C')).toBeVisible();
+    // Dernière semaine : chevron suivant désactivé
+    expect(screen.getByRole('button', { name: 'Semaine suivante' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Semaine précédente' }));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S38');
+    expect(screen.getByRole('button', { name: 'Semaine suivante' })).toBeEnabled();
+  });
+
+  it('l’import depuis le profil recharge les semaines, affiche la semaine du jour et ferme le profil', async () => {
+    vi.setSystemTime(new Date('2026-09-16T10:00:00')); // mercredi, entre S38 et S40
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Mon profil' }));
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const contenu = fixtureSemaine('2026-S40', '2026-09-28', '2026-10-04', 'D', 'Boulettes');
+    await user.upload(input, new File([contenu], '2026-S40-menu-d.md', { type: 'text/markdown' }));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S40');
+    expect(screen.getByText('Menu D')).toBeVisible();
   });
 });
