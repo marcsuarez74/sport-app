@@ -25,7 +25,10 @@ au moment de choisir la prochaine itération.
 
 ## 1. Design & identité visuelle
 
-À revoir — ressenti actuel :
+→ **Traité par la spec « Herbes »** (chantier 1, en attente d'implémentation) :
+`docs/superpowers/specs/2026-09-09-refonte-herbes-design.md` — thème clair
+sauge/basilic/citron, respiration, icônes SVG maison, nav segmented + swipe.
+Ressenti initial noté pour mémoire :
 
 - Trop compact ; le thème sombre alourdit l'app
 - Manque d'icônes
@@ -43,9 +46,15 @@ au moment de choisir la prochaine itération.
 - **Type de plats** souhaité : healthy / végé / vegan / petit budget / etc.
 - **Budget max par semaine** (course + par repas ?)
 - **Nombre de repas** par jour et **nombre de personnes** à table
+- **Partie « Objectif »** dédiée dans l'onboarding : les objectifs à atteindre
+  (poids cible, kcal…) et la **date de fin de l'objectif** (échéance) —
+  complète l'axe 3 (objectif explicite)
 
 ## 3. Profil & objectifs
 
+- **Âge → date de naissance** : stocker la date de naissance plutôt que l'âge
+  (champ collecté à l'onboarding, éditable à l'écran Profil) — l'âge s'affiche
+  calculé, plus de mise à jour manuelle chaque année
 - **Objectif explicite** : perte de poids / affiner musculature / prise de
   masse (aujourd'hui implicite via les cibles kcal)
 - **Compléments** : whey, créatine, oméga-3, collagène… (affichés dans le suivi
@@ -55,12 +64,17 @@ au moment de choisir la prochaine itération.
 
 ## 4. Onglet Cuisine
 
-- **Liste de courses** : revoir l'affichage
-- **Menus** : vue globale de la semaine + vue jour détaillée (aujourd'hui la
-  semaine est une liste de jours)
-- **Batch** : plus précis, avec le détail des recettes (cards expandables)
-- **Flexibilité des recettes** : ne pas imposer une recette par jour — pouvoir
-  marquer « ça c'est fait » sans recette rattachée
+→ **L'essentiel est traité par la spec « Herbes »** (chantier 1, cf. axe 1) :
+bannière rituel + mode magasin (courses), **menu v2 « réserve de recettes »**
+(fin du jour imposé, coche « c'est fait », portions réelles par profil, recette
+sur chaque carte), mode guidé batch + textes de conservation. Reste à penser
+pour des chantiers ultérieurs :
+
+- **Liste de courses** : disposition adaptée au magasin habituel (cf. axe 2)
+- **Flexibilité totale** : marquer « c'est fait » sur un repas **sans recette
+  rattachée** (cook libre) — le menu v2 part de cartes recette ; le cas
+  « repas hors liste » n'est pas couvert
+- **Batch** : scoring/budget par recette, vue matériel (cf. axe 2)
 
 ## 5. Onglet Suivi
 
