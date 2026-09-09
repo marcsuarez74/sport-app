@@ -197,6 +197,16 @@ describe('ProfilScreen (unité)', () => {
     expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
   });
 
+  it('affiche la version de l’app en pied d’écran', () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
+    );
+
+    expect(
+      screen.getByText(`Rituel v${__APP_VERSION__} — vos données restent sur votre téléphone.`),
+    ).toBeInTheDocument();
+  });
+
   it('refuse un poids objectif hors bornes avec une erreur explicite', async () => {
     render(
       <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,

@@ -171,7 +171,9 @@ export function ProfilScreen({
         </button>
       </section>
 
-      <p className="muted profil-about">Rituel — vos données restent sur votre téléphone.</p>
+      <p className="muted profil-about">
+        Rituel v{__APP_VERSION__} — vos données restent sur votre téléphone.
+      </p>
     </div>
   );
 }

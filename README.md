@@ -147,12 +147,20 @@ Trois sous-onglets partagés (Courses · Menu · Batch), en segmented control (o
 ```bash
 npm install
 npm run dev        # serveur de dev
-npm test           # tests unitaires (vitest) — 225 verts
-npm run e2e        # tests navigateur (Playwright, mobile 375/320) — 11 specs × 2 mobiles, 22 verts
+npm test           # tests unitaires (vitest) — 245 verts
+npm run e2e        # tests navigateur (Playwright, mobile 375/320) — 13 specs × 2 mobiles, 26 verts
 npm run build      # build de production
 npm run preview    # prévisualiser le build
 npm run icons      # régénérer les icônes après modification de public/icon-src.svg
 ```
+
+### Faire une release
+
+La version affichée dans l'app (`Profil` → « Rituel vX.Y.Z ») vient de `package.json` — le bump est **volontaire** :
+
+1. Renseigner le `CHANGELOG.md` (renommer la section `[Non publié]` en `[x.y.z] - AAAA-MM-JJ`), puis `npm version minor` (ou `patch` / `major`) — crée le commit de bump **et** le tag `vx.y.z` localement.
+2. `git push origin main` — le déploiement Pages embarque la nouvelle version.
+3. `git push origin v1.x.y` — le workflow `release.yml` crée la GitHub Release avec les notes du CHANGELOG.
 
 ## Déploiement
 

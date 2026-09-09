@@ -1,0 +1,31 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Extraire les notes du CHANGELOG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES="${RUNNER_TEMP}/notes-${VERSION}.md"
+          awk -v ver="$VERSION" '
+            BEGIN { pat = "## [" ver "]" }
+            index($0, pat) == 1 { flag = 1; next }
+            /^## \[/ && flag { exit }
+            flag { print }
+          ' CHANGELOG.md > "$NOTES"
+          if ! grep -q '[^[:space:]]' "$NOTES"; then
+            echo "::error::Aucune section « ## [$VERSION] » (ou vide) dans CHANGELOG.md — ajouter l'entrée avant de pousser le tag."
+            exit 1
+          fi
+          echo "NOTES=$NOTES" >> "$GITHUB_ENV"
+      - name: Créer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file "$NOTES"

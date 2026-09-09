@@ -51,7 +51,9 @@ src/assets/       # semaine-exemple.md (référence du format) + rayons/ (miniat
 tests/            # miroir de src/, vitest + Testing Library, environnement happy-dom
                   # parse.test.ts, storage.test.ts, weeks.test.ts, lib/rayons.test.ts,
 tests/e2e/        # specs Playwright (navigateur réel, config playwright.config.ts, projets mobile 375 + 320)
+CHANGELOG.md      # historique des versions (Keep a Changelog) ; source de vérité = package.json `version`
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
+.github/workflows/release.yml  # crée la GitHub Release à chaque push de tag v* (notes = section CHANGELOG)
 docs/templates/   # convention template semaine + prompt IA de génération d'un cycle
 docs/ameliorations.md # axes d'amélioration futurs (mémoire d'idées, pas une spec)
 docs/superpowers/ # spec design + plan d'implémentation (contexte historique)
@@ -113,6 +115,7 @@ Toute lecture passe par `safeParse` + garde de forme : une donnée corrompue se 
 - Commits courts en français, préfixe conventionnel : `feat:`, `fix:`, `chore:`, `test:`, `docs:`, `ci:`
 - Un commit = un changement cohérent. Pousser sur `main` déclenche le déploiement — ne jamais pousser un état qui ne build pas.
 - Pas de rebase/force-push sur `main`.
+- Release : bump **volontaire** via `npm version` (section CHANGELOG renommée avant le bump), tag `v*` poussé après merge — pas de tag sans entrée CHANGELOG (`release.yml` échoue sinon).
 
 ## Dossier ai/
 
