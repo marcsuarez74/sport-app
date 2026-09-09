@@ -202,8 +202,11 @@ p {
   border: 1px solid var(--border);
   border-radius: 10px;
   color: var(--text);
+  font: inherit;
   font-size: 22px;
   line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
