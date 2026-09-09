@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
@@ -206,6 +206,29 @@ describe('Design system & sémantique', () => {
     expect(suivi).toHaveClass('dock-tab');
     expect(suivi).not.toHaveClass('dock-tab-active');
     expect(suivi).not.toHaveTextContent('Mon suivi'); // icône seule à l'inactif
+  });
+});
+
+describe('Onboarding — objectifs optionnels', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("l onboarding accepte des objectifs optionnels et les persiste", async () => {
+    render(<App />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /Marc/ }));
+    await user.type(screen.getByLabelText('Poids (kg)'), '85');
+    await user.type(screen.getByLabelText('Âge'), '41');
+    await user.type(screen.getByLabelText('Taille (cm)'), '178');
+    await user.type(screen.getByLabelText('Poids objectif (kg)'), '72');
+    // happy-dom ne soumet pas le form au clic du bouton (convention repo : fireEvent.submit)
+    fireEvent.submit(document.querySelector('.onboarding-form')!);
+
+    expect(JSON.parse(localStorage.getItem('sportapp:profile')!)).toMatchObject({
+      id: 'marc',
+      poidsObjectif: 72,
+    });
   });
 });
 

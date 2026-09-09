@@ -16,6 +16,12 @@ export function ProfilScreen({
 }) {
   const [age, setAge] = useState(String(profile.age));
   const [taille, setTaille] = useState(String(profile.taille));
+  const [poidsObjectif, setPoidsObjectif] = useState(
+    profile.poidsObjectif != null ? String(profile.poidsObjectif) : '',
+  );
+  const [kcalObjectif, setKcalObjectif] = useState(
+    profile.kcalObjectif != null ? String(profile.kcalObjectif) : '',
+  );
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +40,23 @@ export function ProfilScreen({
       setError('Taille invalide : entre 120 et 230 cm.');
       return;
     }
-    const updated: UserProfile = { id: profile.id, age: ans, taille: cm };
+    const obj = poidsObjectif ? Number.parseFloat(poidsObjectif.replace(',', '.')) : undefined;
+    if (poidsObjectif && (obj === undefined || obj < 30 || obj > 250)) {
+      setError('Poids objectif invalide : entre 30 et 250 kg.');
+      return;
+    }
+    const kcalObj = kcalObjectif ? Number.parseInt(kcalObjectif, 10) : undefined;
+    if (kcalObjectif && (kcalObj === undefined || kcalObj < 800 || kcalObj > 6000)) {
+      setError('Objectif kcal invalide : entre 800 et 6000.');
+      return;
+    }
+    const updated: UserProfile = {
+      id: profile.id,
+      age: ans,
+      taille: cm,
+      ...(obj != null ? { poidsObjectif: obj } : {}),
+      ...(kcalObj != null ? { kcalObjectif: kcalObj } : {}),
+    };
     saveProfile(updated);
     onProfileSaved?.(updated);
     setSaved(true);
@@ -84,6 +106,37 @@ export function ProfilScreen({
                 setSaved(false);
                 setError(null);
                 setTaille(e.target.value);
+              }}
+            />
+          </div>
+        </div>
+        <div className="onboarding-row">
+          <div className="onboarding-field">
+            <label htmlFor="pf-obj-poids">Poids objectif (kg)</label>
+            <input
+              id="pf-obj-poids"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              value={poidsObjectif}
+              onChange={(e) => {
+                setSaved(false);
+                setError(null);
+                setPoidsObjectif(e.target.value);
+              }}
+            />
+          </div>
+          <div className="onboarding-field">
+            <label htmlFor="pf-obj-kcal">Objectif kcal/jour</label>
+            <input
+              id="pf-obj-kcal"
+              type="number"
+              inputMode="numeric"
+              value={kcalObjectif}
+              onChange={(e) => {
+                setSaved(false);
+                setError(null);
+                setKcalObjectif(e.target.value);
               }}
             />
           </div>
