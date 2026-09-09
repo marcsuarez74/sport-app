@@ -345,9 +345,9 @@ describe('MenuView', () => {
     const rows = Array.from(lundi.querySelectorAll('.menu-row'));
     expect(rows.map((el) => el.querySelector('.menu-tag')!.textContent)).toEqual([
       'Marc',
-      'Mé',
+      'Mél',
       'Famille',
-      'Mé',
+      'Mél',
       'Batch',
     ]);
     expect(rows.map((el) => el.querySelector('.menu-row-text')!.textContent)).toEqual([
@@ -653,26 +653,6 @@ describe('MenuView — carte recette', () => {
   });
 });
 
-describe('BatchView', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  it('renders the banner and the checklist items', () => {
-    render(<BatchView items={items} semaine="S39" />);
-    expect(screen.getByText('Gros batch : dimanche, 45-60 min')).toHaveClass('batch-banner');
-    expect(screen.getByRole('checkbox', { name: 'Préparer les repas' })).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'Faire les courses' })).toBeInTheDocument();
-  });
-
-  it('renders a muted message and no banner when there are no items', () => {
-    const { container } = render(<BatchView items={[]} semaine="S39" />);
-    expect(screen.getByText('Aucun batch prévu cette semaine.')).toBeInTheDocument();
-    expect(container.querySelector('.batch-banner')).toBeNull();
-    expect(container.querySelector('ul.checklist')).toBeNull();
-  });
-});
-
 describe('BatchView v2 — rituel et micro-batch', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -688,7 +668,7 @@ describe('BatchView v2 — rituel et micro-batch', () => {
   ];
 
   it('affiche le rituel en timeline avec créneaux, détails et compteur', () => {
-    render(<BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
+    render(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
     expect(screen.getByText(/Rituel du dimanche/)).toBeInTheDocument();
     expect(screen.getByText('0-5 min')).toBeInTheDocument();
     expect(screen.getByText('Four à 180°')).toBeInTheDocument();
@@ -697,51 +677,55 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     expect(screen.getByText('0/2')).toBeInTheDocument();
   });
 
-  it('affiche le micro-batch en carrousel (non cochable)', () => {
-    render(<BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
+  it('affiche le micro-batch en carrousel premium : badge jour + points de pagination', () => {
+    const { container } = render(
+      <BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />,
+    );
     expect(screen.getByText(/Micro-batch de la semaine/)).toBeInTheDocument();
-    expect(screen.getByText('Lundi')).toBeInTheDocument();
+    const badge = screen.getByText('Lundi');
+    expect(badge).toHaveClass('micro-jour-nom');
     expect(screen.getByText('doubler la sauce')).toBeInTheDocument();
+    // seuls les étapes du rituel sont cochables
     expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    const dots = container.querySelectorAll('.micro-dots i');
+    expect(dots).toHaveLength(2);
+    expect(dots[0]).toHaveClass('on');
+    expect(dots[1]).not.toHaveClass('on');
   });
 
   it('cocher une étape du rituel persiste sous l’id batch:rituel:*', async () => {
     const user = userEvent.setup();
-    render(<BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
+    render(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
     await user.click(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' }));
     expect(getChecks('2026-S39')).toEqual({ 'batch:rituel:four-a-180': true });
     expect(screen.getByText('1/2')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' })).toBeChecked();
   });
 
-  it('affiche la timeline au-dessus de la liste batch existante', () => {
+  it('affiche la timeline au-dessus du micro-batch, sans bannière ni checklist', () => {
     const { container } = render(
-      <BatchView
-        items={[{ id: 'batch:egg-muffins-10', label: 'Egg muffins ×10' }]}
-        rituel={RITUEL}
-        microBatch={MICRO}
-        semaine="2026-S39"
-      />,
+      <BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />,
     );
     const timeline = container.querySelector('.rituel-timeline');
-    const banner = container.querySelector('.batch-banner');
-    const checklist = container.querySelector('ul.checklist');
+    const micro = container.querySelector('.micro-batch');
     expect(timeline).not.toBeNull();
-    expect(banner).not.toBeNull();
-    expect(checklist).not.toBeNull();
-    expect(timeline!.compareDocumentPosition(banner!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(banner!.compareDocumentPosition(checklist!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(micro).not.toBeNull();
+    expect(container.querySelector('.batch-banner')).toBeNull();
+    expect(container.querySelector('ul.checklist')).toBeNull();
+    expect(timeline!.compareDocumentPosition(micro!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('garde l’ancien rendu (bannière + checklist) sans rituel ni micro-batch', () => {
-    render(<BatchView items={[{ id: 'batch:riz', label: 'Cuire le riz' }]} semaine="2026-S39" />);
-    expect(screen.getByText(/Gros batch : dimanche/)).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: /Cuire le riz/ })).toBeInTheDocument();
+  it('sans rituel ni micro-batch : message muted seul', () => {
+    const { container } = render(<BatchView semaine="2026-S39" />);
+    expect(screen.getByText('Aucun batch prévu cette semaine.')).toBeInTheDocument();
+    expect(container.querySelector('.batch-banner')).toBeNull();
+    expect(container.querySelector('.rituel-timeline')).toBeNull();
+    expect(container.querySelector('.micro-batch')).toBeNull();
   });
 
   it('rendu v1 identique : rien à batcher → message muted, ni timeline ni bannière', () => {
     const { container } = render(
-      <BatchView items={[]} rituel={[]} microBatch={[]} semaine="2026-S39" />,
+      <BatchView rituel={[]} microBatch={[]} semaine="2026-S39" />,
     );
     expect(screen.getByText('Aucun batch prévu cette semaine.')).toBeInTheDocument();
     expect(container.querySelector('.batch-banner')).toBeNull();
@@ -751,10 +735,10 @@ describe('BatchView v2 — rituel et micro-batch', () => {
 
   it('resynchronise la timeline quand la semaine change (render-phase reset)', () => {
     const { rerender } = render(
-      <BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />,
+      <BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />,
     );
     setCheck('2026-S39', 'batch:rituel:four-a-180', true);
-    rerender(<BatchView items={[]} rituel={RITUEL} microBatch={MICRO} semaine="2026-S40" />);
+    rerender(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S40" />);
 
     expect(screen.getByText('0/2')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' })).not.toBeChecked();
