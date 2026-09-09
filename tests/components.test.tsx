@@ -17,6 +17,7 @@ import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
 import { BatchView } from '../src/components/cuisine/BatchView';
+import { CuisineView } from '../src/components/cuisine/CuisineView';
 import { ProfileView } from '../src/components/ProfileView';
 import { WeekBanner } from '../src/components/WeekBanner';
 
@@ -297,6 +298,38 @@ const menuFixture: MenuDay[] = [
   { jour: 'Mercredi', dinerFamille: 'Pâtes carbonara' },
 ];
 
+describe('CuisineView — sous-onglets', () => {
+  const data: WeeklyData = {
+    meta: { semaine: 'S40', menu: 'A', du: '2026-09-28', au: '2026-10-04' },
+    courses: [],
+    menu: [
+      { jour: 'Lundi', dejeunerMarc: "Flocons d'avoine" },
+      { jour: 'Mardi', dinerFamille: 'Poulet rôti' },
+    ],
+    batch: [],
+    profiles: { marc: { cibles: [], seances: [], rappels: [] }, melanie: { cibles: [], seances: [], rappels: [] } },
+  };
+
+  it('affiche 3 onglets texte seul (sans emoji) et met le premier en actif', () => {
+    render(<CuisineView data={data} />);
+    expect(screen.getByRole('button', { name: 'Courses' })).toHaveClass('tab', 'active');
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveClass('tab');
+    expect(screen.getByRole('button', { name: 'Batch' })).toHaveClass('tab');
+    expect(screen.queryByRole('button', { name: /🛒/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /📅/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /📦/ })).not.toBeInTheDocument();
+  });
+
+  it('bascule la classe active au clic et change de section', async () => {
+    const user = userEvent.setup();
+    render(<CuisineView data={data} />);
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveClass('tab', 'active');
+    expect(screen.getByRole('button', { name: 'Courses' })).not.toHaveClass('active');
+    expect(screen.getByRole('heading', { name: 'Lundi', level: 3 })).toBeInTheDocument();
+  });
+});
+
 describe('MenuView', () => {
   it('renders one card per day with the day name in an h3', () => {
     vi.setSystemTime(new Date('2026-09-21T10:00:00')); // lundi : jour courant en tête, ordre conservé
@@ -421,7 +454,7 @@ describe('MenuView v2', () => {
   });
 });
 
-describe('MenuView — accordéon recette', () => {
+describe('MenuView — carte recette', () => {
   const RECETTES: Recette[] = [
     {
       id: 'r2-pates-bolognaise-salade',
@@ -461,126 +494,126 @@ describe('MenuView — accordéon recette', () => {
     vi.useRealTimers();
   });
 
-  it("n'ouvre qu'une seule fiche à la fois : cliquer le 2e lien referme la 1re fiche", async () => {
-    vi.setSystemTime(new Date('2026-09-23T10:00:00')); // mercredi : Mercredi en tête
-    const user = userEvent.setup();
-    renderMenu();
-
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
-    expect(screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ })).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('button', { name: /R4 · Wok poulet/ })).toHaveAttribute('aria-expanded', 'false');
-
-    await user.click(screen.getByRole('button', { name: /R4 · Wok poulet/ }));
-    expect(screen.getByRole('article', { name: 'R4 · Wok poulet' })).toBeInTheDocument();
-    expect(screen.queryByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ })).toHaveAttribute('aria-expanded', 'false');
-  });
-
-  it('referme la fiche via le bouton ×', async () => {
+  it('affiche une carte compacte repliée sous chaque repas avec ref (badge catégorie + footer nutrition)', () => {
     vi.setSystemTime(new Date('2026-09-23T10:00:00'));
-    const user = userEvent.setup();
     renderMenu();
 
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
-    const fermer = screen.getByRole('button', { name: 'Fermer la recette' });
-    expect(fermer).toHaveClass('recette-close');
-
-    await user.click(fermer);
-    expect(screen.queryByRole('article')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ })).toHaveAttribute('aria-expanded', 'false');
-  });
-
-  it('affiche les chips de stats (kcal, protéines) dans la fiche', async () => {
-    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
-    const user = userEvent.setup();
-    renderMenu();
-
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
-    expect(screen.getByText('🔥 ~620 kcal /pers')).toBeInTheDocument();
+    const cartes = screen.getAllByRole('article');
+    expect(cartes).toHaveLength(2);
+    const carteR2 = screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' });
+    expect(carteR2.querySelector('.recette-nom')!.textContent).toBe('R2 · Pâtes bolognaise + salade');
+    expect(carteR2.querySelector('.recette-badge-cat')!.textContent).toBe('Famille');
+    expect(carteR2.querySelector('.recette-badge-info')!.textContent).toBe('⏱ 25 min');
+    expect(screen.getByText('🔥 620 kcal')).toBeInTheDocument();
     expect(screen.getByText('💪 42g P')).toBeInTheDocument();
+    expect(screen.queryByText(/~620|\/pers/)).not.toBeInTheDocument();
+
+    const toggle = within(carteR2).getByRole('button', { name: 'Voir la recette ⌄' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
 
-  it('affiche la ligne méta ⏱ temps · pour 4', async () => {
+  it('déplie le détail via le bouton, referme par re-clic, indépendamment par carte', async () => {
     vi.setSystemTime(new Date('2026-09-23T10:00:00'));
     const user = userEvent.setup();
     renderMenu();
 
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
-    const meta = screen
-      .getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })
-      .querySelector('.recette-meta')!;
-    expect(meta).toHaveTextContent('⏱ 25 min · plaque + casserole');
-    expect(meta).toHaveTextContent('pour 4');
+    const toggles = screen.getAllByRole('button', { name: 'Voir la recette ⌄' });
+    expect(toggles).toHaveLength(2);
+
+    await user.click(toggles[0]!);
+    const carteR2 = screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' });
+    expect(screen.getByRole('list')).toHaveClass('recette-etapes');
+    expect(carteR2.querySelector('.recette-toggle')).toHaveAttribute('aria-expanded', 'true');
+
+    const toggles2 = screen.getAllByRole('button', { name: 'Voir la recette ⌄' });
+    await user.click(toggles2[0]!);
+    const carteR4 = screen.getByRole('article', { name: 'R4 · Wok poulet' });
+    expect(carteR4.querySelector('.recette-toggle')).toHaveAttribute('aria-expanded', 'true');
+    expect(carteR2.querySelector('.recette-toggle')).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('sans riz')).toBeInTheDocument();
+
+    await user.click(carteR2.querySelector('.recette-toggle')!);
+    expect(carteR2.querySelector('.recette-toggle')).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText("Oignons + ail à l'huile 5 min, haché 8 min.")).not.toBeInTheDocument();
+    expect(screen.getByText('sans riz')).toBeInTheDocument();
   });
 
-  it('déplie la description d’une base au clic sur sa chip, une seule à la fois, referme au 2e clic', async () => {
+  it('affiche les étapes, bases cliquables et lignes mélanie/batch dans le détail', async () => {
     vi.setSystemTime(new Date('2026-09-23T10:00:00'));
     const user = userEvent.setup();
     renderMenu();
 
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
-
-    const chipB4 = screen.getByRole('button', { name: /B4 · Vinaigrette minute/ });
-    const chipB6 = screen.getByRole('button', { name: /B6 · Courgettes spaghetti/ });
-
-    await user.click(chipB4);
-    expect(screen.getByText(/huile d'olive \+ 1 moutarde/)).toBeInTheDocument();
-    expect(chipB4).toHaveAttribute('aria-expanded', 'true');
-    expect(chipB6).toHaveAttribute('aria-expanded', 'false');
-
-    await user.click(chipB6);
-    expect(screen.getByText(/poêle très chaude/)).toBeInTheDocument();
-    expect(screen.queryByText(/huile d'olive \+ 1 moutarde/)).not.toBeInTheDocument();
-
-    await user.click(chipB6);
-    expect(screen.queryByText(/poêle très chaude/)).not.toBeInTheDocument();
-    expect(chipB6).toHaveAttribute('aria-expanded', 'false');
-  });
-
-  it('affiche les étapes numérotées et les lignes mélanie / batch', async () => {
-    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
-    const user = userEvent.setup();
-    renderMenu();
-
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+    await user.click(screen.getAllByRole('button', { name: 'Voir la recette ⌄' })[0]!);
 
     const etapes = screen.getByRole('list');
-    expect(etapes).toHaveClass('recette-etapes');
     expect(within(etapes).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
       "Oignons + ail à l'huile 5 min, haché 8 min.",
       'Tomates + herbes, 15 min doux.',
     ]);
-
     expect(screen.getByText('bolo sur courgettes spaghetti + parmesan')).toHaveClass('recette-ligne', 'recette-mel');
     expect(screen.getByText('double sauce → boîte mercredi')).toHaveClass('recette-ligne', 'recette-bat');
+
+    const chipB4 = screen.getByRole('button', { name: /B4 · Vinaigrette minute/ });
+    await user.click(chipB4);
+    expect(screen.getByText(/huile d'olive \+ 1 moutarde/)).toBeInTheDocument();
+    await user.click(chipB4);
+    expect(screen.queryByText(/huile d'olive \+ 1 moutarde/)).not.toBeInTheDocument();
   });
 
-  it('ref non résolue : ni lien recette ni fiche', () => {
+  it('affiche le score inline (Health score : N/10 + barre) et le sans-score omis', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    renderMenu({
+      menu: [
+        { jour: 'Lundi', dejeunerMarc: 'Poulet', recetteRefs: { dejeunerMarc: 'r1' } },
+        { jour: 'Mardi', dejeunerMarc: 'Gratin', recetteRefs: { dejeunerMarc: 'r2-sans' } },
+      ],
+      recettes: [
+        { id: 'r1', nom: 'Poulet rôti', kcal: 450, proteines: 35, glucides: 30, lipides: 12, score: 9 },
+        { id: 'r2-sans', nom: 'Gratin sans score', kcal: 500 },
+      ],
+    });
+
+    expect(screen.getByText('Health score :')).toBeInTheDocument();
+    expect(screen.getByText('9')).toBeInTheDocument();
+    expect(screen.getByText('/10')).toBeInTheDocument();
+    const barre = screen.getByTestId('score-bar');
+    expect(barre.children).toHaveLength(10);
+    expect(barre.querySelectorAll('.score-seg.on')).toHaveLength(9);
+
+    const carteSans = screen.getByRole('article', { name: 'Gratin sans score' });
+    expect(carteSans.querySelector('.recette-score')).toBeNull();
+  });
+
+  it('affiche la photo ou le fallback sans clic préalable', () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
+    renderMenu({
+      menu: [
+        { jour: 'Lundi', dejeunerMarc: 'Poulet', recetteRefs: { dejeunerMarc: 'r1' } },
+        { jour: 'Mardi', dejeunerMarc: 'Gratin', recetteRefs: { dejeunerMarc: 'r2-sans' } },
+      ],
+      recettes: [
+        { id: 'r1', nom: 'Poulet rôti', image: 'https://images.unsplash.com/photo-x?w=800' },
+        { id: 'r2-sans', nom: 'Gratin sans image' },
+      ],
+    });
+
+    expect(screen.getByRole('img', { name: 'Poulet rôti' })).toHaveAttribute(
+      'src',
+      'https://images.unsplash.com/photo-x?w=800',
+    );
+    expect(screen.getByTestId('recette-fallback')).toBeInTheDocument();
+    expect(screen.queryByText(/score/i)).not.toBeInTheDocument();
+  });
+
+  it('ref non résolue : ni carte ni badge, texte du repas intact', () => {
     vi.setSystemTime(new Date('2026-09-23T10:00:00'));
     const { container } = renderMenu({
       menu: [{ jour: 'Mercredi', dinerFamille: 'Pâtes bolognaise + salade', recetteRefs: { dinerFamille: 'R99' } }],
     });
 
-    expect(container.querySelector('.menu-recette-link')).toBeNull();
     expect(container.querySelector('.recette-card')).toBeNull();
     expect(screen.getByText('Pâtes bolognaise + salade')).toBeInTheDocument();
-  });
-
-  it('préfixe de base borné : B4 ne matche pas une base b40-…', async () => {
-    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
-    const user = userEvent.setup();
-    renderMenu({
-      bases: [{ id: 'b40-houmous', nom: 'B40 · Houmous', texte: 'Pois chiches + tahini.' }, ...BASES],
-    });
-
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
-
-    expect(screen.getByRole('button', { name: /B4 · Vinaigrette minute/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /B40 · Houmous/ })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /B4 · Vinaigrette minute/ }));
-    expect(screen.getByText(/huile d'olive \+ 1 moutarde/)).toBeInTheDocument();
   });
 
   it('préfixe de recette borné : R1 ne matche pas une recette r10-…', () => {
@@ -590,68 +623,33 @@ describe('MenuView — accordéon recette', () => {
       menu: [{ jour: 'Mercredi', dinerFamille: 'Wok spécial', recetteRefs: { dinerFamille: 'R1' } }],
     });
 
-    // Avec un matching non borné, `r1` matcherait `r10-wok-special` → lien + fiche R10.
     expect(screen.queryByRole('button', { name: /R10 · Wok spécial/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('article', { name: /Wok spécial/ })).not.toBeInTheDocument();
     expect(screen.getByText('Wok spécial')).toBeInTheDocument();
   });
 
-  it('base non résolue : fiche sans chips, sans crash', async () => {
+  it('base non résolue : détail sans chips, sans crash', async () => {
     vi.setSystemTime(new Date('2026-09-23T10:00:00'));
     const user = userEvent.setup();
-    renderMenu({
-      recettes: [{ ...RECETTES[0], bases: ['B9'] }],
-    });
+    renderMenu({ recettes: [{ ...RECETTES[0]!, bases: ['B9'] }] });
 
-    await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
+    await user.click(screen.getAllByRole('button', { name: 'Voir la recette ⌄' })[0]!);
 
     expect(screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^B9/ })).not.toBeInTheDocument();
   });
 
-  it('affiche photo, chips macros et score segmenté quand les données existent', async () => {
+  it('préfixe de base borné : B4 ne matche pas une base b40-…', async () => {
+    vi.setSystemTime(new Date('2026-09-23T10:00:00'));
     const user = userEvent.setup();
     renderMenu({
-      menu: [{ jour: 'Lundi', dejeunerMarc: 'Poulet', recetteRefs: { dejeunerMarc: 'r1' } }],
-      recettes: [
-        {
-          id: 'r1',
-          nom: 'Poulet rôti',
-          kcal: 450,
-          proteines: 35,
-          glucides: 30,
-          lipides: 12,
-          score: 9,
-          image: 'https://images.unsplash.com/photo-x?w=800',
-        },
-      ],
+      bases: [{ id: 'b40-houmous', nom: 'B40 · Houmous', texte: 'Pois chiches + tahini.' }, ...BASES],
     });
-    await user.click(screen.getByRole('button', { name: /Poulet rôti/ }));
 
-    const img = screen.getByRole('img', { name: /Poulet rôti/ });
-    expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-x?w=800');
-    expect(screen.getByText(/450/)).toBeInTheDocument();
-    expect(screen.getByText(/30g/)).toBeInTheDocument();
-    expect(screen.getByText(/12g/)).toBeInTheDocument();
-    expect(screen.getByText('9')).toBeInTheDocument();
-    expect(screen.getByText('/10')).toBeInTheDocument();
-    // 10 segments dont 9 remplis
-    const barre = screen.getByTestId('score-bar');
-    expect(barre.children).toHaveLength(10);
-    expect(barre.querySelectorAll('.score-seg.on')).toHaveLength(9);
-  });
+    await user.click(screen.getAllByRole('button', { name: 'Voir la recette ⌄' })[0]!);
 
-  it('affiche le fallback gradient + emoji sans image', async () => {
-    const user = userEvent.setup();
-    renderMenu({
-      menu: [{ jour: 'Lundi', dejeunerMarc: 'Poulet', recetteRefs: { dejeunerMarc: 'r1' } }],
-      recettes: [{ id: 'r1', nom: 'Poulet rôti', kcal: 450 }],
-    });
-    await user.click(screen.getByRole('button', { name: /Poulet rôti/ }));
-
-    expect(screen.getByTestId('recette-fallback')).toBeInTheDocument();
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.queryByText(/score/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /B4 · Vinaigrette minute/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /B40 · Houmous/ })).not.toBeInTheDocument();
   });
 });
 

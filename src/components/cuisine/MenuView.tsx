@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { BaseCuisine, MealKey, MenuDay, Recette } from '../../lib/model';
 import { trouverJourDuJour } from '../../lib/stats';
 
@@ -32,8 +32,6 @@ export function MenuView({
   recettes?: Recette[];
   bases?: BaseCuisine[];
 }) {
-  const [openRec, setOpenRec] = useState<string | null>(null);
-
   if (menu.length === 0) {
     return <p className="muted">Aucun menu pour cette semaine.</p>;
   }
@@ -54,9 +52,6 @@ export function MenuView({
           const recette = ref ? trouverRecette(ref, recettes) : undefined;
           if (recette) recetteParRepas.set(key, recette);
         }
-        const ouverte = openRec
-          ? [...recetteParRepas.values()].find((r) => r.id === openRec)
-          : undefined;
         return (
           <section
             className={isToday ? 'menu-day today' : isPast ? 'menu-day past' : 'menu-day'}
@@ -72,28 +67,15 @@ export function MenuView({
               if (!value) return null;
               const recette = recetteParRepas.get(key);
               return (
-                <div className="menu-row" key={key}>
-                  <span className={`menu-tag ${tag}`}>{label}</span>
-                  <span className="menu-row-text">
-                    {value}
-                    {recette && (
-                      <>
-                        {' '}
-                        <button
-                          type="button"
-                          className="menu-recette-link"
-                          aria-expanded={openRec === recette.id}
-                          onClick={() => setOpenRec(openRec === recette.id ? null : recette.id)}
-                        >
-                          📖 {recette.nom}
-                        </button>
-                      </>
-                    )}
-                  </span>
-                </div>
+                <Fragment key={key}>
+                  <div className="menu-row">
+                    <span className={`menu-tag ${tag}`}>{label}</span>
+                    <span className="menu-row-text">{value}</span>
+                  </div>
+                  {recette && <RecetteCard recette={recette} bases={bases} mealLabel={label} />}
+                </Fragment>
               );
             })}
-            {ouverte && <RecetteCard recette={ouverte} bases={bases} onClose={() => setOpenRec(null)} />}
           </section>
         );
       })}
@@ -104,54 +86,54 @@ export function MenuView({
 export function RecetteCard({
   recette,
   bases,
-  onClose,
+  mealLabel,
 }: {
   recette: Recette;
   bases?: BaseCuisine[];
-  onClose: () => void;
+  mealLabel?: string;
 }) {
+  const [open, setOpen] = useState(false);
   const [baseOuverte, setBaseOuverte] = useState<string | null>(null);
+  const tempsCourt = recette.temps?.split('·')[0]?.trim();
+  const aMacros =
+    recette.kcal != null ||
+    recette.proteines != null ||
+    recette.glucides != null ||
+    recette.lipides != null;
   return (
     <article className="recette-card" aria-label={recette.nom}>
-      {recette.image ? (
-        <img className="recette-hero" src={recette.image} alt={recette.nom} loading="lazy" />
-      ) : (
-        <div className="recette-fallback" data-testid="recette-fallback" aria-hidden="true">
-          🍳
-        </div>
-      )}
-      <div className="recette-corps">
-        <header className="recette-head">
-          <div className="recette-title">
-            <div className="recette-nom">{recette.nom}</div>
-            <div className="recette-meta">
-              {recette.temps && <>⏱ {recette.temps}</>}
-              {recette.temps && ' · '}
-              pour 4
-            </div>
-          </div>
-          <button type="button" className="recette-close" aria-label="Fermer la recette" onClick={onClose}>
-            ×
-          </button>
-        </header>
-        {(recette.kcal != null ||
-          recette.proteines != null ||
-          recette.glucides != null ||
-          recette.lipides != null) && (
-          <div className="recette-stats">
-            {recette.kcal != null && <span>🔥 ~{recette.kcal} kcal /pers</span>}
-            {recette.glucides != null && <span>🌾 {recette.glucides}g C</span>}
-            {recette.proteines != null && <span>💪 {recette.proteines}g P</span>}
-            {recette.lipides != null && <span>💧 {recette.lipides}g F</span>}
+      <div className="recette-top">
+        {recette.image ? (
+          <img className="recette-thumb" src={recette.image} alt={recette.nom} loading="lazy" />
+        ) : (
+          <div className="recette-fallback" data-testid="recette-fallback" aria-hidden="true">
+            🍳
           </div>
         )}
+        <div className="recette-main">
+          <div className="recette-nom">{recette.nom}</div>
+          <button
+            type="button"
+            className="recette-toggle"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
+            {open ? 'Réduire ⌃' : 'Voir la recette ⌄'}
+          </button>
+        </div>
+      </div>
+      <div className="recette-badges">
+        {mealLabel && <span className="recette-badge-cat">{mealLabel}</span>}
+        {tempsCourt && <span className="recette-badge-info">⏱ {tempsCourt}</span>}
         {recette.score != null && (
           <div className="recette-score">
-            <span className="stat-label">Health score</span>
-            <span className="recette-score-value">
-              {recette.score}
-              <small>/10</small>
-            </span>
+            <div className="recette-score-head">
+              <span className="stat-label">Health score :</span>
+              <span className="recette-score-value">
+                {recette.score}
+                <small>/10</small>
+              </span>
+            </div>
             <div className="score-bar" data-testid="score-bar" aria-hidden="true">
               {Array.from({ length: 10 }, (_, i) => (
                 <span key={i} className={i < recette.score! ? 'score-seg on' : 'score-seg'} />
@@ -159,43 +141,55 @@ export function RecetteCard({
             </div>
           </div>
         )}
-        {recette.pour && <p className="recette-pour">{recette.pour}</p>}
-        {recette.bases && recette.bases.length > 0 && (
-          <div className="recette-bases">
-            {recette.bases.map((b) => {
-              const base = trouverBase(b, bases);
-              return base ? (
-                <button
-                  type="button"
-                  key={base.id}
-                  className={baseOuverte === base.id ? 'recette-bchip on' : 'recette-bchip'}
-                  aria-expanded={baseOuverte === base.id}
-                  onClick={() => setBaseOuverte(baseOuverte === base.id ? null : base.id)}
-                >
-                  🧂 {base.nom}
-                </button>
-              ) : null;
-            })}
-          </div>
-        )}
-        {baseOuverte &&
-          bases
-            ?.filter((b) => b.id === baseOuverte)
-            .map((b) => (
-              <p className="recette-bdesc" key={b.id}>
-                🧂 {b.nom} : {b.texte}
-              </p>
-            ))}
-        {recette.etapes && recette.etapes.length > 0 && (
-          <ol className="recette-etapes">
-            {recette.etapes.map((e, i) => (
-              <li key={i}>{e}</li>
-            ))}
-          </ol>
-        )}
-        {recette.mel && <p className="recette-ligne recette-mel">{recette.mel}</p>}
-        {recette.batch && <p className="recette-ligne recette-bat">{recette.batch}</p>}
       </div>
+      {aMacros && (
+        <div className="recette-nutri">
+          {recette.kcal != null && <span>🔥 {recette.kcal} kcal</span>}
+          {recette.glucides != null && <span>🌾 {recette.glucides}g C</span>}
+          {recette.proteines != null && <span>💪 {recette.proteines}g P</span>}
+          {recette.lipides != null && <span>💧 {recette.lipides}g F</span>}
+        </div>
+      )}
+      {open && (
+        <div className="recette-detail">
+          {recette.pour && <p className="recette-pour">{recette.pour}</p>}
+          {recette.bases && recette.bases.length > 0 && (
+            <div className="recette-bases">
+              {recette.bases.map((b) => {
+                const base = trouverBase(b, bases);
+                return base ? (
+                  <button
+                    type="button"
+                    key={base.id}
+                    className={baseOuverte === base.id ? 'recette-bchip on' : 'recette-bchip'}
+                    aria-expanded={baseOuverte === base.id}
+                    onClick={() => setBaseOuverte(baseOuverte === base.id ? null : base.id)}
+                  >
+                    🧂 {base.nom}
+                  </button>
+                ) : null;
+              })}
+            </div>
+          )}
+          {baseOuverte &&
+            bases
+              ?.filter((b) => b.id === baseOuverte)
+              .map((b) => (
+                <p className="recette-bdesc" key={b.id}>
+                  🧂 {b.nom} : {b.texte}
+                </p>
+              ))}
+          {recette.etapes && recette.etapes.length > 0 && (
+            <ol className="recette-etapes">
+              {recette.etapes.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ol>
+          )}
+          {recette.mel && <p className="recette-ligne recette-mel">{recette.mel}</p>}
+          {recette.batch && <p className="recette-ligne recette-bat">{recette.batch}</p>}
+        </div>
+      )}
     </article>
   );
 }
