@@ -4,7 +4,7 @@ Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une
 
 ## Chantiers en cours — ordre d'exécution (section à retirer une fois livrés)
 
-Deux chantiers sont specifiés et plannifiés. Les exécuter **dans cet ordre**, sans mélanger :
+Trois chantiers sont cadrés. Les exécuter **dans cet ordre**, sans mélanger :
 
 1. **Refonte visuelle « Herbes »** — thème clair sauge/basilic/citron, nav segmented (fin du dock), icônes SVG maison, parse v2, menu v2, mode magasin, batch guidé, swipe.
    - Spec : `docs/superpowers/specs/2026-09-09-refonte-herbes-design.md`
@@ -14,6 +14,11 @@ Deux chantiers sont specifiés et plannifiés. Les exécuter **dans cet ordre**,
    - Plan : `docs/superpowers/plans/2026-09-09-profil-objectifs-design.md` (9 tâches TDD)
    - **Prérequis strict : chantier 1 exécuté** — le plan 2 réutilise `Icon.tsx`, le prop `renderLabel` de `Checklist` et les tokens Herbes.
    - Maquette de référence **validée** (fait foi en cas de divergence avec la spec) : `docs/superpowers/mockups/profil-objectifs-v6.html`
+3. **Maison & courses** — magasin, budget (estimé menu / payé réel / max), dépenses réelles avec historique et comparatif par magasin, préférences (types de plats), personnes/repas par jour, onboarding 5e étape, « Copier les paramètres IA ».
+   - Spec : `docs/superpowers/specs/2026-09-09-maison-courses-design.md`
+   - Plan : à écrire (TDD) après validation de la spec
+   - **Prérequis strict : chantiers 1 et 2 exécutés** — la spec réutilise les tokens/icônes Herbes et le profil v2 (chantier 2).
+   - Maquette de référence **validée** : `docs/superpowers/mockups/maison-courses-v2.html`
 
 Ne pas entamer un travail UI hors de ces plans sans discussion ; à la fin de chaque chantier, mettre à jour cette section (chantier livré → le retirer).
 

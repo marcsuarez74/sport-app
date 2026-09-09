@@ -38,17 +38,24 @@ Ressenti initial noté pour mémoire :
 
 ## 2. Onboarding enrichi (process au chargement de l'app)
 
-Étendre l'onboarding actuel (profil, poids, âge, taille, objectifs) avec :
+→ **L'essentiel est traité par la spec « Maison & courses »** (chantier 3, maquette
+validée) : `docs/superpowers/specs/2026-09-09-maison-courses-design.md` — magasin,
+budget (estimé menu / payé réel / max hebdo), dépenses réelles (historique +
+comparatif par magasin), préférences (types de plats), personnes/repas par jour,
+onboarding 5e étape, « Copier les paramètres IA ». Noté pour mémoire :
 
-- **Magasin** où on fait ses courses (adapter les listes / la disposition)
+- **Magasin** où on fait ses courses (adapter les listes / la disposition →
+  axe 4 ; ici seul le nom + le prix sont traités)
 - **Matériel** disponible chez soi (four, multi-cuiseur, blender… → filtre les
-  recettes et le batch)
-- **Type de plats** souhaité : healthy / végé / vegan / petit budget / etc.
-- **Budget max par semaine** (course + par repas ?)
-- **Nombre de repas** par jour et **nombre de personnes** à table
-- **Partie « Objectif »** dédiée dans l'onboarding : les objectifs à atteindre
-  (poids cible, kcal…) et la **date de fin de l'objectif** (échéance) —
-  complète l'axe 3 (objectif explicite)
+  recettes et le batch) — **reporté**, à traiter avec l'axe 4
+- **Type de plats** souhaité : healthy / végé / vegan / petit budget / etc. —
+  traité (champ préférences multi-pick, paramètre du prompt IA)
+- **Budget max par semaine** (course + par repas ?) — traité (plafond hebdo,
+  comparé au payé réel ; le par repas reste à penser)
+- **Nombre de repas** par jour et **nombre de personnes** à table — traité
+  (paramètres IA seuls)
+- **Partie « Objectif »** → **traitée par la spec Profil & objectifs**
+  (chantier 2)
 
 ## 3. Profil & objectifs
 
