@@ -95,7 +95,7 @@ Tags repas : Marc = basilic plein (texte blanc) · Mél/keto = citron (texte enc
   - **chips « batch associé »** : refs des `bases:` existantes (« B4 · Riz », « B6 · Poulet grillé »), ou « Cuisson du jour » / « Poisson frais » à défaut ;
   - **encadré « PORTIONS »** : quantités réelles **par profil**, adaptées aux objectifs — « Marc · riz 150 g · poulet 120 g · légumes 200 g » / « Mél (keto) · poulet 150 g · asperges 250 g · sans riz ». **Exigence forte de l'utilisateur** : c'est là que les objectifs vivent dans le menu ;
   - **indice de fraîcheur** (icône + texte : « boîte frigo · sous 2 jours », « sortir la veille au soir », « poisson frais · à acheter vendredi ») ;
-  - **« Voir la recette » pleine largeur sur chaque carte** (plus aucune carte sans recette) : étapes courtes de réchauffage/décongélation pour les repas batch, étapes complètes + macros + adaptation keto pour les cuissons du jour. Chevron SVG rotatif, libellé « Réduire » à l'ouverture.
+  - **« Voir la recette » pleine largeur sur chaque carte avec une recette rattachée** : étapes courtes de réchauffage/décongélation pour les repas batch, étapes complètes + macros + adaptation keto pour les cuissons du jour. Chevron SVG rotatif, libellé « Réduire » à l'ouverture. Les cartes sans recette (boîtes, restes) restent simples, sans bouton — le « cook libre » sans recette reste un chantier ultérieur (docs/ameliorations.md § 4).
 - **Ordre = conseil, pas règle** : batch/frigo d'abord, poisson frais en dernier + note explicative sous la liste.
 - **Coche repas persistée** : nouveaux ids `menu:{jour}:{clé}` dérivés des données, stockés dans `sportapp:checks:{semaine}` — **aucun id de coche existant modifié**.
 - Tests : les tests unitaires/e2e jour-based du Menu sont réécrits (TDD, d'abord en rouge).
@@ -119,8 +119,9 @@ Portés par les indices de fraîcheur, la réserve du batch et les étapes guid�
 - Le **format v1 reste parsé tel quel** (aucun id de coche, aucune clé modifiée) ; champs optionnels ignorés par l'ancienne app.
 - Nouveaux champs optionnels (garde de forme : mal formé → warning, jamais crash) :
   - `## Courses` : ligne `- budget: ≈ 35 €` → affichée dans la bannière rituel ;
+  - items Courses : suffixe ` · rituel` en fin de ligne (alimente le batch — id calculé sur le libellé nettoyé, donc stable) et suffixe ` | <note>` (note de fraîcheur, sous-ligne muted) ;
   - `## Recettes` : lignes `- portions marc: riz 150 g · poulet 120 g · légumes 200 g` et `- portions melanie: …` → encadré PORTIONS ; champ `fraicheur: <texte court>` → indice de fraîcheur ;
-  - les chips « batch associé » sont dérivées des `bases:` **existants** ; « Cuisson du jour » / « Poisson frais » s'affichent à défaut (dérivé, pas de champ).
+  - les chips « batch associé » sont dérivées des `bases:` **existants** ; « Cuisson du jour » s'affiche à défaut pour une recette sans bases (dérivé, pas de champ).
 - `src/assets/semaine-exemple.md` enrichie en conséquence + `README.md` et `docs/templates/template-semaine.md` synchronisés (le parser reste la référence du format).
 
 ## 8. Fichiers touchés
