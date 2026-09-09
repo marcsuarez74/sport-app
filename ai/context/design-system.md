@@ -5,7 +5,7 @@ Source de vérité : `src/index.css` (section `:root`). Toute valeur ici doit y 
 ## Principes
 
 - **Dark mode ONLY** — pas de light theme, pas de `prefers-color-scheme`
-- **Ultra visible** : contraste élevé (texte principal ≈ 13:1, texte sombre sur accents clairs ≥ 7:1), hiérarchie typographique forte, cibles tactiles ≥ 48 px
+- **Ultra visible** : contraste texte ≥ 4,5:1 partout (règle repo — texte principal ≈ 13:1, muted ≥ 4,6:1, texte sombre sur accents clairs ≥ 7:1), hiérarchie typographique forte, cibles tactiles ≥ 48 px
 - **Fluide** : transitions douces 0,2 s sur les éléments interactifs uniquement + kill-switch `prefers-reduced-motion`
 - Contexte d'usage réel : cuisine (mains mouillées) et salle de sport → gros, lisible, sans ambiguïté
 
@@ -20,7 +20,7 @@ Source de vérité : `src/index.css` (section `:root`). Toute valeur ici doit y 
 | `--surface-2` | `#31333e` | surfaces secondaires (`.batch-banner`, `.profile-icon-btn`, `.recette-card`, `.micro-jour`) |
 | `--border` | `#3f4351` | bordures de cartes, dots inactifs |
 | `--text` | `#f9f4f2` | texte principal (≈ 13:1 sur surface) |
-| `--muted` | `#8a8c90` | texte secondaire (≈ 4,3:1 sur surface, ≈ 5:1 sur bg) |
+| `--muted` | `#9a9ca6` | texte secondaire (≈ 5,3:1 sur surface, ≈ 6,2:1 sur bg — ≥ 4,5:1 sur toutes les surfaces) |
 | `--accent` | `#ffa257` | **accent principal** (orange) : actions, onglets, checkboxes, focus, `.today`, tags Marc/Batch, barres séances |
 | `--accent-2` | `#c2e66e` | **accent secondaire** (lime) : succès/objectif atteint (`.stat-delta-bon`), tag Mé/keto (`.tag-keto`), encadré keto, barre courses |
 | `--danger` | `#ff6b6b` | erreurs (`.error`), `.profil-switch` |
@@ -105,7 +105,7 @@ Rayons dérivés : boutons et pills `12px`, badges/pills `999px` (`.today-badge`
 ## Accessibilité
 
 - `:focus-visible` : outline 2 px `--accent`, offset 2 px — toujours visible, jamais supprimé
-- Contrastes texte mesurés : texte/surface ≈ 13:1 · muted/surface ≈ 4,3:1 · texte sombre `#272932`/`--accent` ≈ 7,3:1 · texte sombre/`--accent-2` ≈ 10,3:1
+- Contrastes texte mesurés : texte/surface ≈ 13:1 · muted/surface ≈ 5,3:1 · muted/surface-2 ≈ 4,6:1 · texte sombre `#272932`/`--accent` ≈ 7,3:1 · texte sombre/`--accent-2` ≈ 10,3:1
 - `prefers-reduced-motion: reduce` → toutes transitions désactivées (`!important`, seule utilisation autorisée)
 
 ---
