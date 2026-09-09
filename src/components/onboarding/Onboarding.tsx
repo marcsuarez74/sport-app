@@ -73,7 +73,7 @@ export function Onboarding({ onDone }: { onDone: (profile: UserProfile) => void 
   };
 
   return (
-    <div className="onboarding" data-profile={id ?? undefined}>
+    <div className="onboarding">
       <div className="onboarding-dots" role="group" aria-label="Progression de l'onboarding">
         <span className={step === 1 ? 'onboarding-dot-active' : undefined} />
         <span className={step === 2 ? 'onboarding-dot-active' : undefined} />

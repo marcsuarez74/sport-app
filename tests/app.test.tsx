@@ -134,23 +134,14 @@ describe('App shell', () => {
   });
 });
 
-describe('Theming par profil (data-profile)', () => {
+describe('Theming (accent unique)', () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-profile');
   });
 
-  it("pose data-profile sur <html> selon le profil stocké", () => {
+  it('ne pose plus data-profile sur <html>, quel que soit le profil', () => {
     saveProfile({ id: 'melanie', age: 38, taille: 165 });
-    const parsed = parseWeeklyFile(fixture());
-    saveWeek(fixture(), parsed.data);
-
-    render(<App />);
-
-    expect(document.documentElement.getAttribute('data-profile')).toBe('melanie');
-  });
-
-  it("ne pose pas data-profile sans profil (accent neutre)", () => {
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
 

@@ -248,6 +248,5 @@ describe('ProfilScreen (intégration via App)', () => {
     expect(loadProfile()).toBeNull();
     expect(screen.getByRole('heading', { name: /Qui est derrière l'écran/ })).toBeInTheDocument();
     expect(getWeights('marc')).toEqual([{ date: '2026-09-22', kg: 84.2 }]);
-    expect(document.documentElement.getAttribute('data-profile')).toBeNull();
   });
 });

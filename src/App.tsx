@@ -29,12 +29,6 @@ function App() {
   // weightsBump pour remonter StatCards et relire les pesées.
   const [weightsBump, setWeightsBump] = useState(0);
 
-  if (profile) {
-    document.documentElement.dataset.profile = profile.id;
-  } else {
-    delete document.documentElement.dataset.profile;
-  }
-
   if (!profile) return <Onboarding onDone={setProfile} />;
 
   if (profilOuvert) {
