@@ -760,6 +760,12 @@ progress {
   font-size: 14px;
 }
 
+.import {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
 /* ---------- Profils ---------- */
 
 .profile-title {
