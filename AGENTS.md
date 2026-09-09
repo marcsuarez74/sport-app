@@ -53,6 +53,7 @@ tests/            # miroir de src/, vitest + Testing Library, environnement happ
 tests/e2e/        # specs Playwright (navigateur réel, config playwright.config.ts, projets mobile 375 + 320)
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
 docs/templates/   # convention template semaine + prompt IA de génération d'un cycle
+docs/ameliorations.md # axes d'amélioration futurs (mémoire d'idées, pas une spec)
 docs/superpowers/ # spec design + plan d'implémentation (contexte historique)
 ai/               # configs d'agents IA (cf. section « Dossier ai/ »)
 ```
