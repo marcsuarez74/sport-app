@@ -17,6 +17,7 @@ import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
 import { BatchView } from '../src/components/cuisine/BatchView';
+import { CuisineView } from '../src/components/cuisine/CuisineView';
 import { ProfileView } from '../src/components/ProfileView';
 import { WeekBanner } from '../src/components/WeekBanner';
 
@@ -296,6 +297,38 @@ const menuFixture: MenuDay[] = [
   { jour: 'Mardi', dejeunerMarc: 'Œufs brouillés' },
   { jour: 'Mercredi', dinerFamille: 'Pâtes carbonara' },
 ];
+
+describe('CuisineView — sous-onglets', () => {
+  const data: WeeklyData = {
+    meta: { semaine: 'S40', menu: 'A', du: '2026-09-28', au: '2026-10-04' },
+    courses: [],
+    menu: [
+      { jour: 'Lundi', dejeunerMarc: "Flocons d'avoine" },
+      { jour: 'Mardi', dinerFamille: 'Poulet rôti' },
+    ],
+    batch: [],
+    profiles: { marc: { cibles: [], seances: [], rappels: [] }, melanie: { cibles: [], seances: [], rappels: [] } },
+  };
+
+  it('affiche 3 onglets texte seul (sans emoji) et met le premier en actif', () => {
+    render(<CuisineView data={data} />);
+    expect(screen.getByRole('button', { name: 'Courses' })).toHaveClass('tab', 'active');
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveClass('tab');
+    expect(screen.getByRole('button', { name: 'Batch' })).toHaveClass('tab');
+    expect(screen.queryByRole('button', { name: /🛒/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /📅/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /📦/ })).not.toBeInTheDocument();
+  });
+
+  it('bascule la classe active au clic et change de section', async () => {
+    const user = userEvent.setup();
+    render(<CuisineView data={data} />);
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveClass('tab', 'active');
+    expect(screen.getByRole('button', { name: 'Courses' })).not.toHaveClass('active');
+    expect(screen.getByRole('heading', { name: 'Lundi', level: 3 })).toBeInTheDocument();
+  });
+});
 
 describe('MenuView', () => {
   it('renders one card per day with the day name in an h3', () => {

@@ -7,9 +7,9 @@ import { ShoppingList } from './ShoppingList';
 type CuisineTab = 'courses' | 'menu' | 'batch';
 
 const TABS: Array<{ id: CuisineTab; label: string }> = [
-  { id: 'courses', label: '🛒 Courses' },
-  { id: 'menu', label: '📅 Menu' },
-  { id: 'batch', label: '📦 Batch' },
+  { id: 'courses', label: 'Courses' },
+  { id: 'menu', label: 'Menu' },
+  { id: 'batch', label: 'Batch' },
 ];
 
 export function CuisineView({ data }: { data: WeeklyData }) {

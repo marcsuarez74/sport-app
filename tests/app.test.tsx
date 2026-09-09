@@ -109,10 +109,10 @@ describe('App shell', () => {
     expect(screen.getByRole('heading', { name: 'Legumes', level: 3 })).toBeInTheDocument();
     expect(screen.getByText('Carottes')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '📅 Menu' }));
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
     expect(screen.getByRole('heading', { name: 'Lundi', level: 3 })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '📦 Batch' }));
+    await user.click(screen.getByRole('button', { name: 'Batch' }));
     expect(screen.getByText(/Riz/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Mon suivi' }));
