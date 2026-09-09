@@ -83,7 +83,7 @@ Le format des fichiers hebdo est un **contrat** : l'app s'en sert pour la semain
 
 - Nouvelle fonctionnalité ou bugfix = **test d'abord** (rouge), puis implémentation (vert). `npm run test:watch` pour boucler.
 - Tests dans `tests/`, nommés en miroir : `parse.test.ts`, `storage.test.ts`, `weeks.test.ts`, `lib/rayons.test.ts`, `lib/text.test.ts`, `components.test.tsx`, `app.test.tsx`.
-- Tester le **comportement visible** (rôles, textes, storage) — pas les détails d'implémentation. Utiliser `userEvent` (pas `fireEvent` sauf cas documenté : `fireEvent.submit` pour les formulaires sous happy-dom).
+- Tester le **comportement visible** (rôles, textes, storage) — pas les détails d'implémentation. Utiliser `userEvent` (pas `fireEvent` sauf cas documenté : `fireEvent.submit` pour les formulaires sous happy-dom, `fireEvent.change` pour l'upload de plusieurs fichiers — `user.upload` n'en livre qu'un).
 - Mocks d'horloge : `vi.setSystemTime(new Date('…T10:00:00'))` — toujours la forme avec heure (parse en heure locale), jamais la forme date seule (parse en UTC). Restaurer avec `vi.useRealTimers()`.
 - `localStorage.clear()` en `beforeEach` pour l'isolation.
 
