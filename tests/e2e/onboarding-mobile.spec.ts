@@ -17,7 +17,8 @@ test.describe('Onboarding — formulaire poids/âge/taille sur mobile', () => {
     await page.goto('/');
     await page.getByRole('button', { name: /Mélanie/ }).click();
 
-    const row = page.locator('.onboarding-row');
+    // Deux rows (Âge/Taille puis objectifs) : la première suffit pour le check viewport
+    const row = page.locator('.onboarding-row').first();
     await expect(row).toBeVisible();
     await assertPasDeDebordement(page);
 

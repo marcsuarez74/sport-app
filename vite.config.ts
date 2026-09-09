@@ -18,8 +18,8 @@ export default defineConfig({
         lang: 'fr',
         display: 'standalone',
         start_url: '.',
-        theme_color: '#0f1115',
-        background_color: '#0f1115',
+        theme_color: '#1b1d24',
+        background_color: '#1b1d24',
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
@@ -44,6 +44,15 @@ export default defineConfig({
             options: {
               cacheName: 'images',
               expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/images\.unsplash\.com\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images',
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [200] },
             },
           },

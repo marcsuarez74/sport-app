@@ -14,6 +14,12 @@ const submitForm = async (user: ReturnType<typeof userEvent.setup>, overrides: R
   await user.type(screen.getByLabelText('Poids (kg)'), overrides.poids ?? '84.2');
   await user.type(screen.getByLabelText('Âge'), overrides.age ?? '41');
   await user.type(screen.getByLabelText('Taille (cm)'), overrides.taille ?? '178');
+  if (overrides.poidsObjectif) {
+    await user.type(screen.getByLabelText('Poids objectif (kg)'), overrides.poidsObjectif);
+  }
+  if (overrides.kcalObjectif) {
+    await user.type(screen.getByLabelText('Objectif kcal/jour'), overrides.kcalObjectif);
+  }
   soumettre();
 };
 
@@ -127,5 +133,48 @@ describe('Onboarding — étape 2 (validation et enregistrement)', () => {
     await submitForm(user, { poids: '250', age: '100', taille: '230' });
 
     await waitFor(() => expect(onDone).toHaveBeenCalledWith({ id: 'melanie', age: 100, taille: 230 }));
+  });
+
+  it('persiste un poids objectif et un objectif kcal optionnels', async () => {
+    const user = await ouvrirEtape2();
+
+    await submitForm(user, { poids: '85', poidsObjectif: '72', kcalObjectif: '2000' });
+
+    await waitFor(() =>
+      expect(onDone).toHaveBeenCalledWith({
+        id: 'melanie',
+        age: 41,
+        taille: 178,
+        poidsObjectif: 72,
+        kcalObjectif: 2000,
+      }),
+    );
+    expect(loadProfile()).toEqual({
+      id: 'melanie',
+      age: 41,
+      taille: 178,
+      poidsObjectif: 72,
+      kcalObjectif: 2000,
+    });
+  });
+
+  it('refuse un poids objectif hors bornes avec une erreur explicite', async () => {
+    const user = await ouvrirEtape2();
+
+    await submitForm(user, { poidsObjectif: '500' });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/poids objectif/i);
+    expect(onDone).not.toHaveBeenCalled();
+    expect(loadProfile()).toBeNull();
+  });
+
+  it('refuse un objectif kcal hors bornes avec une erreur explicite', async () => {
+    const user = await ouvrirEtape2();
+
+    await submitForm(user, { kcalObjectif: '100' });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/kcal/i);
+    expect(onDone).not.toHaveBeenCalled();
+    expect(loadProfile()).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { BaseCuisine, MealKey, MenuDay, Recette } from '../../lib/model';
-import { todayKey } from '../../lib/dates';
+import { trouverJourDuJour } from '../../lib/stats';
 
 const MEALS: Array<[MealKey, string, string]> = [
   ['dejeunerMarc', 'Marc', 'tag-marc'],
@@ -17,8 +17,8 @@ function trouverRecette(ref: string, recettes: Recette[]): Recette | undefined {
 }
 
 function ordreDepuisAujourdhui(menu: MenuDay[]): { ordered: MenuDay[]; nbPasse: number } {
-  const t = todayKey();
-  const idx = menu.findIndex((d) => d.jour.trim().toLowerCase() === t);
+  const jourCourant = trouverJourDuJour(menu);
+  const idx = jourCourant ? menu.indexOf(jourCourant) : -1;
   if (idx <= 0) return { ordered: menu, nbPasse: 0 };
   return { ordered: [...menu.slice(idx), ...menu.slice(0, idx)], nbPasse: idx };
 }
@@ -41,10 +41,12 @@ export function MenuView({
   const { ordered, nbPasse } = ordreDepuisAujourdhui(menu);
   const pastFrom = ordered.length - nbPasse;
 
+  const jourDuJour = trouverJourDuJour(menu);
+
   return (
     <>
       {ordered.map((day, i) => {
-        const isToday = i === 0 && nbPasse < ordered.length && day.jour.trim().toLowerCase() === todayKey();
+        const isToday = i === 0 && nbPasse < ordered.length && day === jourDuJour;
         const isPast = i >= pastFrom;
         const recetteParRepas = new Map<MealKey, Recette>();
         for (const [key] of MEALS) {
@@ -111,64 +113,89 @@ export function RecetteCard({
   const [baseOuverte, setBaseOuverte] = useState<string | null>(null);
   return (
     <article className="recette-card" aria-label={recette.nom}>
-      <header className="recette-head">
-        <span className="recette-ico" aria-hidden="true">
+      {recette.image ? (
+        <img className="recette-hero" src={recette.image} alt={recette.nom} loading="lazy" />
+      ) : (
+        <div className="recette-fallback" data-testid="recette-fallback" aria-hidden="true">
           🍳
-        </span>
-        <div className="recette-title">
-          <div className="recette-nom">{recette.nom}</div>
-          <div className="recette-meta">
-            {recette.temps && <>⏱ {recette.temps}</>}
-            {recette.temps && ' · '}
-            pour 4
+        </div>
+      )}
+      <div className="recette-corps">
+        <header className="recette-head">
+          <div className="recette-title">
+            <div className="recette-nom">{recette.nom}</div>
+            <div className="recette-meta">
+              {recette.temps && <>⏱ {recette.temps}</>}
+              {recette.temps && ' · '}
+              pour 4
+            </div>
           </div>
-        </div>
-        <button type="button" className="recette-close" aria-label="Fermer la recette" onClick={onClose}>
-          ×
-        </button>
-      </header>
-      {(recette.kcal != null || recette.proteines != null) && (
-        <div className="recette-stats">
-          {recette.kcal != null && <span>🔥 ~{recette.kcal} kcal /pers</span>}
-          {recette.proteines != null && <span>💪 {recette.proteines} g protéines</span>}
-        </div>
-      )}
-      {recette.pour && <p className="recette-pour">{recette.pour}</p>}
-      {recette.bases && recette.bases.length > 0 && (
-        <div className="recette-bases">
-          {recette.bases.map((b) => {
-            const base = trouverBase(b, bases);
-            return base ? (
-              <button
-                type="button"
-                key={base.id}
-                className={baseOuverte === base.id ? 'recette-bchip on' : 'recette-bchip'}
-                aria-expanded={baseOuverte === base.id}
-                onClick={() => setBaseOuverte(baseOuverte === base.id ? null : base.id)}
-              >
-                🧂 {base.nom}
-              </button>
-            ) : null;
-          })}
-        </div>
-      )}
-      {baseOuverte &&
-        bases
-          ?.filter((b) => b.id === baseOuverte)
-          .map((b) => (
-            <p className="recette-bdesc" key={b.id}>
-              🧂 {b.nom} : {b.texte}
-            </p>
-          ))}
-      {recette.etapes && recette.etapes.length > 0 && (
-        <ol className="recette-etapes">
-          {recette.etapes.map((e, i) => (
-            <li key={i}>{e}</li>
-          ))}
-        </ol>
-      )}
-      {recette.mel && <p className="recette-ligne recette-mel">{recette.mel}</p>}
-      {recette.batch && <p className="recette-ligne recette-bat">{recette.batch}</p>}
+          <button type="button" className="recette-close" aria-label="Fermer la recette" onClick={onClose}>
+            ×
+          </button>
+        </header>
+        {(recette.kcal != null ||
+          recette.proteines != null ||
+          recette.glucides != null ||
+          recette.lipides != null) && (
+          <div className="recette-stats">
+            {recette.kcal != null && <span>🔥 ~{recette.kcal} kcal /pers</span>}
+            {recette.glucides != null && <span>🌾 {recette.glucides}g C</span>}
+            {recette.proteines != null && <span>💪 {recette.proteines}g P</span>}
+            {recette.lipides != null && <span>💧 {recette.lipides}g F</span>}
+          </div>
+        )}
+        {recette.score != null && (
+          <div className="recette-score">
+            <span className="stat-label">Health score</span>
+            <span className="recette-score-value">
+              {recette.score}
+              <small>/10</small>
+            </span>
+            <div className="score-bar" data-testid="score-bar" aria-hidden="true">
+              {Array.from({ length: 10 }, (_, i) => (
+                <span key={i} className={i < recette.score! ? 'score-seg on' : 'score-seg'} />
+              ))}
+            </div>
+          </div>
+        )}
+        {recette.pour && <p className="recette-pour">{recette.pour}</p>}
+        {recette.bases && recette.bases.length > 0 && (
+          <div className="recette-bases">
+            {recette.bases.map((b) => {
+              const base = trouverBase(b, bases);
+              return base ? (
+                <button
+                  type="button"
+                  key={base.id}
+                  className={baseOuverte === base.id ? 'recette-bchip on' : 'recette-bchip'}
+                  aria-expanded={baseOuverte === base.id}
+                  onClick={() => setBaseOuverte(baseOuverte === base.id ? null : base.id)}
+                >
+                  🧂 {base.nom}
+                </button>
+              ) : null;
+            })}
+          </div>
+        )}
+        {baseOuverte &&
+          bases
+            ?.filter((b) => b.id === baseOuverte)
+            .map((b) => (
+              <p className="recette-bdesc" key={b.id}>
+                🧂 {b.nom} : {b.texte}
+              </p>
+            ))}
+        {recette.etapes && recette.etapes.length > 0 && (
+          <ol className="recette-etapes">
+            {recette.etapes.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ol>
+        )}
+        {recette.mel && <p className="recette-ligne recette-mel">{recette.mel}</p>}
+        {recette.batch && <p className="recette-ligne recette-bat">{recette.batch}</p>}
+      </div>
     </article>
   );
 }

@@ -14,6 +14,8 @@ export function Onboarding({ onDone }: { onDone: (profile: UserProfile) => void 
   const [poids, setPoids] = useState('');
   const [age, setAge] = useState('');
   const [taille, setTaille] = useState('');
+  const [poidsObjectif, setPoidsObjectif] = useState('');
+  const [kcalObjectif, setKcalObjectif] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const choisir = (p: ProfileKey) => {
@@ -47,15 +49,31 @@ export function Onboarding({ onDone }: { onDone: (profile: UserProfile) => void 
       setError('Taille invalide : entre 120 et 230 cm.');
       return;
     }
+    const obj = poidsObjectif ? Number.parseFloat(poidsObjectif.replace(',', '.')) : undefined;
+    if (poidsObjectif && (obj === undefined || obj < 30 || obj > 250)) {
+      setError('Poids objectif invalide : entre 30 et 250 kg.');
+      return;
+    }
+    const kcalObj = kcalObjectif ? Number.parseInt(kcalObjectif, 10) : undefined;
+    if (kcalObjectif && (kcalObj === undefined || kcalObj < 800 || kcalObj > 6000)) {
+      setError('Objectif kcal invalide : entre 800 et 6000.');
+      return;
+    }
     if (!id) return;
-    const profile: UserProfile = { id, age: ans, taille: cm };
+    const profile: UserProfile = {
+      id,
+      age: ans,
+      taille: cm,
+      ...(obj != null ? { poidsObjectif: obj } : {}),
+      ...(kcalObj != null ? { kcalObjectif: kcalObj } : {}),
+    };
     saveProfile(profile);
     addWeight(id, todayISO(), kg);
     onDone(profile);
   };
 
   return (
-    <div className="onboarding" data-profile={id ?? undefined}>
+    <div className="onboarding">
       <div className="onboarding-dots" role="group" aria-label="Progression de l'onboarding">
         <span className={step === 1 ? 'onboarding-dot-active' : undefined} />
         <span className={step === 2 ? 'onboarding-dot-active' : undefined} />
@@ -128,6 +146,35 @@ export function Onboarding({ onDone }: { onDone: (profile: UserProfile) => void 
                   onChange={(e) => {
                     setError(null);
                     setTaille(e.target.value);
+                  }}
+                />
+              </div>
+            </div>
+            <div className="onboarding-row">
+              <div className="onboarding-field">
+                <label htmlFor="ob-obj-poids">Poids objectif (kg)</label>
+                <input
+                  id="ob-obj-poids"
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={poidsObjectif}
+                  onChange={(e) => {
+                    setError(null);
+                    setPoidsObjectif(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="onboarding-field">
+                <label htmlFor="ob-obj-kcal">Objectif kcal/jour</label>
+                <input
+                  id="ob-obj-kcal"
+                  type="number"
+                  inputMode="numeric"
+                  value={kcalObjectif}
+                  onChange={(e) => {
+                    setError(null);
+                    setKcalObjectif(e.target.value);
                   }}
                 />
               </div>

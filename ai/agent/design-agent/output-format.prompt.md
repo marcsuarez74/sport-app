@@ -4,7 +4,7 @@ Always structure your response like this:
 
 Map every value to the existing CSS variables from src/index.css (:root):
 
-- colors (var(--bg), var(--surface), var(--accent), var(--accent-strong), ...)
+- colors (var(--bg), var(--surface), var(--accent), var(--accent-2), ...)
 - spacing
 - typography
 - radius
