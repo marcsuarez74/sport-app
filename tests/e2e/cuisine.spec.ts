@@ -57,29 +57,24 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await expect(premier.locator('.today-badge')).toHaveText("Aujourd'hui");
   });
 
-  test('fiche recette : dépliage avec étapes, fermeture par re-clic et par ×', async ({ page }) => {
+  test('fiche recette : carte compacte repliée, dépliage par le bouton, repli par re-clic', async ({ page }) => {
     await page.goto(ORIGIN);
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
 
     await page.getByRole('button', { name: 'Menu' }).click();
-    const lien = page.locator('.menu-recette-link').first();
-    await lien.click();
-
     const carte = page.locator('.recette-card').first();
     await expect(carte).toBeVisible();
-    await expect(carte.locator('.recette-stats span').first()).toBeVisible();
+    await expect(carte.locator('.recette-nom')).toBeVisible();
+    await expect(carte.locator('.recette-nutri span').first()).toBeVisible();
+    await expect(carte.locator('.recette-etapes')).toHaveCount(0);
+
+    const toggle = carte.locator('.recette-toggle');
+    await toggle.click();
     await expect(carte.locator('.recette-etapes li').first()).toBeVisible();
-    await expect(lien).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
-    // re-clic sur le lien : la fiche se referme
-    await lien.click();
-    await expect(page.locator('.recette-card')).toHaveCount(0);
-
-    // bouton × : même résultat
-    await lien.click();
-    await expect(page.locator('.recette-card')).toBeVisible();
-    await page.locator('.recette-close').click();
-    await expect(page.locator('.recette-card')).toHaveCount(0);
+    await toggle.click();
+    await expect(carte.locator('.recette-etapes')).toHaveCount(0);
   });
 
   test('courses : compteurs par rayon et encadré keto en dernier', async ({ page }) => {
