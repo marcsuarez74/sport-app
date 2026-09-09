@@ -28,3 +28,6 @@ coverage
 # Playwright
 test-results/
 playwright-report/
+
+# Worktrees (workspaces isolés)
+.worktrees/
