@@ -31,3 +31,4 @@ playwright-report/
 
 # Worktrees (workspaces isolés)
 .worktrees/
+.playwright-mcp/

@@ -4,7 +4,7 @@ Design rules:
 - never hardcode repeated values
 - group styles into reusable patterns
 
-Project constraints (sport-app — override any generic habit):
+Project constraints (Rituel — override any generic habit):
 
 - dark mode ONLY, no light theme, no prefers-color-scheme logic
 - plain CSS in a single file (src/index.css), semantic classes — NO Tailwind, no CSS-in-JS

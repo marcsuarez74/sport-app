@@ -1,8 +1,8 @@
-# App sport — Architecture Technique
+# Architecture Technique — Rituel
 
 ## Vue d'ensemble
 
-**Sport App** est une PWA 100 % frontend (zéro backend) de suivi cuisine / diet / sport pour Marc & Mélanie. Le contenu provient d'un fichier `.md` structuré par semaine — la semaine d'exemple est auto-chargée (l'import UI reviendra plus tard). Toutes les données utilisateur vivent en `localStorage` — rien ne quitte l'appareil.
+**Rituel** est une PWA 100 % frontend (zéro backend) de suivi cuisine / diet / sport pour Marc & Mélanie. Le contenu provient d'un fichier `.md` structuré par semaine — la semaine d'exemple est auto-chargée (l'import UI reviendra plus tard). Toutes les données utilisateur vivent en `localStorage` — rien ne quitte l'appareil.
 
 Déployée sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
 

@@ -4,7 +4,7 @@ Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une
 
 ## Le projet
 
-**Sport App** — PWA React (dark mode only) de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
+**Rituel** — PWA React (dark mode only) de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
 
 - **UX personnalisée** : au premier lancement, un onboarding en 2 étapes choisit le profil (💪 Marc / 🌿 Mélanie) et collecte les bases (poids, âge, taille, objectifs) — clé `sportapp:profile`. L'app utilise un **accent unique** (orange #FFA257 + lime #C2E66E, palette Nutrigo) — plus de teinte par profil — et n'affiche que « ce qui me concerne » + la cuisine
 - L'app affiche **2 onglets en dock flottant** : 🛒 Cuisine (Courses / Menu / Batch, partagé — fiches recettes dépliables, timeline rituel, encadré keto) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, changer de profil) via l'icône en haut à droite

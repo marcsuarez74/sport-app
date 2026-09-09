@@ -163,7 +163,7 @@ export function ProfilScreen({
         </button>
       </section>
 
-      <p className="muted profil-about">Sport App — vos données restent sur votre téléphone.</p>
+      <p className="muted profil-about">Rituel — vos données restent sur votre téléphone.</p>
     </div>
   );
 }

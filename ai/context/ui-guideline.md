@@ -1,4 +1,4 @@
-# UI Guidelines — sport-app
+# UI Guidelines — Rituel
 
 Complète `design-system.md` (les tokens) avec les règles d'usage. Source de vérité : les composants existants dans `src/components/`.
 

@@ -1,4 +1,4 @@
-# Sport App
+# Rituel
 
 Suivi cuisine / diet / sport pour Marc & Mélanie — PWA installable, livrée avec une semaine d'exemple prête à cocher.
 
@@ -150,6 +150,8 @@ L'app est déployée sur **GitHub Pages** via GitHub Actions (`.github/workflows
 4. Chaque push sur `main` reconstruit et déploie. URL : `https://<user>.github.io/sport-app/`.
 
 > Le `base` dans `vite.config.ts` vaut `/sport-app/` — à mettre à jour si le repo est renommé.
+
+> Septembre 2026 — l'app s'appelle désormais **Rituel**. Sur les téléphones où elle est déjà installée, le nom sous l'icône ne change qu'après une réinstallation (supprimer l'icône, réinstaller depuis le navigateur).
 
 ## Données
 

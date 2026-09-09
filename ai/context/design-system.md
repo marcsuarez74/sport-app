@@ -1,4 +1,4 @@
-# Design System — sport-app
+# Design System — Rituel
 
 Source de vérité : `src/index.css` (section `:root`). Toute valeur ici doit y correspondre — si le CSS change, mettre à jour ce fichier.
 

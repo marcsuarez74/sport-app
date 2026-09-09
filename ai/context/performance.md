@@ -1,4 +1,4 @@
-# Performance — sport-app
+# Performance — Rituel
 
 ## Principes Généraux
 

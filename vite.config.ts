@@ -12,8 +12,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Sport App',
-        short_name: 'Sport',
+        name: 'Rituel — cuisine & sport',
+        short_name: 'Rituel',
         description: 'Suivi cuisine, diet et sport — Marc & Mélanie',
         lang: 'fr',
         display: 'standalone',
