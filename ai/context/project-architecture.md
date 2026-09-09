@@ -4,7 +4,7 @@
 
 **Rituel** est une PWA 100 % frontend (zéro backend) de suivi cuisine / diet / sport pour Marc & Mélanie. Le contenu provient d'un fichier `.md` structuré par semaine — la semaine d'exemple est auto-chargée (l'import UI reviendra plus tard). Toutes les données utilisateur vivent en `localStorage` — rien ne quitte l'appareil.
 
-Déployée sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
+Déployée sur GitHub Pages : https://marcsuarez74.github.io/rituel-app/
 
 ---
 
@@ -104,10 +104,10 @@ Le parser accepte les variantes bénignes (accents, CRLF, BOM, indentation, `*`,
 
 ## Configuration Build
 
-- `base: '/sport-app/'` — doit rester égal au nom du repo GitHub (sinon Pages casse)
+- `base: '/rituel-app/'` — doit rester égal au nom du repo GitHub (sinon Pages casse)
 - `npm run build` = `tsc -b && vite build` → `dist/` avec `sw.js` + `manifest.webmanifest`
 - Icônes : `npm run icons` (régénère les PNG depuis `public/icon-src.svg`)
-- Preview locale du build : `npm run preview` (vérifier `/sport-app/`, manifest, sw)
+- Preview locale du build : `npm run preview` (vérifier `/rituel-app/`, manifest, sw)
 
 ---
 

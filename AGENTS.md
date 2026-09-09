@@ -10,7 +10,7 @@ Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une
 - L'app affiche **2 onglets en dock flottant** : 🛒 Cuisine (Courses / Menu / Batch, partagé — fiches recettes dépliables, timeline rituel, encadré keto) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, changer de profil) via l'icône en haut à droite
 - Le contenu : une **semaine d'exemple auto-chargée** au premier lancement (fallback en mémoire, l'app est donc toujours utilisable). L'import .md est **retiré de l'UI** pour l'instant — il reviendra avec une convention « template » ; le parser `parse.ts` reste la référence du format
 - Coches + pesées persistées en **localStorage** (aucune donnée ne quitte le téléphone)
-- Déployée en PWA offline-first sur GitHub Pages : https://marcsuarez74.github.io/sport-app/
+- Déployée en PWA offline-first sur GitHub Pages : https://marcsuarez74.github.io/rituel-app/
 
 ## Commandes
 
@@ -102,7 +102,7 @@ Toute lecture passe par `safeParse` + garde de forme : une donnée corrompue se 
 
 ## PWA & déploiement
 
-- `base: '/sport-app/'` dans `vite.config.ts` = nom du repo GitHub. Si le repo est renommé, mettre à jour `base` ET l'URL dans le README.
+- `base: '/rituel-app/'` dans `vite.config.ts` = nom du repo GitHub. Si le repo est renommé, mettre à jour `base` ET l'URL dans le README.
 - **CI sur les PR** (`.github/workflows/ci.yml`) : Prepare → Lint → Typecheck → Test → Build — elle doit être verte avant tout merge ; ne pas y ajouter de step lent sans discussion.
 - **Deploy sur main** (`.github/workflows/deploy.yml`) : Test unitaire → Build → **Test e2e sur le build de prod** (`npm run e2e:preview`, nécessite `npx playwright install --with-deps chromium webkit`) → Pages. Si un e2e casse le déploiement, corriger et re-pousser (pas de contournement).
 - Le déploiement se fait tout seul (push sur `main` → Actions → Pages). Ne pas ajouter de build step qui ne serait pas aussi rapide en CI (le workflow lance déjà `npm ci && npm test && build`).

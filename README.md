@@ -158,20 +158,20 @@ npm run icons      # régénérer les icônes après modification de public/icon
 
 L'app est déployée sur **GitHub Pages** via GitHub Actions (`.github/workflows/deploy.yml`).
 
-1. Créer un repo nommé `sport-app` sur GitHub. Il doit être **public** : GitHub Pages gratuit n'est disponible que pour les repos publics (les repos privés nécessitent un plan payant).
+1. Créer un repo nommé `rituel-app` sur GitHub. Il doit être **public** : GitHub Pages gratuit n'est disponible que pour les repos publics (les repos privés nécessitent un plan payant).
 2. Pousser le code :
 
    ```bash
-   git remote add origin git@github.com:<user>/sport-app.git
+   git remote add origin git@github.com:<user>/rituel-app.git
    git push -u origin main
    ```
 
 3. Sur GitHub : **Settings → Pages → Source: GitHub Actions**.
-4. Chaque push sur `main` reconstruit et déploie. URL : `https://<user>.github.io/sport-app/`.
+4. Chaque push sur `main` reconstruit et déploie. URL : `https://<user>.github.io/rituel-app/`.
 
-> Le `base` dans `vite.config.ts` vaut `/sport-app/` — à mettre à jour si le repo est renommé.
+> Le `base` dans `vite.config.ts` vaut `/rituel-app/` — à mettre à jour si le repo est renommé.
 
-> Septembre 2026 — l'app s'appelle désormais **Rituel**. Sur les téléphones où elle est déjà installée, le nom sous l'icône ne change qu'après une réinstallation (supprimer l'icône, réinstaller depuis le navigateur).
+> Septembre 2026 — l'app s'appelle désormais **Rituel** et le repo est `rituel-app` : la nouvelle URL est `https://marcsuarez74.github.io/rituel-app/`. L'ancienne URL (`…/sport-app/`) ne redirige pas — sur les téléphones où la PWA est déjà installée, il faut la **réinstaller** depuis le navigateur à la nouvelle adresse (les données localStorage sont conservées, même origine).
 
 ## Données
 
