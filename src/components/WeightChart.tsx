@@ -30,7 +30,7 @@ export function WeightChart({ weights, objectif }: { weights: WeightEntry[]; obj
   const kg = weights.map((w) => w.kg);
   const min = Math.min(...kg, objectif ?? Infinity);
   const max = Math.max(...kg, objectif ?? -Infinity);
-  const y = (v: number) => Y_BOT - ((v - min) / (max - min)) * (Y_BOT - Y_TOP);
+  const y = (v: number) => Y_BOT - ((v - min) / (max - min || 1)) * (Y_BOT - Y_TOP);
   const pts = weights.map((w, i): [number, number] => [
     PAD_G + (i / (weights.length - 1)) * (W - PAD_G),
     y(w.kg),
@@ -38,7 +38,7 @@ export function WeightChart({ weights, objectif }: { weights: WeightEntry[]; obj
   const premier = weights[0];
   const dernier = weights[weights.length - 1];
   const objectifY = objectif != null ? y(objectif) : null;
-  const grid = [max, (min + max) / 2, min];
+  const grid = [...new Set([max, (min + max) / 2, min])];
   const aire = `${cheminLisse(pts)} L ${W} ${Y_BOT} L ${PAD_G} ${Y_BOT} Z`;
 
   return (

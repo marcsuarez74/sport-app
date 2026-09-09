@@ -100,6 +100,15 @@ describe('WeightChart', () => {
     expect(screen.getByText(/Ajoutez au moins 2 pesées/)).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
+
+  it('gère deux pesées identiques sans NaN dans la courbe', () => {
+    const { container } = render(
+      <WeightChart weights={[{ date: '2026-09-06', kg: 78 }, { date: '2026-09-07', kg: 78 }]} />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg!.querySelector('.weight-ligne')!.getAttribute('d')).not.toContain('NaN');
+  });
 });
 
 const courseItems: CourseItem[] = [
