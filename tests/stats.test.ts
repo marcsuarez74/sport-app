@@ -67,9 +67,28 @@ describe('stats: kcalDuJour', () => {
   it('Mélanie : diner-melanie remplace diner-famille quand présent', () => {
     const jour: MenuDay = {
       jour: 'lundi',
+      dinerMelanie: 'Dinde + gratin (keto)',
       recetteRefs: { dinerFamille: 'r2', dinerMelanie: 'r7', dejeunerMelanie: 'r1' },
     };
     expect(kcalDuJour(jour, recettes, 'melanie')).toBe(1390);
+  });
+
+  it('Mélanie sans dîner attitré : repli sur le dîner famille', () => {
+    const jour: MenuDay = {
+      jour: 'lundi',
+      recetteRefs: { dinerFamille: 'r2', dejeunerMelanie: 'r1' },
+    };
+    expect(kcalDuJour(jour, recettes, 'melanie')).toBe(1300);
+  });
+
+  it('Mélanie : son dîner sans ref ne compte PAS la recette famille', () => {
+    const jour: MenuDay = {
+      jour: 'lundi',
+      dejeunerMelanie: 'Box thon-avocat',
+      dinerMelanie: 'Bolo sur courgettes (sans ref)',
+      recetteRefs: { dinerFamille: 'r2', dejeunerMelanie: 'r1' },
+    };
+    expect(kcalDuJour(jour, recettes, 'melanie')).toBe(680);
   });
 
   it('retourne null sans jour, sans refs ou sans kcal', () => {

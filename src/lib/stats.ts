@@ -40,7 +40,7 @@ export const kcalDuJour = (
   const keys: MealKey[] =
     profil === 'marc'
       ? ['dejeunerMarc', 'dinerFamille']
-      : ['dejeunerMelanie', jour.recetteRefs.dinerMelanie ? 'dinerMelanie' : 'dinerFamille'];
+      : ['dejeunerMelanie', jour.dinerMelanie ? 'dinerMelanie' : 'dinerFamille'];
   let total: number | null = null;
   for (const key of keys) {
     const ref = jour.recetteRefs[key];
