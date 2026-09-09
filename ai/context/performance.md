@@ -59,7 +59,7 @@
 ## CSS
 
 - Un seul fichier `src/index.css` (~1 200 lignes) : pas de CSS-in-JS, pas de lib utilitaire (Tailwind), pas de `<style>` dans les composants
-- Variables CSS sur `:root` = tokens ; les composants ne codent **jamais** une couleur/rayon en dur (exception documentée : `ACCENTS` dans ProfileView, aligné sur les variables)
+- Variables CSS sur `:root` = tokens ; les composants ne codent **jamais** une couleur/rayon en dur (seule tolérance : texte sombre `#272932` sur fonds accent clairs, valeur figée par le design system)
 - Transitions limitées aux propriétés bon marché (`background-color`, `color`, `transform`) + kill-switch `prefers-reduced-motion`
 - Carrousel micro-batch : `overflow-x: auto` natif (scrollbar masquée), zéro JS — ne pas le remplacer par un carrousel JS
 
@@ -90,7 +90,7 @@
 useEffect(() => { setChecks(getChecks(semaine)) }, [semaine]) // rendu + flash périmé
 
 // ❌ Charger une lib pour un truc de 15 lignes (chart, date, state)
-npm i recharts   // Sparkline SVG maison = 25 lignes
+npm i recharts   // WeightChart SVG maison = ~110 lignes, zéro dépendance
 
 // ❌ Fetch du contenu au démarrage
 fetch('/semaine.md') // le contenu vit en localStorage, pas sur le réseau

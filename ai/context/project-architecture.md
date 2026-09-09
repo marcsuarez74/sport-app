@@ -40,9 +40,10 @@ src/
 ├── components/
 │   ├── WeekBanner.tsx    # Bannière semaine (h1, pill Menu, dates FR) + icône profil
 │   ├── TabBar.tsx        # Dock flottant 2 onglets (Cuisine / Mon suivi), export type TabId
-│   ├── ProfilScreen.tsx  # Écran poussé : infos perso + changer de profil
+│   ├── ProfilScreen.tsx  # Écran poussé : infos perso + objectifs + changer de profil
 │   ├── Checklist.tsx     # Checklists persistées par semaine (pattern réutilisable)
-│   ├── Sparkline.tsx     # Graphe SVG pur, zéro dépendance
+│   ├── StatCards.tsx     # 4 cartes résumé Mon suivi (poids, kcal du jour, séances, courses)
+│   ├── WeightChart.tsx   # Courbe de poids SVG maison (lissée Catmull-Rom, ligne objectif)
 │   ├── ProfileView.tsx   # Vue générique Marc/Mélanie (cibles, séances, poids, rappels)
 │   └── cuisine/          # Onglet Cuisine
 │       ├── CuisineView.tsx   # Sous-onglets Courses / Menu / Batch
@@ -84,6 +85,8 @@ interactions → storage.ts → état local du composant
 ### 2. Render-phase reset (resynchronisation)
 
 Un composant dont l'état dépend d'une prop qui peut changer (semaine, profil) se resynchronise **pendant le rendu** via un garde `syncedX` — voir `Checklist.tsx`, `ShoppingList.tsx`, `ProfileView.tsx`. C'est LE pattern du repo : ne pas en inventer un autre (pas de `useEffect` de sync, pas de `key` imposé aux consommateurs).
+
+**Exception explicite et documentée** : `key={weightsBump}` sur `StatCards` dans `App.tsx`. `StatCards` lit le storage **au montage** (`useState` initial) et n'a pas de prop de semaine à resynchroniser ; quand une pesée est ajoutée, `onWeightsChanged` incrémente `weightsBump` pour forcer un remount et relire les pesées. C'est un remount ciblé sur un lecteur de storage, pas un nouveau pattern de sync — ne pas l'imiter ailleurs.
 
 ### 3. IDs stables de coche
 

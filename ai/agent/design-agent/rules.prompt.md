@@ -26,11 +26,11 @@ Spacing:
 Colors:
 
 - map colors to semantic CSS variables (see ai/context/design-system.md)
-- avoid raw hex values in components (except documented ACCENTS constant)
+- avoid raw hex values in components (dark text #272932 on light accent fills is the one accepted literal, per design-system.md)
 
 Typography:
 
-- define hierarchy (h1 20px/800, h2 20px/700, h3 17px/700, body 16px)
+- define hierarchy (h1 22px/600, h2 20px/600, h3 17px/600, body 16px, font Poppins 400/500/600/700)
 - maintain consistency
 
 Responsive:
