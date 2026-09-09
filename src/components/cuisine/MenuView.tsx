@@ -148,7 +148,10 @@ export function RecetteCard({
         {recette.score != null && (
           <div className="recette-score">
             <span className="stat-label">Health score</span>
-            <span className="recette-score-value">{recette.score}/10</span>
+            <span className="recette-score-value">
+              {recette.score}
+              <small>/10</small>
+            </span>
             <div className="score-bar" data-testid="score-bar" aria-hidden="true">
               {Array.from({ length: 10 }, (_, i) => (
                 <span key={i} className={i < recette.score! ? 'score-seg on' : 'score-seg'} />

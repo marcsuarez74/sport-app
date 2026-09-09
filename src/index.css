@@ -1305,7 +1305,6 @@ progress {
 
 .recette-stats span {
   background: var(--surface-2);
-  border: none;
   border-radius: 8px;
   padding: 5px 10px;
   font-size: 11px;
@@ -1323,6 +1322,12 @@ progress {
 .recette-score-value {
   font-size: 14px;
   font-weight: 600;
+}
+
+.recette-score-value small {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 11px;
 }
 
 .score-bar {

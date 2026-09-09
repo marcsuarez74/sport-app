@@ -633,7 +633,8 @@ describe('MenuView — accordéon recette', () => {
     expect(screen.getByText(/450/)).toBeInTheDocument();
     expect(screen.getByText(/30g/)).toBeInTheDocument();
     expect(screen.getByText(/12g/)).toBeInTheDocument();
-    expect(screen.getByText(/9\s*\/\s*10|9\/10/)).toBeInTheDocument();
+    expect(screen.getByText('9')).toBeInTheDocument();
+    expect(screen.getByText('/10')).toBeInTheDocument();
     // 10 segments dont 9 remplis
     const barre = screen.getByTestId('score-bar');
     expect(barre.children).toHaveLength(10);
