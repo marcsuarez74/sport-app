@@ -65,12 +65,14 @@ describe('ProfilScreen (unité)', () => {
   let onBack: Mock<() => void>;
   let onChangeProfile: Mock<() => void>;
   let onProfileSaved: Mock<(p: UserProfile) => void>;
+  let onImported: Mock<() => void>;
 
   beforeEach(() => {
     localStorage.clear();
     onBack = vi.fn();
     onChangeProfile = vi.fn();
     onProfileSaved = vi.fn();
+    onImported = vi.fn();
   });
 
   afterEach(() => {
@@ -79,7 +81,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('affiche le titre, le retour, mes infos et le changement de profil', () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
 
     expect(screen.getByRole('heading', { name: 'Profil', level: 1 })).toBeInTheDocument();
@@ -88,12 +90,14 @@ describe('ProfilScreen (unité)', () => {
     expect(screen.getByLabelText('Taille (cm)')).toHaveValue(178);
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Changer de profil/ })).toBeInTheDocument();
-    expect(screen.queryByText(/Importer/)).not.toBeInTheDocument();
+    // Section « Semaine » : l'import du cycle est de retour dans le profil (rotation)
+    expect(screen.getByRole('heading', { name: 'Semaine', level: 3 })).toBeInTheDocument();
+    expect(screen.getByText('Importer un cycle (.md)')).toBeInTheDocument();
   });
 
   it('enregistre les infos modifiées dans le store', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
     const user = userEvent.setup();
 
@@ -106,7 +110,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('refuse les valeurs hors bornes avec une erreur explicite (cohérent avec l’onboarding)', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
     const user = userEvent.setup();
 
@@ -120,7 +124,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('prévient le parent après enregistrement (état App resynchronisé)', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
     const user = userEvent.setup();
 
@@ -135,7 +139,7 @@ describe('ProfilScreen (unité)', () => {
     const spy = vi.fn().mockReturnValue(true);
     vi.stubGlobal('confirm', spy);
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
     const user = userEvent.setup();
 
@@ -157,6 +161,7 @@ describe('ProfilScreen (unité)', () => {
         onBack={onBack}
         onChangeProfile={onChangeProfile}
         onProfileSaved={onProfileSaved}
+        onImported={onImported}
       />,
     );
     const user = userEvent.setup();
@@ -180,6 +185,7 @@ describe('ProfilScreen (unité)', () => {
         onBack={onBack}
         onChangeProfile={onChangeProfile}
         onProfileSaved={onProfileSaved}
+        onImported={onImported}
       />,
     );
     const user = userEvent.setup();
@@ -193,7 +199,7 @@ describe('ProfilScreen (unité)', () => {
 
   it('refuse un poids objectif hors bornes avec une erreur explicite', async () => {
     render(
-      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
     const user = userEvent.setup();
 

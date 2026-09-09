@@ -112,6 +112,26 @@ Exemple canonique complet : [`src/assets/semaine-exemple.md`](src/assets/semaine
 
 > **Entretien de la sample** : tant qu'il n'y a pas de convention template, `semaine-exemple.md` reste alignée sur la semaine courante (S37 au 08/09/2026). Pour la rafraîchir, bump en lockstep : frontmatter + `# Semaine` de la sample, `tests/parse.test.ts` (describe « sample réelle »), `tests/app.test.tsx`, `tests/profil-screen.test.tsx` et `tests/e2e/{onboarding-mobile,dock}.spec.ts` — cf. le commentaire en tête de ce describe dans `tests/parse.test.ts`.
 
+## Générer un cycle de semaines (rotation A/B/C/D)
+
+Le contenu vient d'une rotation de 4 menus avec batch commun. Une session de
+prompt IA génère le cycle complet (4 fichiers .md, un par semaine) :
+
+1. Ouvrir `docs/templates/prompt-semaine-ia.md`, remplir les paramètres
+   (semaine de départ, menus, événements) et le coller dans un chat IA avec
+   les 4 documents du dossier `diet/` en pièces jointes
+2. Sauvegarder les 4 fichiers générés dans `diet/rotations/`
+3. Dans l'app : Profil → Semaine → « Importer un cycle (.md) » → sélectionner
+   les 4 fichiers d'un coup
+
+L'app garde toutes les semaines importées, ouvre sur celle qui contient
+aujourd'hui (le roulement est automatique) et permet de naviguer avec les
+chevrons ‹ › de la bannière. Les coches et pesées ne sont jamais perdues :
+elles vivent par semaine (`sportapp:checks:{semaine}`).
+
+Règle d'or : ne jamais modifier le libellé d'une coche d'une semaine déjà
+utilisée — le slug dérive du libellé, le renommer perd l'état cochée.
+
 ## L'écran Cuisine
 
 Trois sous-onglets partagés (Courses · Menu · Batch), en segmented control (onglet actif en lime) :

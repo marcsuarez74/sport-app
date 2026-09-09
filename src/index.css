@@ -187,11 +187,48 @@ p {
   font-size: 14px;
 }
 
+.week-banner-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-nav {
+  flex-shrink: 0;
+  min-width: 48px;
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.banner-nav:disabled {
+  opacity: 0.35;
+}
+
+.banner-nav:not(:disabled):active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #272932;
+}
+
 .week-title {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.01em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .week-title-row {
@@ -758,6 +795,12 @@ progress {
   border-left: 3px solid #fbbf24;
   padding-left: 8px;
   font-size: 14px;
+}
+
+.import {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
 }
 
 /* ---------- Profils ---------- */

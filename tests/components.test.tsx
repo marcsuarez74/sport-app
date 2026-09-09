@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {
   BaseCuisine,
@@ -9,8 +9,10 @@ import type {
   Recette,
   WeeklyData,
 } from '../src/lib/model';
-import { addWeight, getChecks, getWeights, setCheck } from '../src/lib/storage';
+import { addWeight, getChecks, getWeights, loadWeeks, setCheck, upsertWeek } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
+import { parseWeeklyFile } from '../src/lib/parse';
+import { ImportButton } from '../src/components/ImportButton';
 import { Checklist } from '../src/components/Checklist';
 import { StatCards } from '../src/components/StatCards';
 import { WeightChart } from '../src/components/WeightChart';
@@ -25,6 +27,72 @@ const items: ChecklistItem[] = [
   { id: 'repas-a', label: 'Préparer les repas' },
   { id: 'course-b', label: 'Faire les courses' },
 ];
+
+// Mini-semaine valide : doit parser avec 0 warning (toutes les sections, aucune
+// ligne hors format).
+const mdSemaine = (semaine: string, du: string, au: string, menu = 'A', plat = 'Poulet rôti') =>
+  `---
+semaine: ${semaine}
+menu: ${menu}
+du: ${du}
+au: ${au}
+---
+
+## Courses
+
+### Proteines
+- [ ] ${plat} 600 g
+
+### Keto
+- [ ] Avocats ×3-4
+
+## Menu
+
+### Lundi
+- dejeuner-marc: ${plat}
+- dejeuner-melanie: ${plat} version keto
+- diner-famille: ${plat} au four
+- diner-melanie: ${plat} version keto
+- batch: Doubler ${plat}
+
+### Mardi
+- dejeuner-marc: Restes de ${plat}
+- dejeuner-melanie: Box ${plat}
+- diner-famille: ${plat} pâtes
+- diner-melanie: ${plat} sans pâtes
+
+## Batch
+
+### Rituel dimanche
+- 0-5 min · Four à 180° — egg muffins ×10
+
+### Micro-batch
+- lundi: doubler le plat
+
+- [ ] Egg muffins ×10
+
+## Marc
+
+### Cibles
+- 2 450 kcal
+
+### Seances
+- [ ] Lundi — Muscu
+
+### Rappels
+- Pesée lun/mer/ven
+
+## Melanie
+
+### Cibles
+- 1 450 kcal
+
+### Seances
+- [ ] Mardi — Pilates
+
+### Rappels
+- Jeûne 16:8
+`;
 
 describe('Checklist', () => {
   beforeEach(() => {
@@ -990,13 +1058,99 @@ describe('ProfileView', () => {
 });
 
 describe('WeekBanner', () => {
+  const meta = { semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' };
+
   it('affiche le menu courant en pill à côté du titre', () => {
-    render(
-      <WeekBanner meta={{ semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' }} />,
-    );
+    render(<WeekBanner meta={meta} />);
     const pill = screen.getByText('Menu A');
     expect(pill).toHaveClass('menu-pill');
     expect(pill.parentElement).toHaveClass('week-title-row');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S39');
+  });
+
+  it('chevrons absents sans callbacks (une seule semaine)', () => {
+    render(<WeekBanner meta={meta} />);
+    expect(screen.queryByRole('button', { name: 'Semaine précédente' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Semaine suivante' })).toBeNull();
+  });
+
+  it('navigue par chevrons et désactive aux bornes', async () => {
+    const user = userEvent.setup();
+    const onPrev = vi.fn();
+    const onNext = vi.fn();
+    render(<WeekBanner meta={meta} onPrev={onPrev} onNext={onNext} hasPrev={false} hasNext />);
+    const prev = screen.getByRole('button', { name: 'Semaine précédente' });
+    const next = screen.getByRole('button', { name: 'Semaine suivante' });
+    expect(prev).toBeDisabled();
+    expect(next).toBeEnabled();
+    await user.click(next);
+    expect(onNext).toHaveBeenCalledTimes(1);
+    expect(onPrev).not.toHaveBeenCalled();
+  });
+});
+
+describe('ImportButton', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const fichier = (nom: string, contenu: string) =>
+    new File([contenu], nom, { type: 'text/markdown' });
+
+  // happy-dom 20 ne livre qu'un seul fichier via user.upload (FileList non
+  // simulable) et window.confirm n'existe pas : exception fireEvent documentée
+  // comme fireEvent.submit (cf. AGENTS.md).
+  const uploader = async (input: HTMLInputElement, ...files: File[]) => {
+    await act(async () => {
+      fireEvent.change(input, { target: { files } });
+    });
+  };
+
+  it('importe plusieurs fichiers en une fois et résume', async () => {
+    const onImported = vi.fn();
+    const { container } = render(<ImportButton onImported={onImported} />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await uploader(
+      input,
+      fichier('2026-S38-menu-b.md', mdSemaine('2026-S38', '2026-09-14', '2026-09-20', 'B', 'Chili')),
+      fichier('2026-S39-menu-c.md', mdSemaine('2026-S39', '2026-09-21', '2026-09-27', 'C', 'Basquaise')),
+    );
+    expect(Object.keys(loadWeeks()).sort()).toEqual(['2026-S38', '2026-S39']);
+    expect(onImported).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('status')).toHaveTextContent(/2 semaine\(s\) importée\(s\)/);
+  });
+
+  it('un fichier invalide n\u2019empêche pas les autres (erreur nominative)', async () => {
+    const { container } = render(<ImportButton onImported={() => {}} />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await uploader(
+      input,
+      fichier('casse.md', 'pas de frontmatter'),
+      fichier('ok.md', mdSemaine('2026-S38', '2026-09-14', '2026-09-20')),
+    );
+    expect(Object.keys(loadWeeks())).toEqual(['2026-S38']);
+    expect(screen.getByRole('alert')).toHaveTextContent(/casse\.md/);
+  });
+
+  it('demande confirmation avant de remplacer une semaine existante', async () => {
+    const confirmMock = vi.fn().mockReturnValue(false);
+    vi.stubGlobal('confirm', confirmMock);
+    const { data } = parseWeeklyFile(mdSemaine('2026-S38', '2026-09-14', '2026-09-20'));
+    upsertWeek('ancien', data);
+    const { container } = render(<ImportButton onImported={() => {}} />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await uploader(
+      input,
+      fichier('2026-S38-menu-b.md', mdSemaine('2026-S38', '2026-09-14', '2026-09-20')),
+    );
+    expect(confirmMock).toHaveBeenCalledOnce();
+    expect(loadWeeks()['2026-S38'].raw).toBe('ancien');
+    confirmMock.mockReturnValue(true);
+    await uploader(
+      input,
+      fichier('2026-S38-menu-b.md', mdSemaine('2026-S38', '2026-09-14', '2026-09-20')),
+    );
+    expect(loadWeeks()['2026-S38'].raw).not.toBe('ancien');
+    vi.unstubAllGlobals();
   });
 });

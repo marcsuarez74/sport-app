@@ -1,5 +1,5 @@
 import type { WeeklyData } from '../src/lib/model';
-import { addWeight, getChecks, getWeights, loadProfile, loadWeek, removeProfile, saveProfile, saveWeek, setCheck, type WeightEntry } from '../src/lib/storage';
+import { addWeight, getChecks, getWeights, loadProfile, loadWeek, loadWeeks, removeProfile, saveProfile, saveWeek, setCheck, upsertWeek, type WeightEntry } from '../src/lib/storage';
 import { todayKey } from '../src/lib/dates';
 
 const week = (): WeeklyData => ({
@@ -309,5 +309,74 @@ describe('dates: todayKey', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-09-27T10:00:00'));
     expect(todayKey()).toBe('dimanche');
+  });
+});
+
+describe('storage: multi-semaines', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('loadWeeks retourne {} silencieusement sans aucune clé', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(loadWeeks()).toEqual({});
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('upsertWeek puis loadWeeks font l’aller-retour', () => {
+    const raw = '---\nsemaine: 2026-S38\n---\n';
+    const data = { ...week(), meta: { ...week().meta, semaine: '2026-S38' } };
+    upsertWeek(raw, data);
+    expect(loadWeeks()).toEqual({
+      '2026-S38': { raw, data, importedAt: expect.any(String) },
+    });
+  });
+
+  it('upsertWeek remplace la même semaine et préserve les autres', () => {
+    const s38 = { ...week(), meta: { ...week().meta, semaine: '2026-S38' } };
+    const s39 = { ...week(), meta: { ...week().meta, semaine: '2026-S39' } };
+    upsertWeek('raw-a', s38);
+    upsertWeek('raw-b', s39);
+    upsertWeek('raw-a2', s38);
+    const semaines = loadWeeks();
+    expect(Object.keys(semaines).sort()).toEqual(['2026-S38', '2026-S39']);
+    expect(semaines['2026-S38'].raw).toBe('raw-a2');
+    expect(semaines['2026-S39'].raw).toBe('raw-b');
+  });
+
+  it('migration : sportapp:week présent → recopié dans sportapp:weeks, ancienne clé intacte', () => {
+    const raw = '---\nsemaine: 2026-S37\n---\n';
+    saveWeek(raw, { ...week(), meta: { ...week().meta, semaine: '2026-S37' } });
+    const semaines = loadWeeks();
+    expect(semaines['2026-S37']).toBeDefined();
+    expect(localStorage.getItem('sportapp:weeks')).not.toBeNull();
+    expect(localStorage.getItem('sportapp:week')).not.toBeNull();
+  });
+
+  it('JSON invalide → {} + clé retirée + warn', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem('sportapp:weeks', '{oops');
+    expect(loadWeeks()).toEqual({});
+    expect(localStorage.getItem('sportapp:weeks')).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith('Clé corrompue ignorée : sportapp:weeks');
+    warnSpy.mockRestore();
+  });
+
+  it('entrée corrompue retirée silencieusement, les autres gardées', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const bonne = {
+      raw: 'raw',
+      data: { meta: { semaine: '2026-S40', menu: 'D', du: '2026-09-28', au: '2026-10-04' } },
+      importedAt: '2026-09-09T10:00:00.000Z',
+    };
+    localStorage.setItem(
+      'sportapp:weeks',
+      JSON.stringify({ semaines: { '2026-S38': { raw: 'x' }, '2026-S40': bonne } }),
+    );
+    const semaines = loadWeeks();
+    expect(Object.keys(semaines)).toEqual(['2026-S40']);
+    expect(warnSpy).toHaveBeenCalledWith('Semaine corrompue ignorée : 2026-S38');
+    warnSpy.mockRestore();
   });
 });

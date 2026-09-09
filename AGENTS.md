@@ -49,8 +49,10 @@ src/lib/          # cœur logique, zéro React : model.ts (types), parse.ts (.md
 src/components/   # composants UI ; cuisine/ pour l'onglet Cuisine ; onboarding/ pour le premier lancement
 src/assets/       # semaine-exemple.md (référence du format) + rayons/ (miniatures jpg des rayons)
 tests/            # miroir de src/, vitest + Testing Library, environnement happy-dom
+                  # parse.test.ts, storage.test.ts, weeks.test.ts, lib/rayons.test.ts,
 tests/e2e/        # specs Playwright (navigateur réel, config playwright.config.ts, projets mobile 375 + 320)
 .github/workflows/deploy.yml   # déploie sur GitHub Pages à chaque push sur main
+docs/templates/   # convention template semaine + prompt IA de génération d'un cycle
 docs/superpowers/ # spec design + plan d'implémentation (contexte historique)
 ai/               # configs d'agents IA (cf. section « Dossier ai/ »)
 ```
@@ -80,8 +82,8 @@ Le format des fichiers hebdo est un **contrat** : l'app s'en sert pour la semain
 ## Tests (TDD)
 
 - Nouvelle fonctionnalité ou bugfix = **test d'abord** (rouge), puis implémentation (vert). `npm run test:watch` pour boucler.
-- Tests dans `tests/`, nommés en miroir : `parse.test.ts`, `storage.test.ts`, `lib/rayons.test.ts`, `lib/text.test.ts`, `components.test.tsx`, `app.test.tsx`.
-- Tester le **comportement visible** (rôles, textes, storage) — pas les détails d'implémentation. Utiliser `userEvent` (pas `fireEvent` sauf cas documenté : `fireEvent.submit` pour les formulaires sous happy-dom).
+- Tests dans `tests/`, nommés en miroir : `parse.test.ts`, `storage.test.ts`, `weeks.test.ts`, `lib/rayons.test.ts`, `lib/text.test.ts`, `components.test.tsx`, `app.test.tsx`.
+- Tester le **comportement visible** (rôles, textes, storage) — pas les détails d'implémentation. Utiliser `userEvent` (pas `fireEvent` sauf cas documenté : `fireEvent.submit` pour les formulaires sous happy-dom, `fireEvent.change` pour l'upload de plusieurs fichiers — `user.upload` n'en livre qu'un).
 - Mocks d'horloge : `vi.setSystemTime(new Date('…T10:00:00'))` — toujours la forme avec heure (parse en heure locale), jamais la forme date seule (parse en UTC). Restaurer avec `vi.useRealTimers()`.
 - `localStorage.clear()` en `beforeEach` pour l'isolation.
 
@@ -90,6 +92,7 @@ Le format des fichiers hebdo est un **contrat** : l'app s'en sert pour la semain
 Clés existantes — ne pas renommer (données réelles des téléphones) :
 
 - `sportapp:week` — semaine courante (raw + parsée + date d'import)
+- `sportapp:weeks` — stock multi-semaines (`{ semaines: { [id]: { raw, data, importedAt } } }`) ; l'ancienne clé `sportapp:week` est migrée à la première lecture puis laissée en place
 - `sportapp:profile` — profil actif (`{ id: 'marc'|'melanie', age, taille, poidsObjectif?, kcalObjectif? }`, posé par l'onboarding)
 - `sportapp:checks:{semaine}` — coches par semaine
 - `sportapp:weights:{marc|melanie}` — pesées par profil
