@@ -52,6 +52,12 @@ Ressenti initial noté pour mémoire :
 
 ## 3. Profil & objectifs
 
+→ **Traité par la spec « Profil & objectifs »** (chantier 2, maquette validée) :
+`docs/superpowers/specs/2026-09-09-profil-objectifs-design.md` — profil v2
+(date de naissance, objectif 4 types + échéance, compléments, régime),
+onboarding 4 étapes avec migration préremplie, bloc Objectif dans le suivi,
+stat-cards réduites à Poids. Noté pour mémoire :
+
 - **Âge → date de naissance** : stocker la date de naissance plutôt que l'âge
   (champ collecté à l'onboarding, éditable à l'écran Profil) — l'âge s'affiche
   calculé, plus de mise à jour manuelle chaque année
@@ -80,9 +86,12 @@ pour des chantiers ultérieurs :
 
 - **Design** à améliorer (cf. axe 1)
 - **Poids** : graphique plus lisible
-- **Calories du jour** calculées en fonction des repas réellement cochés
+- **Calories du jour** calculées en fonction des repas réellement cochés —
+  ⚠️ la carte « Kcal du jour » a été **retirée** par la spec Profil &
+  objectifs (jugée inutile) ; réévaluer l'idée plus tard si besoin
 - **Séances/rituels** : plutôt qu'une liste par jour, une **liste à faire pour
-  la semaine** (selon le profil), cochée quand c'est fait
+  la semaine** (selon le profil), cochée quand c'est fait → **traité par la
+  spec Profil & objectifs** (liste libre, le jour devient une recommandation)
 - **Rappel de pesée** (lun/mer/ven) — à rendre plus visible/actionnable
 
 ## 6. Rotation & génération (simplification)
