@@ -10,6 +10,7 @@ Décisions validées en brainstorming (2026-09-09) :
 |---|---|
 | Périmètre | **4 briques** : magasin, budget (estimé/réel/max), types de plats, nb repas/jour + personnes. **Matériel reporté** (chantier ultérieur, cf. axe 4) |
 | Magasin | **Nom seul** (pas de disposition de liste — axe 4) mais centré **prix** : le comparatif par magasin émerge de l'historique des dépenses |
+| Magasin (saisie) | **Datalist natif** : suggestions de magasins français connus (`MAGASINS_PRESETS`, ~10) pendant la frappe, **saisie libre préservée** (magasin de quartier possible) — aucun effet bloquant |
 | Budget | **3 valeurs distinctes** : *estimé* (ligne `- budget:` du .md, parsée par Herbes), *réel* (total saisi après les courses), *max* (plafond hebdo au profil — « il ne faut pas que ça dépasse trop ») |
 | Types de plats | **Champ séparé multi-pick** (presets + ajout libre), distinct du régime — alimente le prompt IA, aucun effet fonctionnel dans l'app |
 | Repas/jour + personnes | **Paramètres IA seuls** — aucun effet sur le contrat .md (5 clés intangibles) |
@@ -41,6 +42,12 @@ export interface DepenseEntry {
   magasin: string; // trim, non vide
   total: number;   // € positif, 2 décimales max
 }
+
+// suggestions de la saisie magasin (datalist) — liste ouverte, saisie libre toujours possible
+export const MAGASINS_PRESETS: readonly string[] = [
+  'Lidl', 'Carrefour', 'Auchan', 'Intermarché', 'Grand Frais',
+  'Leclerc', 'Aldi', 'Super U', 'Monoprix', 'Casino',
+];
 ```
 
 ### Storage (`src/lib/storage.ts`)
@@ -61,7 +68,7 @@ export interface DepenseEntry {
 
 Étape 5 **« Maison & courses »** :
 
-- **Magasin habituel** — texte libre, placeholder « Lidl, Intermarché… ».
+- **Magasin habituel** — texte libre + **datalist natif** `MAGASINS_PRESETS` (suggestions pendant la frappe), placeholder « Lidl, Intermarché… ».
 - **Budget max courses / semaine** (€, optionnel) — hint « Le plafond à ne pas dépasser — l'app compare l'estimé du menu et ce que tu paies vraiment ».
 - **Personnes à table** + **Repas par jour** (nombres entiers).
 - **Préférences pour les prochains cycles** — chips presets (`Healthy` / `Petit budget` / `Rapide` / `Batch-friendly`) + rangée d'ajout libre (règle compléments : trim, dédoublonnage, 40 caractères max).
@@ -72,7 +79,7 @@ Les utilisateurs migrés par le chantier 2 **ne repassent pas** l'onboarding : p
 
 ### `ProfilScreen`
 
-- Nouvelle section **« Maison & courses »** (après Régime, avant Semaine) : mêmes champs + chips retirables + « Enregistrer » **pleine largeur basilic** (style v6 conservé — décision utilisateur).
+- Nouvelle section **« Maison & courses »** (après Régime, avant Semaine) : mêmes champs (magasin avec le même datalist) + chips retirables + « Enregistrer » **pleine largeur basilic** (style v6 conservé — décision utilisateur).
 - Nouvelle section **« Génération IA »** : hint « Ces réglages complètent les “Paramètres” du prompt de génération de cycle » + bouton fantôme « Copier les paramètres IA » + confirmation « Paramètres copiés ✓ ». Bouton masqué si tout est vide (cf. § 4).
 
 ## 3. Écran Courses — carte budget & dépenses
@@ -97,7 +104,7 @@ Actions (séparées par un filet pointillé) : « + Total payé » (`.bsoft`, ou
 
 ### Panneau « Mes dépenses réelles »
 
-- **Saisie** — 3 champs étiquetés : Date (défaut : aujourd'hui) · Magasin (défaut : `profil.magasin`) · Total (€, virgule acceptée). Boutons : « Annuler » (lien) + « Enregistrer » (petit basilic 38 px). Total invalide ou date future → alerte. `saveDepense` = upsert (date, magasin) → bump du pattern refresh (même mécanique que `weightsBump`).
+- **Saisie** — 3 champs étiquetés : Date (défaut : aujourd'hui) · Magasin (défaut : `profil.magasin`, même datalist `MAGASINS_PRESETS`) · Total (€, virgule acceptée). Boutons : « Annuler » (lien) + « Enregistrer » (petit basilic 38 px). Total invalide ou date future → alerte. `saveDepense` = upsert (date, magasin) → bump du pattern refresh (même mécanique que `weightsBump`).
 - **Par magasin** — une carte par magasin : nom + nb sessions, total, moyenne « ≈ X € / session ». C'est le comparatif Lidl/Intermarché.
 - **Historique** — liste triée par date desc : date courte (`formatDayMonth`), magasin, total aligné tabulaire, bouton ✕ de suppression (direct, sans confirmation). Hint « Deux magasins le même jour = deux lignes ».
 
@@ -125,13 +132,14 @@ Copie via `navigator.clipboard.writeText` + fallback textarea/execCommand ; conf
 - `budgetMax` : nombre > 0 (décimal autorisé). `personnes` / `repasJour` : entiers 1-12.
 - `preferences` : trim, dédoublonnées (insensible casse/accents), max 40 caractères.
 - Dépense : total > 0, date valide **non future**, magasin trim non vide — sinon alerte, rien n'est sauvé.
+- Le magasin est stocké tel que saisi (trim) ; le regroupement **« Par magasin » est insensible à la casse** (première graphie rencontrée conservée en libellé).
 - Toute donnée corrompue → réparation silencieuse (warn + remove + fallback), **jamais de crash** (règle repo).
 
 ## 6. Tests (TDD)
 
 - `tests/storage.test.ts` : dépenses round-trip, upsert (remplace la même paire (date, magasin), deux magasins le même jour), tri desc, entrée corrompue rejetée, clé corrompue → warn + remove + `[]`, suppression. `loadProfile` : champ optionnel bon type conservé, mauvais type ignoré sans invalider le profil, champs requis manquants → `null`.
 - `tests/lib/prix.test.ts` (nouveau, miroir) : `formatEuro` fr-FR, `parseEuro` (virgule, point, espaces, invalide → `null`).
-- `tests/components.test.tsx` : `CoursesBudget` — 4 états de la carte (ok / dépassé / sans budget max / rien de saisi + estimé absent), « payé » = somme des dépenses de la semaine (hors semaine ignorée), saisie avec préremplissage (date, magasin) et upsert via storage, panneau (par magasin, suppression). Onboarding étape 5 (tout optionnel, chips presets + ajout libre, « C'est parti » en étape 5, dots ×5). `ProfilScreen` — section Maison & courses, bouton copie IA masqué si vide → confirmation si copié.
+- `tests/components.test.tsx` : `CoursesBudget` — 4 états de la carte (ok / dépassé / sans budget max / rien de saisi + estimé absent), « payé » = somme des dépenses de la semaine (hors semaine ignorée), saisie avec préremplissage (date, magasin) et upsert via storage, panneau (par magasin, suppression). Onboarding étape 5 (tout optionnel, chips presets + ajout libre, « C'est parti » en étape 5, dots ×5). `ProfilScreen` — section Maison & courses, bouton copie IA masqué si vide → confirmation si copié. Saisies magasin : attribut `list` branché sur un datalist alimenté par `MAGASINS_PRESETS` (onboarding, profil, dépenses).
 - `tests/app.test.tsx` : smoke onglet courses avec la carte rendue (gate inchangé).
 - `tests/e2e/` : extension de la couverture courses — storageState avec profil v2 étendu (magasin + budgetMax), saisie d'une dépense → carte mise à jour + historique visible ; 375/320 zéro débordement.
 
