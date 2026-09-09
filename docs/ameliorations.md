@@ -91,14 +91,11 @@ pour des chantiers ultérieurs :
 
 ## 5. Onglet Suivi
 
-- **Design** à améliorer (cf. axe 1)
-- **Poids** : graphique plus lisible
-- **Calories du jour** calculées en fonction des repas réellement cochés —
-  ⚠️ la carte « Kcal du jour » a été **retirée** par la spec Profil &
-  objectifs (jugée inutile) ; réévaluer l'idée plus tard si besoin
-- **Séances/rituels** : plutôt qu'une liste par jour, une **liste à faire pour
-  la semaine** (selon le profil), cochée quand c'est fait → **traité par la
-  spec Profil & objectifs** (liste libre, le jour devient une recommandation)
+→ **L'essentiel est traité** : design par la spec « Herbes » (axe 1), séances
+en liste libre et retrait de la carte « Kcal du jour » par la spec « Profil &
+objectifs » (chantier 2), le graphique de poids a été abandonné. Reste,
+éventuellement :
+
 - **Rappel de pesée** (lun/mer/ven) — à rendre plus visible/actionnable
 
 ## 6. Rotation & génération (simplification)
