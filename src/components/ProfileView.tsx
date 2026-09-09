@@ -1,39 +1,36 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { ProfileData, ProfileKey } from '../lib/model';
+import type { ProfileData, UserProfile } from '../lib/model';
 import { addWeight, getWeights } from '../lib/storage';
 import type { WeightEntry } from '../lib/storage';
 import { todayISO, formatDayMonth } from '../lib/dates';
 import { Checklist } from './Checklist';
-import { Sparkline } from './Sparkline';
+import { WeightChart } from './WeightChart';
 
-const TITLES: Record<ProfileKey, string> = {
+const TITLES: Record<UserProfile['id'], string> = {
   marc: 'Marc — Diet & Sport',
   melanie: 'Mélanie — Keto & Sport',
 };
 
-const ACCENTS: Record<ProfileKey, string> = {
-  marc: '#e07b39',
-  melanie: '#3d9a6c',
-};
-
 export function ProfileView({
-  profileKey,
+  profile,
   data,
   semaine,
+  onWeightsChanged,
 }: {
-  profileKey: ProfileKey;
+  profile: UserProfile;
   data: ProfileData;
   semaine: string;
+  onWeightsChanged?: () => void;
 }) {
-  const [weights, setWeights] = useState<WeightEntry[]>(() => getWeights(profileKey));
-  const [syncedProfile, setSyncedProfile] = useState(profileKey);
+  const [weights, setWeights] = useState<WeightEntry[]>(() => getWeights(profile.id));
+  const [syncedProfile, setSyncedProfile] = useState(profile.id);
   const [date, setDate] = useState<string>(todayISO);
   const [kg, setKg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-  if (syncedProfile !== profileKey) {
-    setSyncedProfile(profileKey);
-    setWeights(getWeights(profileKey));
+  if (syncedProfile !== profile.id) {
+    setSyncedProfile(profile.id);
+    setWeights(getWeights(profile.id));
     setError(null);
     setKg('');
   }
@@ -46,13 +43,14 @@ export function ProfileView({
       return;
     }
     setError(null);
-    setWeights(addWeight(profileKey, date, value));
+    setWeights(addWeight(profile.id, date, value));
     setKg('');
+    onWeightsChanged?.();
   };
 
   return (
     <>
-      <h2 className="profile-title">{TITLES[profileKey]}</h2>
+      <h2 className="profile-title">{TITLES[profile.id]}</h2>
       <section className="profile-section">
         <h3>Cibles</h3>
         <ul className="target-list">
@@ -96,7 +94,7 @@ export function ProfileView({
             {error}
           </p>
         )}
-        <Sparkline values={weights.map((w) => w.kg)} color={ACCENTS[profileKey]} />
+        <WeightChart weights={weights} objectif={profile.poidsObjectif} />
         <ul className="weight-list">
           {[...weights].reverse().map((w) => (
             <li key={w.date}>

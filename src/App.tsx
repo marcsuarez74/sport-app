@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ProfilScreen } from './components/ProfilScreen';
 import { ProfileView } from './components/ProfileView';
+import { StatCards } from './components/StatCards';
 import { TabBar } from './components/TabBar';
 import type { TabId } from './components/TabBar';
 import { Onboarding } from './components/onboarding/Onboarding';
@@ -24,6 +25,7 @@ function App() {
   const [week] = useState<ImportedWeek>(() => loadWeek() ?? semaineExemple());
   const [tab, setTab] = useState<TabId>('cuisine');
   const [profilOuvert, setProfilOuvert] = useState(false);
+  const [weightsBump, setWeightsBump] = useState(0);
 
   if (profile) {
     document.documentElement.dataset.profile = profile.id;
@@ -59,10 +61,12 @@ function App() {
         {tab === 'suivi' && (
           <>
             <p className="greeting">Salut {PRENOMS[profile.id]} 👋</p>
+            <StatCards key={weightsBump} data={week.data} profile={profile} />
             <ProfileView
-              profileKey={profile.id}
+              profile={profile}
               data={week.data.profiles[profile.id]}
               semaine={week.data.meta.semaine}
+              onWeightsChanged={() => setWeightsBump((b) => b + 1)}
             />
           </>
         )}

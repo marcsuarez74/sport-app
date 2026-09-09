@@ -1,9 +1,18 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { BaseCuisine, ChecklistItem, CourseItem, MenuDay, ProfileData, Recette } from '../src/lib/model';
+import type {
+  BaseCuisine,
+  ChecklistItem,
+  CourseItem,
+  MenuDay,
+  ProfileData,
+  Recette,
+  WeeklyData,
+} from '../src/lib/model';
 import { addWeight, getChecks, getWeights, setCheck } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
 import { Checklist } from '../src/components/Checklist';
+import { StatCards } from '../src/components/StatCards';
 import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
@@ -711,6 +720,75 @@ describe('BatchView v2 — rituel et micro-batch', () => {
   });
 });
 
+describe('StatCards', () => {
+  const data: WeeklyData = {
+    meta: { semaine: '2026-S37', menu: 'A', du: '2026-09-07', au: '2026-09-13' },
+    courses: [
+      { id: 'courses:p:1', rayon: 'p', label: 'Poulet' },
+      { id: 'courses:p:2', rayon: 'p', label: 'Riz' },
+    ],
+    menu: [{ jour: 'Mercredi', recetteRefs: { dejeunerMarc: 'r1', dinerFamille: 'r2' } }],
+    batch: [],
+    profiles: {
+      marc: {
+        cibles: [],
+        seances: [
+          { id: 's1', label: 'Full body' },
+          { id: 's2', label: 'Cardio' },
+        ],
+        rappels: [],
+      },
+      melanie: { cibles: [], seances: [], rappels: [] },
+    },
+    recettes: [
+      { id: 'r1', nom: 'R1', kcal: 680 },
+      { id: 'r2', nom: 'R2', kcal: 620 },
+    ],
+  };
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.setSystemTime(new Date('2026-09-09T10:00:00')); // mercredi
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('affiche poids, kcal du jour (menu du jour), séances et courses', () => {
+    addWeight('marc', '2026-09-02', 78);
+    addWeight('marc', '2026-09-08', 77.4);
+    setCheck('2026-S37', 's1', true);
+    render(<StatCards data={data} profile={{ id: 'marc', age: 41, taille: 178 }} />);
+
+    expect(screen.getByText('Poids')).toBeInTheDocument();
+    expect(screen.getByText('77,4')).toBeInTheDocument();
+    expect(screen.getByText(/vs 7 j/)).toBeInTheDocument();
+    expect(screen.getByText('Kcal du jour')).toBeInTheDocument();
+    // toLocaleString('fr-FR') insère une espace fine insécable (U+202F) — \s la couvre
+    expect(screen.getByText(/1\s?300/)).toBeInTheDocument();
+    expect(screen.getByText('Séances')).toBeInTheDocument();
+    expect(screen.getByText('/2')).toBeInTheDocument();
+    expect(screen.getByText('Courses')).toBeInTheDocument();
+  });
+
+  it('affiche la ligne objectif kcal quand le profil en a', () => {
+    setCheck('2026-S37', 's1', true);
+    render(
+      <StatCards data={data} profile={{ id: 'marc', age: 41, taille: 178, kcalObjectif: 2000 }} />,
+    );
+    expect(screen.getByText(/objectif 2\s?000/)).toBeInTheDocument();
+  });
+
+  it('poids et kcal sans données s’affichent en tiret (aucun crash)', () => {
+    render(
+      <StatCards data={{ ...data, menu: [] }} profile={{ id: 'melanie', age: 38, taille: 165 }} />,
+    );
+    const tirets = screen.getAllByText('—');
+    expect(tirets.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
 const profileData: ProfileData = {
   cibles: ['Objectif 10 000 pas / jour', 'Protéines à chaque repas'],
   seances: [
@@ -726,15 +804,15 @@ describe('ProfileView', () => {
   });
 
   it('renders the title matching the profile', () => {
-    const { unmount } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { unmount } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     expect(screen.getByRole('heading', { level: 2, name: 'Marc — Diet & Sport' })).toBeInTheDocument();
     unmount();
-    render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
+    render(<ProfileView profile={{ id: 'melanie', age: 38, taille: 165 }} data={profileData} semaine="S39" />);
     expect(screen.getByRole('heading', { level: 2, name: 'Mélanie — Keto & Sport' })).toBeInTheDocument();
   });
 
   it('renders cibles and rappels as list items with the exact strings', () => {
-    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const cibles = Array.from(container.querySelectorAll('ul.target-list > li')).map((li) => li.textContent);
     expect(cibles).toEqual(profileData.cibles);
     const rappels = Array.from(container.querySelectorAll('ul.rappel-list > li')).map((li) => li.textContent);
@@ -743,7 +821,7 @@ describe('ProfileView', () => {
 
   it('renders the seances checklist and persists a toggle', async () => {
     const user = userEvent.setup();
-    render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const checkbox = screen.getByRole('checkbox', { name: 'Full body A' });
     expect(checkbox).not.toBeChecked();
     await user.click(checkbox);
@@ -753,7 +831,7 @@ describe('ProfileView', () => {
 
   it('adds a weight, shows it newest-first in the history and stores it', () => {
     addWeight('marc', '2026-09-05', 77.4);
-    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const dateInput = container.querySelector('input[name="date"]') as HTMLInputElement;
     const kgInput = container.querySelector('input[name="kg"]') as HTMLInputElement;
     expect(dateInput.value).toBe(todayISO());
@@ -774,7 +852,7 @@ describe('ProfileView', () => {
   });
 
   it.each(['', 'abc', '-1'])('rejects invalid weight %j and stores nothing', (raw) => {
-    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const kgInput = container.querySelector('input[name="kg"]') as HTMLInputElement;
     fireEvent.change(kgInput, { target: { value: raw } });
     fireEvent.submit(container.querySelector('form')!);
@@ -783,7 +861,7 @@ describe('ProfileView', () => {
   });
 
   it('replaces the entry when the same date is submitted twice', () => {
-    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const dateInput = container.querySelector('input[name="date"]') as HTMLInputElement;
     const kgInput = container.querySelector('input[name="kg"]') as HTMLInputElement;
     fireEvent.change(dateInput, { target: { value: '2026-09-07' } });
@@ -799,25 +877,25 @@ describe('ProfileView', () => {
     expect(getWeights('marc')).toEqual([{ date: '2026-09-07', kg: 77.2 }]);
   });
 
-  it('re-syncs per-profile state when profileKey changes without remount', () => {
+  it('re-syncs per-profile state when profile changes without remount', () => {
     addWeight('marc', '2026-09-05', 77.4);
-    const { container, rerender } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container, rerender } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     fireEvent.submit(container.querySelector('form')!); // kg vide -> erreur
     expect(screen.getByRole('alert')).toBeInTheDocument();
 
-    rerender(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
+    rerender(<ProfileView profile={{ id: 'melanie', age: 38, taille: 165 }} data={profileData} semaine="S39" />);
     expect(container.querySelectorAll('ul.weight-list > li')).toHaveLength(0);
     expect(screen.queryByText('05/09 — 77.4 kg')).not.toBeInTheDocument();
-    expect(screen.getByText('Ajoutez au moins 2 pesées.')).toBeInTheDocument();
+    expect(screen.getByText('Ajoutez au moins 2 pesées pour voir la courbe.')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-    rerender(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    rerender(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const lis = Array.from(container.querySelectorAll('ul.weight-list > li')).map((li) => li.textContent);
     expect(lis).toEqual(['05/09 — 77.4 kg']);
   });
 
   it('clears the error when the kg input changes', () => {
-    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     fireEvent.submit(container.querySelector('form')!); // kg vide -> erreur
     expect(screen.getByRole('alert')).toBeInTheDocument();
     fireEvent.change(container.querySelector('input[name="kg"]')!, { target: { value: '76.8' } });
@@ -825,7 +903,7 @@ describe('ProfileView', () => {
   });
 
   it('exposes the date and kg inputs with dedicated classes and aria-labels', () => {
-    const { container } = render(<ProfileView profileKey="marc" data={profileData} semaine="S39" />);
+    const { container } = render(<ProfileView profile={{ id: 'marc', age: 41, taille: 178 }} data={profileData} semaine="S39" />);
     const dateInput = container.querySelector('input[name="date"]')!;
     expect(dateInput).toHaveClass('weight-date');
     expect(dateInput).toHaveAttribute('aria-label', 'Date de la pesée');
@@ -834,19 +912,20 @@ describe('ProfileView', () => {
     expect(container.querySelector('form')).toHaveClass('weight-form');
   });
 
-  it('shows the sparkline hint when there are fewer than 2 entries', () => {
-    const { container } = render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
-    expect(screen.getByText('Ajoutez au moins 2 pesées.')).toBeInTheDocument();
+  it('shows the weight chart hint when there are fewer than 2 entries', () => {
+    const { container } = render(<ProfileView profile={{ id: 'melanie', age: 38, taille: 165 }} data={profileData} semaine="S39" />);
+    expect(screen.getByText('Ajoutez au moins 2 pesées pour voir la courbe.')).toBeInTheDocument();
     expect(container.querySelector('svg')).toBeNull();
   });
 
-  it('renders the sparkline svg with the profile accent once there are 2+ entries', () => {
+  it('renders the weight curve (WeightChart) once there are 2+ entries', () => {
     addWeight('melanie', '2026-09-06', 64.2);
     addWeight('melanie', '2026-09-07', 63.8);
-    const { container } = render(<ProfileView profileKey="melanie" data={profileData} semaine="S39" />);
-    const svg = screen.getByRole('img', { name: 'évolution du poids' });
-    expect(container.querySelector('svg')).toBe(svg);
-    expect(svg.querySelector('polyline')!.getAttribute('stroke')).toBe('#3d9a6c');
+    const { container } = render(<ProfileView profile={{ id: 'melanie', age: 38, taille: 165 }} data={profileData} semaine="S39" />);
+    expect(
+      screen.getByRole('img', { name: 'Courbe de poids de 64.2 à 63.8 kg' }),
+    ).toBeInTheDocument();
+    expect(container.querySelector('svg path.weight-ligne')).not.toBeNull();
   });
 
   it('todayISO returns the local calendar date as YYYY-MM-DD', () => {
