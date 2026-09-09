@@ -1,6 +1,7 @@
 import type { ImportedWeek, ProfileKey, UserProfile, WeeklyData } from './model';
 
 const WEEK_KEY = 'sportapp:week';
+const WEEKS_KEY = 'sportapp:weeks';
 const PROFILE_KEY = 'sportapp:profile';
 const checksKey = (s: string) => `sportapp:checks:${s}`;
 const weightsKey = (p: string) => `sportapp:weights:${p}`;
@@ -41,6 +42,54 @@ export const loadWeek = (): ImportedWeek | null => {
 
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
+
+const estSemaineValide = (v: unknown): v is ImportedWeek =>
+  isPlainObject(v) &&
+  typeof v.raw === 'string' &&
+  typeof v.importedAt === 'string' &&
+  isPlainObject(v.data) &&
+  isPlainObject(v.data.meta) &&
+  typeof v.data.meta.semaine === 'string';
+
+// Lecture du stock multi-semaines. Garde de forme PAR ENTRÉE : une semaine
+// corrompue est retirée de la mémoire (warn), les autres sont gardées.
+// Si le stock est absent/vide, l'ancienne clé sportapp:week est migrée dedans
+// (l'ancienne clé reste en place, non écrite).
+export const loadWeeks = (): Record<string, ImportedWeek> => {
+  const raw = localStorage.getItem(WEEKS_KEY);
+  if (raw === null) return migrerAncienneSemaine();
+  const parsed = safeParse<unknown>(WEEKS_KEY, raw, null);
+  if (!isPlainObject(parsed) || !isPlainObject(parsed.semaines)) {
+    console.warn(`Semaines corrompues ignorées : ${WEEKS_KEY}`);
+    localStorage.removeItem(WEEKS_KEY);
+    return migrerAncienneSemaine();
+  }
+  const semaines: Record<string, ImportedWeek> = {};
+  for (const [id, entry] of Object.entries(parsed.semaines)) {
+    if (estSemaineValide(entry)) semaines[id] = entry;
+    else console.warn(`Semaine corrompue ignorée : ${id}`);
+  }
+  return semaines;
+};
+
+const migrerAncienneSemaine = (): Record<string, ImportedWeek> => {
+  const ancienne = loadWeek();
+  if (!ancienne) return {};
+  const semaines = { [ancienne.data.meta.semaine]: ancienne };
+  localStorage.setItem(WEEKS_KEY, JSON.stringify({ semaines }));
+  return semaines;
+};
+
+// Même meta.semaine -> remplace ; les autres semaines restent.
+export const upsertWeek = (raw: string, data: WeeklyData): void => {
+  const semaines = loadWeeks();
+  semaines[data.meta.semaine] = {
+    raw,
+    data,
+    importedAt: new Date().toISOString(),
+  } satisfies ImportedWeek;
+  localStorage.setItem(WEEKS_KEY, JSON.stringify({ semaines }));
+};
 
 export const getChecks = (semaine: string): Record<string, boolean> => {
   const key = checksKey(semaine);
