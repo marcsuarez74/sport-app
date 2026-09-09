@@ -1,10 +1,36 @@
 import type { WeekMeta } from '../lib/model';
 import { formatDayMonth } from '../lib/dates';
 
-export function WeekBanner({ meta, onOpenProfile }: { meta: WeekMeta; onOpenProfile?: () => void }) {
+export function WeekBanner({
+  meta,
+  onOpenProfile,
+  onPrev,
+  onNext,
+  hasPrev = false,
+  hasNext = false,
+}: {
+  meta: WeekMeta;
+  onOpenProfile?: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
+}) {
+  const nav = !!(onPrev || onNext);
   return (
     <header className="week-banner">
-      <div>
+      {nav && (
+        <button
+          type="button"
+          className="banner-nav"
+          aria-label="Semaine précédente"
+          onClick={onPrev}
+          disabled={!hasPrev}
+        >
+          ‹
+        </button>
+      )}
+      <div className="week-banner-main">
         <div className="week-title-row">
           <h1 className="week-title">Semaine {meta.semaine}</h1>
           <span className="menu-pill">Menu {meta.menu}</span>
@@ -14,6 +40,17 @@ export function WeekBanner({ meta, onOpenProfile }: { meta: WeekMeta; onOpenProf
           {formatDayMonth(meta.du)} → {formatDayMonth(meta.au)}
         </p>
       </div>
+      {nav && (
+        <button
+          type="button"
+          className="banner-nav"
+          aria-label="Semaine suivante"
+          onClick={onNext}
+          disabled={!hasNext}
+        >
+          ›
+        </button>
+      )}
       {onOpenProfile && (
         <button type="button" className="profile-icon-btn" aria-label="Mon profil" onClick={onOpenProfile}>
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">

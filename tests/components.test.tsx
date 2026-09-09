@@ -1058,14 +1058,34 @@ describe('ProfileView', () => {
 });
 
 describe('WeekBanner', () => {
+  const meta = { semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' };
+
   it('affiche le menu courant en pill à côté du titre', () => {
-    render(
-      <WeekBanner meta={{ semaine: '2026-S39', menu: 'A', du: '2026-09-21', au: '2026-09-27' }} />,
-    );
+    render(<WeekBanner meta={meta} />);
     const pill = screen.getByText('Menu A');
     expect(pill).toHaveClass('menu-pill');
     expect(pill.parentElement).toHaveClass('week-title-row');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Semaine 2026-S39');
+  });
+
+  it('chevrons absents sans callbacks (une seule semaine)', () => {
+    render(<WeekBanner meta={meta} />);
+    expect(screen.queryByRole('button', { name: 'Semaine précédente' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Semaine suivante' })).toBeNull();
+  });
+
+  it('navigue par chevrons et désactive aux bornes', async () => {
+    const user = userEvent.setup();
+    const onPrev = vi.fn();
+    const onNext = vi.fn();
+    render(<WeekBanner meta={meta} onPrev={onPrev} onNext={onNext} hasPrev={false} hasNext />);
+    const prev = screen.getByRole('button', { name: 'Semaine précédente' });
+    const next = screen.getByRole('button', { name: 'Semaine suivante' });
+    expect(prev).toBeDisabled();
+    expect(next).toBeEnabled();
+    await user.click(next);
+    expect(onNext).toHaveBeenCalledTimes(1);
+    expect(onPrev).not.toHaveBeenCalled();
   });
 });
 
