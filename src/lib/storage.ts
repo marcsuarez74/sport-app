@@ -99,11 +99,15 @@ export const loadProfile = (): UserProfile | null => {
   const raw = localStorage.getItem(PROFILE_KEY);
   if (raw === null) return null;
   const parsed = safeParse<unknown>(PROFILE_KEY, raw, null);
+  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+  const optionalNum = (v: unknown): boolean => v === undefined || isNum(v);
   const ok =
     isPlainObject(parsed) &&
     (parsed.id === 'marc' || parsed.id === 'melanie') &&
-    typeof parsed.age === 'number' &&
-    typeof parsed.taille === 'number';
+    isNum(parsed.age) &&
+    isNum(parsed.taille) &&
+    optionalNum(parsed.poidsObjectif) &&
+    optionalNum(parsed.kcalObjectif);
   if (!ok) {
     console.warn(`Profil corrompu ignoré : ${PROFILE_KEY}`);
     localStorage.removeItem(PROFILE_KEY);

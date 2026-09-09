@@ -729,6 +729,95 @@ temps: 30 min
   });
 });
 
+describe('recettes — clés macros, score, image', () => {
+  const base = `---
+semaine: 2026-S39
+menu: A
+du: 2026-09-21
+au: 2026-09-27
+---
+
+## Marc
+### Cibles
+- x
+### Seances
+- [ ] y
+### Rappels
+- z
+
+## Melanie
+### Cibles
+- x
+### Seances
+- [ ] y
+### Rappels
+- z
+
+## Courses
+### Fraicheur
+- Poulet
+
+## Menu
+### Lundi
+- dejeuner-marc: A
+
+## Batch
+- [ ] B
+
+## Recettes
+### R1 · Poulet rôti
+kcal: 450
+proteines: 35
+glucides: 30
+lipides: 12
+score: 9
+image: https://images.unsplash.com/photo-123
+1. Étape un
+`;
+
+  it('parse les nouvelles clés optionnelles', () => {
+    const { data, warnings } = parseWeeklyFile(base);
+    const [r1] = data.recettes ?? [];
+    expect(r1?.nom).toBe('R1 · Poulet rôti');
+    expect(r1?.glucides).toBe(30);
+    expect(r1?.lipides).toBe(12);
+    expect(r1?.score).toBe(9);
+    expect(r1?.image).toBe('https://images.unsplash.com/photo-123');
+    expect(warnings).toEqual([]);
+  });
+
+  it('score invalide (hors 0-10 ou non entier) → warning + champ absent', () => {
+    for (const valeur of ['42', '9.5']) {
+      const { data, warnings } = parseWeeklyFile(base.replace('score: 9', `score: ${valeur}`));
+      expect(data.recettes?.[0].score).toBeUndefined();
+      expect(warnings).toEqual([
+        'Valeur score invalide pour la recette « R1 · Poulet rôti » : ligne ignorée.',
+      ]);
+    }
+  });
+
+  it('image non-https → warning + champ absent', () => {
+    const { data, warnings } = parseWeeklyFile(base.replace('image: https://', 'image: http://'));
+    expect(data.recettes?.[0].image).toBeUndefined();
+    expect(warnings).toEqual([
+      'Valeur image invalide pour la recette « R1 · Poulet rôti » : ligne ignorée.',
+    ]);
+  });
+
+  it('glucides/lipides invalides → warning + champ absent (comme kcal)', () => {
+    const glucides = parseWeeklyFile(base.replace('glucides: 30', 'glucides: abc'));
+    const lipides = parseWeeklyFile(base.replace('lipides: 12', 'lipides: abc'));
+    expect(glucides.data.recettes?.[0].glucides).toBeUndefined();
+    expect(lipides.data.recettes?.[0].lipides).toBeUndefined();
+    expect(glucides.warnings).toEqual([
+      'Valeur glucides invalide pour la recette « R1 · Poulet rôti » : ligne ignorée.',
+    ]);
+    expect(lipides.warnings).toEqual([
+      'Valeur lipides invalide pour la recette « R1 · Poulet rôti » : ligne ignorée.',
+    ]);
+  });
+});
+
 describe('ids de recettes/bases dupliqués', () => {
   const { data, warnings } = parseWeeklyFile(weekWith(`## Recettes
 ### R2 · Sauce tomate

@@ -35,6 +35,10 @@ export interface Recette {
   temps?: string;
   kcal?: number;
   proteines?: number;
+  glucides?: number;
+  lipides?: number;
+  score?: number;
+  image?: string;
   pour?: string;
   bases?: string[];
   etapes?: string[];
@@ -90,6 +94,8 @@ export interface UserProfile {
   id: ProfileKey;
   age: number;
   taille: number;
+  poidsObjectif?: number;
+  kcalObjectif?: number;
 }
 
 export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };

@@ -6,7 +6,7 @@ Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une
 
 **Sport App** — PWA React (dark mode only) de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
 
-- **UX personnalisée** : au premier lancement, un onboarding en 2 étapes choisit le profil (💪 Marc / 🌿 Mélanie) et collecte les bases (poids, âge, taille) — clé `sportapp:profile`. L'app se teinte ensuite de la couleur perso et n'affiche que « ce qui me concerne » + la cuisine
+- **UX personnalisée** : au premier lancement, un onboarding en 2 étapes choisit le profil (💪 Marc / 🌿 Mélanie) et collecte les bases (poids, âge, taille, objectifs) — clé `sportapp:profile`. L'app utilise un **accent unique** (orange #FFA257 + lime #C2E66E, palette Nutrigo) — plus de teinte par profil — et n'affiche que « ce qui me concerne » + la cuisine
 - L'app affiche **2 onglets en dock flottant** : 🛒 Cuisine (Courses / Menu / Batch, partagé — fiches recettes dépliables, timeline rituel, encadré keto) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, changer de profil) via l'icône en haut à droite
 - Le contenu : une **semaine d'exemple auto-chargée** au premier lancement (fallback en mémoire, l'app est donc toujours utilisable). L'import .md est **retiré de l'UI** pour l'instant — il reviendra avec une convention « template » ; le parser `parse.ts` reste la référence du format
 - Coches + pesées persistées en **localStorage** (aucune donnée ne quitte le téléphone)
@@ -62,7 +62,7 @@ Règle de répartition : la logique va dans `src/lib/` (testable sans React), le
 - TypeScript strict. Fonctions nommées, exports nommés (pas de default export).
 - React 18 : composants fonctionnels, hooks uniquement. Pas de lib d'état ni de contexte — `useState` + props suffisent.
 - Si un composant doit re-synchroniser son état quand une prop change (semaine, profil), utiliser le pattern **render-phase reset** (`syncedSemaine`/`syncedProfile`) déjà en place dans `Checklist.tsx`, `ShoppingList.tsx`, `ProfileView.tsx` — ne pas inventer un 4e pattern.
-- CSS : un seul fichier `src/index.css`, classes **sémantiques** (`.menu-day`, `.checklist`, `.done`…), variables du design system sur `:root`. **Dark mode only** — pas de light mode, pas de `prefers-color-scheme`, pas de framework CSS.
+- CSS : un seul fichier `src/index.css`, classes **sémantiques** (`.menu-day`, `.checklist`, `.done`…), variables du design system sur `:root` (tokens Nutrigo : `--accent` orange #FFA257, `--accent-2` lime #C2E66E, typo **Poppins** auto-hébergée). **Dark mode only** — pas de light mode, pas de `prefers-color-scheme`, pas de framework CSS.
 - Cibles tactiles ≥ 48 px, contraste ≥ 4.5:1, transitions sur les éléments interactifs seulement. « Ultra visible » est une exigence produit, pas une préférence.
 - Textes utilisateur en **français** (accents compris : `Mélanie` == `Melanie` pour le parser).
 - YAGNI : pas de nouvelle dépendance sans discussion, pas d'abstraction avant le 2e cas d'usage réel.
@@ -72,7 +72,7 @@ Règle de répartition : la logique va dans `src/lib/` (testable sans React), le
 Le format des fichiers hebdo est un **contrat** : l'app s'en sert pour la semaine d'exemple auto-chargée (`src/assets/semaine-exemple.md` → `parseWeeklyFile` dans `App.tsx`) et il servira à la future convention d'import. Parser (`src/lib/parse.ts`), exemple et README doivent rester cohérents.
 
 - Frontmatter requis : `semaine`, `menu`, `du`, `au` (dates ISO `AAAA-MM-JJ`), `titre` optionnel
-- Sections : `## Courses` (### rayons + items, un rayon `### Keto` = encadré dédié), `## Menu` (### jours + `- clé: texte` avec les 5 clés valides, refs `→ <slug recette>` autorisées), `## Batch` (`- [ ]` tâches + `### Rituel dimanche` (étapes `- <créneau> · <label> — <détail>`) + `### Micro-batch` (`- jour: quoi`)), `## Recettes` (optionnel : `temps:`, `kcal:`, `proteines:`, `bases:`, `- pour 4:`, étapes numérotées, `- mel:`, `- batch:`), `## Bases` (optionnel), `## Marc`, `## Melanie`
+- Sections : `## Courses` (### rayons + items, un rayon `### Keto` = encadré dédié), `## Menu` (### jours + `- clé: texte` avec les 5 clés valides, refs `→ <slug recette>` autorisées), `## Batch` (`- [ ]` tâches + `### Rituel dimanche` (étapes `- <créneau> · <label> — <détail>`) + `### Micro-batch` (`- jour: quoi`)), `## Recettes` (optionnel : `temps:`, `kcal:`, `proteines:`, `glucides:`, `lipides:`, `score:` (entier 0-10), `image:` (URL https), `bases:`, `- pour 4:`, étapes numérotées, `- mel:`, `- batch:`), `## Bases` (optionnel), `## Marc`, `## Melanie`
 - Les ids de coches (`courses:…`, `batch:…`, `batch:rituel:…`, `seances:marc:…`, `seances:melanie:…`) sont **stables** : ne jamais les modifier, sinon les états cochés se perdent
 - Format v1 (sans Recettes/Bases/Rituel) toujours accepté — les champs optionnels n'apparaissent pas dans l'UI
 - Contenu non reconnu → warnings (affichés à l'import), jamais une exception silencieuse ni un crash
@@ -90,7 +90,7 @@ Le format des fichiers hebdo est un **contrat** : l'app s'en sert pour la semain
 Clés existantes — ne pas renommer (données réelles des téléphones) :
 
 - `sportapp:week` — semaine courante (raw + parsée + date d'import)
-- `sportapp:profile` — profil actif (`{ id: 'marc'|'melanie', age, taille }`, posé par l'onboarding)
+- `sportapp:profile` — profil actif (`{ id: 'marc'|'melanie', age, taille, poidsObjectif?, kcalObjectif? }`, posé par l'onboarding)
 - `sportapp:checks:{semaine}` — coches par semaine
 - `sportapp:weights:{marc|melanie}` — pesées par profil
 

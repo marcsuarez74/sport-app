@@ -211,6 +211,33 @@ describe('storage: profil', () => {
     expect(loadProfile()).toBeNull();
     expect(localStorage.getItem('sportapp:profile')).toBeNull();
   });
+
+  it('les objectifs optionnels sont persistés et rechargés', () => {
+    localStorage.clear();
+    saveProfile({ id: 'marc', age: 41, taille: 178, poidsObjectif: 72, kcalObjectif: 2450 });
+    expect(loadProfile()).toEqual({
+      id: 'marc',
+      age: 41,
+      taille: 178,
+      poidsObjectif: 72,
+      kcalObjectif: 2450,
+    });
+  });
+
+  it('un profil ancien sans objectifs charge tel quel', () => {
+    localStorage.clear();
+    localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'marc', age: 41, taille: 178 }));
+    expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
+  });
+
+  it('un objectif non numérique invalide le profil (réparation silencieuse)', () => {
+    localStorage.clear();
+    localStorage.setItem(
+      'sportapp:profile',
+      JSON.stringify({ id: 'marc', age: 41, taille: 178, poidsObjectif: 'soixante' }),
+    );
+    expect(loadProfile()).toBeNull();
+  });
 });
 
 describe('storage: profil corrompu', () => {

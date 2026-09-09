@@ -101,6 +101,10 @@ au: 2026-09-13
 temps: 45 min · four 200°
 kcal: 680
 proteines: 48
+glucides: 45
+lipides: 28
+score: 7
+image: https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80&auto=format&fit=crop
 - pour 4: 6-8 cuisses · 600 g carottes · 600 g patates douces · 250 g riz · huile, paprika, thym
 1. Four 200°. Cuisses : huile + sel + paprika + thym, dans un plat avec les légumes en gros dés.
 2. Filet d'huile sur les légumes, four 40-45 min (retourner à mi-parcours).
@@ -112,6 +116,10 @@ proteines: 48
 temps: 25 min · plaque + casserole
 kcal: 620
 proteines: 42
+glucides: 68
+lipides: 18
+score: 6
+image: https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80&auto=format&fit=crop
 bases: B4, B6
 - pour 4: 800 g haché 5 % · 2 oignons · ail · 2 boîtes tomates + passata · 400 g pâtes · parmesan · salade
 1. Oignons + ail à l'huile 5 min, haché 8 min.
@@ -124,6 +132,10 @@ bases: B4, B6
 temps: 60 min · four 180°
 kcal: 710
 proteines: 52
+glucides: 52
+lipides: 24
+score: 8
+image: https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80&auto=format&fit=crop
 - pour 4: rôti de dinde ~800 g (en prévoir 2) · 4 courgettes · 15 cl crème + 80 g fromage râpé · 300 g quinoa
 1. Four 180°. Rôti : huile + herbes + sel, 50-55 min (repos 10 min avant découpe).
 2. Gratin : courgettes précuites 5 min + crème + fromage, gratinées avec le rôti 25 min.

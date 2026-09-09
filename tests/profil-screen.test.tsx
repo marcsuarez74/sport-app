@@ -149,6 +149,60 @@ describe('ProfilScreen (unité)', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('affiche les objectifs existants et enregistre leurs modifications', async () => {
+    render(
+      <ProfilScreen
+        profile={{ id: 'marc', age: 41, taille: 178, poidsObjectif: 72, kcalObjectif: 2000 }}
+        onBack={onBack}
+        onChangeProfile={onChangeProfile}
+        onProfileSaved={onProfileSaved}
+      />,
+    );
+    const user = userEvent.setup();
+
+    expect(screen.getByLabelText('Poids objectif (kg)')).toHaveValue(72);
+    expect(screen.getByLabelText('Objectif kcal/jour')).toHaveValue(2000);
+
+    await user.clear(screen.getByLabelText('Poids objectif (kg)'));
+    await user.type(screen.getByLabelText('Poids objectif (kg)'), '70');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    const attendu = { id: 'marc', age: 41, taille: 178, poidsObjectif: 70, kcalObjectif: 2000 };
+    expect(loadProfile()).toEqual(attendu);
+    expect(onProfileSaved).toHaveBeenCalledWith(attendu);
+  });
+
+  it('permet de supprimer les objectifs en vidant les champs', async () => {
+    render(
+      <ProfilScreen
+        profile={{ id: 'marc', age: 41, taille: 178, poidsObjectif: 72, kcalObjectif: 2000 }}
+        onBack={onBack}
+        onChangeProfile={onChangeProfile}
+        onProfileSaved={onProfileSaved}
+      />,
+    );
+    const user = userEvent.setup();
+
+    await user.clear(screen.getByLabelText('Poids objectif (kg)'));
+    await user.clear(screen.getByLabelText('Objectif kcal/jour'));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
+  });
+
+  it('refuse un poids objectif hors bornes avec une erreur explicite', async () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} />,
+    );
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText('Poids objectif (kg)'), '500');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/poids objectif/i);
+    expect(loadProfile()).toBeNull();
+  });
 });
 
 describe('ProfilScreen (intégration via App)', () => {
@@ -194,6 +248,5 @@ describe('ProfilScreen (intégration via App)', () => {
     expect(loadProfile()).toBeNull();
     expect(screen.getByRole('heading', { name: /Qui est derrière l'écran/ })).toBeInTheDocument();
     expect(getWeights('marc')).toEqual([{ date: '2026-09-22', kg: 84.2 }]);
-    expect(document.documentElement.getAttribute('data-profile')).toBeNull();
   });
 });
