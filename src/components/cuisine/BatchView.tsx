@@ -29,7 +29,9 @@ function MicroBatch({ jours }: { jours: MicroBatchJour[] }) {
   const auScroll = () => {
     const el = ref.current;
     if (!el) return;
-    setActif(Math.min(jours.length - 1, Math.max(0, Math.round(el.scrollLeft / 158))));
+    const premier = el.firstElementChild as HTMLElement | null;
+    const largeur = premier ? premier.offsetWidth + 8 : 158;
+    setActif(Math.min(jours.length - 1, Math.max(0, Math.round(el.scrollLeft / largeur))));
   };
   return (
     <section className="batch-section">
