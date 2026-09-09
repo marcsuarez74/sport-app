@@ -114,11 +114,11 @@ Exemple canonique complet : [`src/assets/semaine-exemple.md`](src/assets/semaine
 
 ## L'écran Cuisine
 
-Trois sous-onglets partagés (🛒 Courses · 📅 Menu · 📦 Batch) :
+Trois sous-onglets partagés (Courses · Menu · Batch), en segmented control (onglet actif en lime) :
 
 - **Bannière** : le menu courant (« Menu A ») reste visible en pill à côté du titre de semaine.
-- **Menu** : le jour courant passe en tête (badge « Aujourd'hui »), les jours passés sont regroupés à la fin (badge « Passé », atténués) ; chaque repas porte un tag de profil (Marc / Mé / Famille / Batch) et une référence `→ R1` ouvre la **fiche recette** (une seule ouverte à la fois).
-- **Fiches recettes** : photo du plat, temps, chips kcal/protéines/glucides/lipides, score /10 en barre segmentée, ingrédients « pour 4 », étapes, adaptation keto de Mé et rappel batch ; les bases référencées (B4, B6…) sont cliquables et affichent la technique.
+- **Menu** : le jour courant passe en tête (badge « Aujourd'hui »), les jours passés sont regroupés à la fin (badge « Passé », atténués) ; chaque repas porte un tag de profil (Marc / Mé / Famille / Batch) et une référence `→ R1` affiche la **carte recette compacte** sous la ligne (état local : plusieurs cartes peuvent être ouvertes à la fois).
+- **Cartes recettes** : photo 110×76 + nom + bouton lime « Voir la recette », badge du repas, temps, Health score /10 en barre segmentée, footer nutrition unifié (kcal/C/P/F) ; le bouton déplie étapes, ingrédients « pour 4 », adaptation keto de Mé et rappel batch ; les bases référencées (B4, B6…) sont cliquables et affichent la technique.
 - **Courses** : compteurs d'items par rayon, et le rayon `### Keto` devient un encadré dédié en fin de liste.
 - **Batch** : le rituel du dimanche s'affiche en **timeline cochable**, le micro-batch en **carrousel** horizontal par jour.
 
