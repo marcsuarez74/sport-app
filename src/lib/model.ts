@@ -90,6 +90,8 @@ export interface UserProfile {
   id: ProfileKey;
   age: number;
   taille: number;
+  poidsObjectif?: number;
+  kcalObjectif?: number;
 }
 
 export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };
