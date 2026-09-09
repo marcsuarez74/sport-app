@@ -10,7 +10,7 @@
 
 **Prérequis : le plan Herbes (`2026-09-09-refonte-herbes-design.md`) doit être exécuté AVANT** — ce plan réutilise `src/components/Icon.tsx` (`Icon`, `IconName`), le prop `renderLabel` de `Checklist`, les tokens Herbes (`--accent` basilic, `--accent-2` citron, `--surface-2`, `--radius` 18px) et la nav segmented.
 
-**Maquette de référence (validée, fait foi) :** `.superpowers/brainstorm/53005-1788982970/content/profil-objectifs-v6.html` — onboarding 4 étapes, migration préremplie, bloc Objectif (interrupteurs de variantes), carte Poids hero, séances avec pastilles « conseillé », écran Profil. Spec : `docs/superpowers/specs/2026-09-09-profil-objectifs-design.md`.
+**Maquette de référence (validée, fait foi) :** `docs/superpowers/mockups/profil-objectifs-v6.html` — onboarding 4 étapes, migration préremplie, bloc Objectif (interrupteurs de variantes), carte Poids hero, séances avec pastilles « conseillé », écran Profil. Spec : `docs/superpowers/specs/2026-09-09-profil-objectifs-design.md`.
 
 **Décisions clés (firmées en brainstorming) :**
 - `kcalObjectif` **disparaît** (plus de saisie, plus d'affichage) ; `age` → `dateNaissance` (AAAA-MM-JJ).

@@ -22,7 +22,7 @@ Décisions validées en brainstorming (2026-09-09) :
 | **Séances** | **Liste libre à cocher** (maquette v4) — plus de jour imposé : « Muscu libre 10h30 » + pastille discrète « conseillé lun. » ; même philosophie que le menu v2 |
 | **Boutons** | Maquette v2 : navigation d'étapes = rangée « Retour » (fantôme) + « Continuer » (basilic, chevron) ; dernier écran = « C'est parti ! 🚀 » pleine largeur ; Profil = pilules pleines (Enregistrer) / fantôme (Importer) / fantôme rouge (Changer de profil) |
 
-**Maquette de référence (validée)** : `.superpowers/brainstorm/53005-1788982970/content/profil-objectifs-v6.html` — langage Herbes, interrupteurs de variantes (4 types, 3 états d'échéance, compléments) sur l'écran Suivi. C'est elle qui fait foi sur le rendu exact ; en cas de divergence avec ce document, elle gagne.
+**Maquette de référence (validée)** : `docs/superpowers/mockups/profil-objectifs-v6.html` — langage Herbes, interrupteurs de variantes (4 types, 3 états d'échéance, compléments) sur l'écran Suivi. C'est elle qui fait foi sur le rendu exact ; en cas de divergence avec ce document, elle gagne.
 
 Un point de design a été tranché par les maquettes (v1 → v6, itérées avec l'utilisateur) : l'onboarding 4 étapes, le bloc Objectif, l'écran Profil, les boutons, la réduction des stat-cards et la liste de séances libre. Le résultat est figé dans la maquette de référence ci-dessus.
 

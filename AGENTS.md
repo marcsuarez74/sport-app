@@ -13,7 +13,7 @@ Deux chantiers sont specifiés et plannifiés. Les exécuter **dans cet ordre**,
    - Spec : `docs/superpowers/specs/2026-09-09-profil-objectifs-design.md`
    - Plan : `docs/superpowers/plans/2026-09-09-profil-objectifs-design.md` (9 tâches TDD)
    - **Prérequis strict : chantier 1 exécuté** — le plan 2 réutilise `Icon.tsx`, le prop `renderLabel` de `Checklist` et les tokens Herbes.
-   - Maquette de référence **validée** (fait foi en cas de divergence avec la spec) : `.superpowers/brainstorm/53005-1788982970/content/profil-objectifs-v6.html`
+   - Maquette de référence **validée** (fait foi en cas de divergence avec la spec) : `docs/superpowers/mockups/profil-objectifs-v6.html`
 
 Ne pas entamer un travail UI hors de ces plans sans discussion ; à la fin de chaque chantier, mettre à jour cette section (chantier livré → le retirer).
 

@@ -3,7 +3,7 @@
 **Goal:** Passer l'app du dark Nutrigo au thème clair « Herbes » (sauge/basilic/citron), nav segmented + swipe, menu v2 « réserve de recettes », mode magasin courses, mode guidé batch, icônes SVG maison.
 
 **Spec:** `docs/superpowers/specs/2026-09-09-refonte-herbes-design.md` (§ 7 = fonctionnalités validées en maquette)
-**Maquette de référence:** `.superpowers/brainstorm/53005-1788982970/content/maquette-interactive.html` (référence vivante du design validé — copier les valeurs CSS et les chemins d'icônes depuis elle)
+**Maquette de référence:** `docs/superpowers/mockups/herbes-maquette-interactive.html` (référence vivante du design validé — copier les valeurs CSS et les chemins d'icônes depuis elle)
 **Tech Stack:** React 18 + TS strict + Vite, CSS sémantique single-file (`src/index.css`), vitest + Testing Library (happy-dom), Playwright (e2e 320/375), vite-plugin-pwa.
 
 **Règles transverses (rappel AGENTS.md) :**

@@ -1,6 +1,6 @@
 # Spec — Refonte visuelle « Herbes » (passage au thème clair)
 
-**Date :** 2026-09-09 · **Statut :** validée en brainstorming + **maquette interactive approuvée** (dont menu v2) · **Chantier 1/5** du découpage de `docs/ameliorations.md` (axe 1) — hors IA, hors chantiers 2-5. Maquette de référence : `.superpowers/brainstorm/53005-1788982970/content/maquette-interactive.html` (hors repo, photo dans la session de brainstorming).
+**Date :** 2026-09-09 · **Statut :** validée en brainstorming + **maquette interactive approuvée** (dont menu v2) · **Chantier 1/5** du découpage de `docs/ameliorations.md` (axe 1) — hors IA, hors chantiers 2-5. Maquette de référence : `docs/superpowers/mockups/herbes-maquette-interactive.html`.
 
 ## 1. Contexte
 
