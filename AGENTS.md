@@ -2,6 +2,21 @@
 
 Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une règle bloque plus qu'elle n'aide, elle est probablement fausse — signalez-le plutôt que de la contourner.
 
+## Chantiers en cours — ordre d'exécution (section à retirer une fois livrés)
+
+Deux chantiers sont specifiés et plannifiés. Les exécuter **dans cet ordre**, sans mélanger :
+
+1. **Refonte visuelle « Herbes »** — thème clair sauge/basilic/citron, nav segmented (fin du dock), icônes SVG maison, parse v2, menu v2, mode magasin, batch guidé, swipe.
+   - Spec : `docs/superpowers/specs/2026-09-09-refonte-herbes-design.md`
+   - Plan : `docs/superpowers/plans/2026-09-09-refonte-herbes-design.md` (12 tâches TDD)
+2. **Profil & objectifs** — profil v2 (date de naissance, objectif 4 types + échéance, compléments, régime), onboarding 4 étapes + migration préremplie, bloc Objectif, stat-cards réduites à Poids, séances en liste libre.
+   - Spec : `docs/superpowers/specs/2026-09-09-profil-objectifs-design.md`
+   - Plan : `docs/superpowers/plans/2026-09-09-profil-objectifs-design.md` (9 tâches TDD)
+   - **Prérequis strict : chantier 1 exécuté** — le plan 2 réutilise `Icon.tsx`, le prop `renderLabel` de `Checklist` et les tokens Herbes.
+   - Maquette de référence **validée** (fait foi en cas de divergence avec la spec) : `.superpowers/brainstorm/53005-1788982970/content/profil-objectifs-v6.html`
+
+Ne pas entamer un travail UI hors de ces plans sans discussion ; à la fin de chaque chantier, mettre à jour cette section (chantier livré → le retirer).
+
 ## Le projet
 
 **Rituel** — PWA React (dark mode only) de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
