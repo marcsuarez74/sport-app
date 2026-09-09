@@ -498,7 +498,7 @@ describe('MenuView — accordéon recette', () => {
 
     await user.click(screen.getByRole('button', { name: /R2 · Pâtes bolognaise/ }));
     expect(screen.getByText('🔥 ~620 kcal /pers')).toBeInTheDocument();
-    expect(screen.getByText('💪 42 g protéines')).toBeInTheDocument();
+    expect(screen.getByText('💪 42g P')).toBeInTheDocument();
   });
 
   it('affiche la ligne méta ⏱ temps · pour 4', async () => {
@@ -607,6 +607,50 @@ describe('MenuView — accordéon recette', () => {
 
     expect(screen.getByRole('article', { name: 'R2 · Pâtes bolognaise + salade' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^B9/ })).not.toBeInTheDocument();
+  });
+
+  it('affiche photo, chips macros et score segmenté quand les données existent', async () => {
+    const user = userEvent.setup();
+    renderMenu({
+      menu: [{ jour: 'Lundi', dejeunerMarc: 'Poulet', recetteRefs: { dejeunerMarc: 'r1' } }],
+      recettes: [
+        {
+          id: 'r1',
+          nom: 'Poulet rôti',
+          kcal: 450,
+          proteines: 35,
+          glucides: 30,
+          lipides: 12,
+          score: 9,
+          image: 'https://images.unsplash.com/photo-x?w=800',
+        },
+      ],
+    });
+    await user.click(screen.getByRole('button', { name: /Poulet rôti/ }));
+
+    const img = screen.getByRole('img', { name: /Poulet rôti/ });
+    expect(img).toHaveAttribute('src', 'https://images.unsplash.com/photo-x?w=800');
+    expect(screen.getByText(/450/)).toBeInTheDocument();
+    expect(screen.getByText(/30g/)).toBeInTheDocument();
+    expect(screen.getByText(/12g/)).toBeInTheDocument();
+    expect(screen.getByText(/9\s*\/\s*10|9\/10/)).toBeInTheDocument();
+    // 10 segments dont 9 remplis
+    const barre = screen.getByTestId('score-bar');
+    expect(barre.children).toHaveLength(10);
+    expect(barre.querySelectorAll('.score-seg.on')).toHaveLength(9);
+  });
+
+  it('affiche le fallback gradient + emoji sans image', async () => {
+    const user = userEvent.setup();
+    renderMenu({
+      menu: [{ jour: 'Lundi', dejeunerMarc: 'Poulet', recetteRefs: { dejeunerMarc: 'r1' } }],
+      recettes: [{ id: 'r1', nom: 'Poulet rôti', kcal: 450 }],
+    });
+    await user.click(screen.getByRole('button', { name: /Poulet rôti/ }));
+
+    expect(screen.getByTestId('recette-fallback')).toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByText(/score/i)).not.toBeInTheDocument();
   });
 });
 
