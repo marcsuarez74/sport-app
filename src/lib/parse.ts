@@ -152,11 +152,11 @@ function parseCourses(
       const withBox = it[1].match(/^\[( |x|X)\]\s+(.+)$/);
       const labelBrut = withBox ? withBox[2] : it[1];
       // v2 : suffixes optionnels en fin de ligne — ` · rituel` (alimente le batch)
-      // et ` | note` (note de fraîcheur). L'id est calculé sur le libellé nettoyé.
-      const rituel = / · rituel$/.test(labelBrut);
-      const sansRituel = labelBrut.replace(/ · rituel$/, '');
-      const parts = sansRituel.split(/\s+\|\s+(?=[^|]*$)/, 2);
-      const label = parts[0].trim();
+      // et ` | note` (note de fraîcheur). La note est retirée d'abord (dernier « | »),
+      // puis le marqueur rituel — l'id est calculé sur le libellé nettoyé des deux.
+      const parts = labelBrut.split(/\s+\|\s+(?=[^|]*$)/, 2);
+      const rituel = / · rituel$/.test(parts[0]);
+      const label = parts[0].replace(/ · rituel$/, '').trim();
       const note = parts[1];
       const id = `courses:${rayon}:${slugify(label)}`;
       registerId(id, section, seen, warnings);

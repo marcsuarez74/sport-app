@@ -901,6 +901,16 @@ describe('parse v2 — budget, rituel, note, portions, fraîcheur', () => {
     expect(warnings).toHaveLength(0);
   });
 
+  it('combine « · rituel » et « | note » sur le même item', () => {
+    const md = FULL_WEEK.replace('- Riz basmati', '- Riz basmati · rituel | acheter vendredi');
+    const { data, warnings } = parseWeeklyFile(md);
+    const riz = data.courses.find((c) => c.label === 'Riz basmati');
+    expect(riz?.rituel).toBe(true);
+    expect(riz?.note).toBe('acheter vendredi');
+    expect(riz?.id).toBe('courses:epicerie:riz-basmati');
+    expect(warnings).toHaveLength(0);
+  });
+
   it('lit portions marc / portions melanie et fraicheur dans une recette', () => {
     const md = V2_WEEK.replace(
       'kcal: 620',
