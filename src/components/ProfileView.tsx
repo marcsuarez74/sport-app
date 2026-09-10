@@ -78,7 +78,7 @@ export function ProfileView({
             const { jour, reste } = extraireJourLabel(it.label);
             return (
               <>
-                <span>{reste}</span>
+                <span className="seance-txt">{reste}</span>
                 {jour && <span className="seance-rec">conseillé {jourAbrege(jour)}</span>}
               </>
             );

@@ -579,7 +579,7 @@ progress {
 }
 
 /* ——— Séances : jour en recommandation ——— */
-.checklist-seances label span:first-of-type {
+.checklist-seances label .seance-txt {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -593,7 +593,9 @@ progress {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--muted);
+  /* la pastille porte la seule copie du jour (texte informatif) : ≥ 4,5:1 — muted
+     seul ne tient pas sur surface-2 (3,7:1), mix 70 % ≈ 5,1:1 */
+  color: color-mix(in srgb, var(--muted) 70%, var(--text));
   background: var(--surface-2);
   border-radius: 999px;
   padding: 3px 8px;
