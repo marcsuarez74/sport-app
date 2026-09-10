@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { WeeklyData } from '../../lib/model';
+import type { UserProfile, WeeklyData } from '../../lib/model';
 import { BatchView } from './BatchView';
+import { CoursesBudget, DepensesPanel } from './CoursesBudget';
 import { MenuView } from './MenuView';
 import { ShoppingList } from './ShoppingList';
 
@@ -12,8 +13,10 @@ const TABS: Array<{ id: CuisineTab; label: string }> = [
   { id: 'batch', label: 'Batch' },
 ];
 
-export function CuisineView({ data }: { data: WeeklyData }) {
+export function CuisineView({ data, profile }: { data: WeeklyData; profile: UserProfile }) {
   const [tab, setTab] = useState<CuisineTab>('courses');
+  const [depOuvert, setDepOuvert] = useState(false);
+  const [depFocus, setDepFocus] = useState(false);
   const semaine = data.meta.semaine;
   return (
     <>
@@ -30,9 +33,26 @@ export function CuisineView({ data }: { data: WeeklyData }) {
           </button>
         ))}
       </nav>
-      {tab === 'courses' && (
-        <ShoppingList items={data.courses} semaine={semaine} budget={data.budget} />
-      )}
+      {tab === 'courses' &&
+        (depOuvert ? (
+          <DepensesPanel
+            profile={profile}
+            focusTotal={depFocus}
+            onRetour={() => setDepOuvert(false)}
+          />
+        ) : (
+          <>
+            <CoursesBudget
+              data={data}
+              profile={profile}
+              onOuvrirDepenses={(focus) => {
+                setDepFocus(focus);
+                setDepOuvert(true);
+              }}
+            />
+            <ShoppingList items={data.courses} semaine={semaine} budget={data.budget} />
+          </>
+        ))}
       {tab === 'menu' && (
         <MenuView menu={data.menu} recettes={data.recettes} bases={data.bases} semaine={semaine} />
       )}

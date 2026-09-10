@@ -479,8 +479,12 @@ describe('CuisineView — sous-onglets', () => {
     profiles: { marc: { cibles: [], seances: [], rappels: [] }, melanie: { cibles: [], seances: [], rappels: [] } },
   };
 
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('affiche 3 onglets texte seul (sans emoji) et met le premier en actif', () => {
-    render(<CuisineView data={data} />);
+    render(<CuisineView data={data} profile={profileV2('marc')} />);
     expect(screen.getByRole('button', { name: 'Courses' })).toHaveClass('tab', 'active');
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveClass('tab');
     expect(screen.getByRole('button', { name: 'Batch' })).toHaveClass('tab');
@@ -491,11 +495,47 @@ describe('CuisineView — sous-onglets', () => {
 
   it('bascule la classe active au clic et change de section', async () => {
     const user = userEvent.setup();
-    render(<CuisineView data={data} />);
+    render(<CuisineView data={data} profile={profileV2('marc')} />);
     await user.click(screen.getByRole('button', { name: 'Menu' }));
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveClass('tab', 'active');
     expect(screen.getByRole('button', { name: 'Courses' })).not.toHaveClass('active');
     expect(screen.getAllByRole('article').length).toBeGreaterThan(0); // cartes menu v2
+  });
+
+  it('affiche la carte Budget courses au-dessus de la liste (tab courses)', () => {
+    render(
+      <CuisineView
+        data={{ ...data, budget: '≈ 35 €' }}
+        profile={profileV2('marc', { magasin: 'Lidl', budgetMax: 40 })}
+      />,
+    );
+
+    expect(screen.getByText('Budget courses')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Courses' })).toBeInTheDocument();
+  });
+
+  it('le bouton Total payé ouvre le panneau dépenses à la place de la liste', async () => {
+    const user = userEvent.setup();
+    render(
+      <CuisineView
+        data={{ ...data, budget: '≈ 35 €' }}
+        profile={profileV2('marc', { magasin: 'Lidl', budgetMax: 40 })}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Total payé/ }));
+    expect(screen.getByRole('heading', { name: /Mes dépenses réelles/ })).toBeInTheDocument();
+    expect(screen.queryByText('Budget courses')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Retour/ }));
+    expect(screen.getByText('Budget courses')).toBeInTheDocument();
+  });
+
+  it('sans aucune donnée budget : pas de carte, la liste de courses reste seule', () => {
+    render(<CuisineView data={data} profile={profileV2('marc')} />);
+
+    expect(screen.queryByText('Budget courses')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Courses' })).toBeInTheDocument();
   });
 });
 

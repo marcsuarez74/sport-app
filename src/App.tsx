@@ -135,7 +135,7 @@ function App() {
       />
       <TabBar active={tab} onSelect={setTab} />
       <main onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={purgeSwipe}>
-        {tab === 'cuisine' && <CuisineView data={affichee.data} />}
+        {tab === 'cuisine' && <CuisineView data={affichee.data} profile={profile} />}
         {tab === 'suivi' && (
           <>
             <p className="greeting">Salut {PRENOMS[profile.id]} 👋</p>
