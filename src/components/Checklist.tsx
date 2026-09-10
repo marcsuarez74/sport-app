@@ -6,11 +6,13 @@ import { getChecks, setCheck } from '../lib/storage';
 export function Checklist<T extends ChecklistItem>({
   items,
   semaine,
+  className,
   onChecksChange,
   renderLabel,
 }: {
   items: T[];
   semaine: string;
+  className?: string;
   onChecksChange?: (checks: Record<string, boolean>) => void;
   renderLabel?: (item: T) => ReactNode;
 }) {
@@ -28,7 +30,7 @@ export function Checklist<T extends ChecklistItem>({
     onChecksChange?.({ [item.id]: done });
   };
   return (
-    <ul className="checklist">
+    <ul className={className ? `checklist ${className}` : 'checklist'}>
       {items.map((it) => (
         <li key={it.id}>
           <label className={checks[it.id] ? 'done' : ''}>

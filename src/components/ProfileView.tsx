@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { ProfileData, UserProfile } from '../lib/model';
-import { addWeight, getWeights } from '../lib/storage';
+import { addWeight, getChecks, getWeights } from '../lib/storage';
 import type { WeightEntry } from '../lib/storage';
-import { todayISO, formatDayMonth } from '../lib/dates';
+import { extraireJourLabel, jourAbrege, todayISO, formatDayMonth } from '../lib/dates';
+import { compteChecklist } from '../lib/stats';
 import { Checklist } from './Checklist';
 import { WeightChart } from './WeightChart';
 
@@ -25,6 +26,8 @@ export function ProfileView({
 }) {
   const [weights, setWeights] = useState<WeightEntry[]>(() => getWeights(profile.id));
   const [syncedProfile, setSyncedProfile] = useState(profile.id);
+  const [checksMap, setChecksMap] = useState(() => getChecks(semaine));
+  const [syncedSemaine, setSyncedSemaine] = useState(semaine);
   const [date, setDate] = useState<string>(todayISO);
   const [kg, setKg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +37,11 @@ export function ProfileView({
     setError(null);
     setKg('');
   }
+  if (syncedSemaine !== semaine) {
+    setSyncedSemaine(semaine);
+    setChecksMap(getChecks(semaine));
+  }
+  const compte = compteChecklist(checksMap, data.seances);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,8 +68,26 @@ export function ProfileView({
         </ul>
       </section>
       <section className="profile-section">
-        <h3>Séances de la semaine</h3>
-        <Checklist items={data.seances} semaine={semaine} />
+        <h3>Séances de la semaine · {compte.faites}/{compte.total}</h3>
+        <Checklist
+          items={data.seances}
+          semaine={semaine}
+          className="checklist-seances"
+          onChecksChange={(p) => setChecksMap((c) => ({ ...c, ...p }))}
+          renderLabel={(it) => {
+            const { jour, reste } = extraireJourLabel(it.label);
+            return (
+              <>
+                <span>{reste}</span>
+                {jour && <span className="seance-rec">conseillé {jourAbrege(jour)}</span>}
+              </>
+            );
+          }}
+        />
+        <p className="onb-hint">
+          Coche quand tu les fais — le jour n'est qu'une recommandation, tu t'organises comme tu
+          veux.
+        </p>
       </section>
       <section className="profile-section pesee-card">
         <h3>Suivi poids</h3>

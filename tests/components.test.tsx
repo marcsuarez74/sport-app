@@ -893,6 +893,34 @@ describe('ProfileView', () => {
     expect(getChecks('S39')).toEqual({ 'seance-fullbody-a': true });
   });
 
+  it('séances : le préfixe jour devient une pastille « conseillé », le reste est la liste', () => {
+    const data: ProfileData = {
+      cibles: [],
+      seances: [
+        { id: 's-lun', label: 'Lundi — Muscu libre 10h30' },
+        { id: 's-libre', label: 'Course ou repos' },
+      ],
+      rappels: [],
+    };
+    render(<ProfileView profile={profileV2('marc')} data={data} semaine="S40" />);
+
+    expect(screen.getByText('Muscu libre 10h30')).toBeInTheDocument();
+    expect(screen.getByText('conseillé lun.')).toBeInTheDocument();
+    expect(screen.getByText('Course ou repos')).toBeInTheDocument();
+    // pas de pastille sans préfixe jour
+    expect(screen.getAllByText(/conseillé/)).toHaveLength(1);
+    // le titre porte le compte
+    expect(screen.getByText(/Séances de la semaine · 0\/2/)).toBeInTheDocument();
+  });
+
+  it('séances : le compte du titre se met à jour au cochage', async () => {
+    const user = userEvent.setup();
+    render(<ProfileView profile={profileV2('marc')} data={profileData} semaine="S40" />);
+    await user.click(screen.getByRole('checkbox', { name: 'Full body A' }));
+
+    expect(screen.getByText(/Séances de la semaine · 1\/2/)).toBeInTheDocument();
+  });
+
   it('adds a weight, shows it newest-first in the history and stores it', () => {
     addWeight('marc', '2026-09-05', 77.4);
     const { container } = render(<ProfileView profile={profileV2('marc')} data={profileData} semaine="S39" />);

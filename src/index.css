@@ -578,6 +578,30 @@ progress {
   text-decoration: line-through;
 }
 
+/* ——— Séances : jour en recommandation ——— */
+.checklist-seances label span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.seance-rec {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.checklist-seances label.done .seance-rec {
+  text-decoration: none; /* la pastille reste lisible quand la séance est cochée */
+}
+
 /* ---------- Menu v2 — réserve de recettes ---------- */
 
 .menu-reserve-head {
