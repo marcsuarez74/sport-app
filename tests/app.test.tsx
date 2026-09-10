@@ -266,21 +266,21 @@ describe('Design system & sémantique', () => {
     );
   });
 
-  it('rend le dock flottant compact : pilule active, icône seule inactive', () => {
+  it('rend la nav segmented sous la bannière : libellés toujours visibles, aria-current sur l’actif', () => {
     initProfile();
     render(<App />);
-
-    const cuisine = screen.getByRole('button', { name: 'Cuisine' });
-    const dock = cuisine.parentElement;
-    expect(dock).toHaveClass('tabbar-dock');
-    expect(dock).toHaveAttribute('data-active', 'cuisine'); // pilule glissante pilotée en CSS
-    expect(cuisine).toHaveClass('dock-tab-active');
-    expect(cuisine).toHaveTextContent('Cuisine'); // label visible à l'actif
-
-    const suivi = screen.getByRole('button', { name: 'Mon suivi' });
-    expect(suivi).toHaveClass('dock-tab');
-    expect(suivi).not.toHaveClass('dock-tab-active');
-    expect(suivi).not.toHaveTextContent('Mon suivi'); // icône seule à l'inactif
+    const nav = document.querySelector('.tabbar-segmented');
+    expect(nav).not.toBeNull();
+    expect(nav).toHaveAttribute('data-active', 'cuisine');
+    const cuisine = screen.getAllByRole('button').find((b) => b.textContent?.includes('Cuisine'))!;
+    const suivi = screen.getAllByRole('button').find((b) => b.textContent?.includes('Mon suivi'))!;
+    expect(cuisine).toHaveAttribute('aria-current', 'page');
+    // les DEUX labels sont rendus (plus d'icône seule inactive)
+    expect(cuisine.textContent).toContain('Cuisine');
+    expect(suivi.textContent).toContain('Mon suivi');
+    fireEvent.click(suivi);
+    expect(nav).toHaveAttribute('data-active', 'suivi');
+    expect(suivi).toHaveAttribute('aria-current', 'page');
   });
 });
 
