@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#1b1d24" />
-  <circle cx="256" cy="256" r="180" fill="none" stroke="#ffa257" stroke-width="40" />
+  <rect width="512" height="512" rx="112" fill="#f0f2eb" />
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#3e7a46" stroke-width="40" />
   <circle
     cx="256"
     cy="256"
     r="180"
     fill="none"
-    stroke="#c2e66e"
+    stroke="#26312b"
     stroke-width="40"
     stroke-linecap="round"
     stroke-dasharray="283 848"
@@ -19,6 +19,6 @@
     font-family="Poppins, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
     font-size="230"
     font-weight="800"
-    fill="#f9f4f2"
+    fill="#26312b"
   >R</text>
 </svg>
