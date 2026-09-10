@@ -96,6 +96,8 @@ test.describe('Nav segmented — mobile', () => {
     test(`zéro débordement horizontal sur les 2 onglets à ${largeur}px`, async ({ page }) => {
       await page.setViewportSize({ width: largeur, height: 700 });
       await page.goto(ORIGIN);
+      // Même pattern que le swipe : fixe le layout avant de mesurer.
+      await page.evaluate(() => document.fonts.ready);
       for (const onglet of ['Cuisine', 'Mon suivi']) {
         await page.getByRole('button', { name: onglet }).click();
         const overflow = await page.evaluate(

@@ -15,6 +15,8 @@ test.describe('Onboarding 5 étapes — mobile', () => {
   test('étape 2 : aucun débordement horizontal et champs dans le viewport', async ({ page }) => {
     const largeur = page.viewportSize()!.width;
     await page.goto('/');
+    // document.fonts.ready fixe le layout avant les mesures (pattern dock.spec).
+    await page.evaluate(() => document.fonts.ready);
     await page.getByRole('button', { name: /Mélanie/ }).click();
 
     await expect(page.getByLabel('Date de naissance')).toBeVisible();
@@ -34,6 +36,8 @@ test.describe('Onboarding 5 étapes — mobile', () => {
 
   test('parcours complet : poids/date/taille → objectif → personnalisation → shell', async ({ page }) => {
     await page.goto('/');
+    // document.fonts.ready fixe le layout avant les mesures (pattern dock.spec).
+    await page.evaluate(() => document.fonts.ready);
     await page.getByRole('button', { name: /Mélanie/ }).click();
 
     await page.getByLabel('Poids (kg)').fill('62.4');
@@ -133,6 +137,8 @@ test.describe('Écran Profil — mobile', () => {
 
   test('profil : sections v2 sans débordement horizontal', async ({ page }) => {
     await page.goto('/');
+    // document.fonts.ready fixe le layout avant la mesure (pattern dock.spec).
+    await page.evaluate(() => document.fonts.ready);
     await page.getByRole('button', { name: 'Mon profil' }).click();
 
     await expect(page.getByRole('heading', { name: 'Profil' })).toBeVisible();

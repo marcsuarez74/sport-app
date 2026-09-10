@@ -175,6 +175,9 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
       await page.setViewportSize({ width: largeur, height: 700 });
       await page.goto(ORIGIN);
       await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
+      // document.fonts.ready fixe le layout (même pattern que dock.spec) :
+      // sans lui, la mesure peut tomber pendant le swap de police (flake CI).
+      await page.evaluate(() => document.fonts.ready);
 
       for (const onglet of ['Courses', 'Menu', 'Batch']) {
         await page.getByRole('button', { name: onglet }).click();

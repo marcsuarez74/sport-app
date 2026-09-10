@@ -71,6 +71,8 @@ test.describe('Mon suivi — bloc objectif et carte Poids', () => {
       await page.setViewportSize({ width: largeur, height: 700 });
       await page.goto(ORIGIN);
       await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
+      // document.fonts.ready fixe le layout avant la mesure (pattern dock.spec).
+      await page.evaluate(() => document.fonts.ready);
       await page.getByRole('button', { name: 'Mon suivi' }).click();
 
       // le contenu dense est rendu avant l'assert : bloc objectif + pastilles
