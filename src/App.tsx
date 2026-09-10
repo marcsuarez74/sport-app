@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { ProfilScreen } from './components/ProfilScreen';
 import { ProfileView } from './components/ProfileView';
 import { StatCards } from './components/StatCards';
+import { ObjectifBloc } from './components/ObjectifBloc';
 import { TabBar } from './components/TabBar';
 import type { TabId } from './components/TabBar';
 import { Onboarding } from './components/onboarding/Onboarding';
@@ -39,8 +40,8 @@ function App() {
   // semaine consultée via les chevrons. Rien n'est persisté.
   const [selection, setSelection] = useState<string | null>(null);
   const [profilOuvert, setProfilOuvert] = useState(false);
-  // StatCards lit le storage au montage : onWeightsChanged (pesée ajoutée) incrémente
-  // weightsBump pour remonter StatCards et relire les pesées.
+  // StatCards et ObjectifBloc lisent le storage au montage : onWeightsChanged (pesée
+  // ajoutée) incrémente weightsBump pour les remonter et relire les pesées.
   const [weightsBump, setWeightsBump] = useState(0);
   const [tab, setTab] = useState<TabId>('cuisine');
 
@@ -138,6 +139,7 @@ function App() {
         {tab === 'suivi' && (
           <>
             <p className="greeting">Salut {PRENOMS[profile.id]} 👋</p>
+            <ObjectifBloc key={`obj-${weightsBump}`} profile={profile} />
             <StatCards key={weightsBump} profile={profile} />
             <ProfileView
               profile={profile}

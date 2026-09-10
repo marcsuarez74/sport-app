@@ -14,6 +14,7 @@ import semaineExempleRaw from '../src/assets/semaine-exemple.md?raw';
 import { ImportButton } from '../src/components/ImportButton';
 import { Checklist } from '../src/components/Checklist';
 import { StatCards } from '../src/components/StatCards';
+import { ObjectifBloc } from '../src/components/ObjectifBloc';
 import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
 import { MenuView } from '../src/components/cuisine/MenuView';
@@ -756,6 +757,99 @@ describe('StatCards — carte Poids (hero)', () => {
   it('sans pesée, le poids s affiche en tiret (aucun crash)', () => {
     render(<StatCards profile={profileV2('melanie')} />);
     expect(screen.getByText('—')).toBeInTheDocument();
+  });
+});
+
+describe('ObjectifBloc', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.setSystemTime(new Date('2026-09-09T10:00:00'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('perte : kg restants, barre de progression et détail départ → cible', () => {
+    addWeight('marc', '2026-08-12', 82.8);
+    addWeight('marc', '2026-09-07', 79.1);
+    addWeight('marc', '2026-09-09', 78.4);
+    render(<ObjectifBloc profile={profileV2('marc', { poidsObjectif: 74 })} />);
+
+    expect(screen.getByText(/Perte de poids/)).toBeInTheDocument();
+    expect(screen.getByText(/4,4/)).toBeInTheDocument();
+    expect(screen.getByText(/restants/)).toBeInTheDocument();
+    expect(screen.getByText(/Départ 82,8 kg/)).toHaveTextContent(
+      'Départ 82,8 kg · 82,8 → 78,4 → cible 74,0 kg',
+    );
+    const barre = document.querySelector('.obj-bar span') as HTMLElement;
+    expect(barre.style.width).toBe('50%');
+    expect(screen.getByText(/Échéance :/)).toHaveTextContent('15 déc. · dans 97 jours');
+  });
+
+  it('échéance dépassée : mention « dépassée » et classe late', () => {
+    render(
+      <ObjectifBloc
+        profile={profileV2('marc', { poidsObjectif: 74, objectif: { type: 'perte', echeance: '2026-06-15' } })}
+      />,
+    );
+    expect(screen.getByText(/dépassée/)).toBeInTheDocument();
+    expect(document.querySelector('.obj-echeance')).toHaveClass('late');
+  });
+
+  it('sans échéance, pas de ligne échéance', () => {
+    render(
+      <ObjectifBloc
+        profile={profileV2('marc', { poidsObjectif: 74, objectif: { type: 'perte' } })}
+      />,
+    );
+    expect(screen.queryByText(/Échéance :/)).not.toBeInTheDocument();
+  });
+
+  it('masse : kg à prendre, sens de la barre inversé', () => {
+    addWeight('marc', '2026-08-12', 74);
+    addWeight('marc', '2026-09-09', 75.8);
+    render(
+      <ObjectifBloc
+        profile={profileV2('marc', { poidsObjectif: 82, objectif: { type: 'masse' } })}
+      />,
+    );
+    expect(screen.getByText(/6,2/)).toBeInTheDocument();
+    expect(screen.getByText(/à prendre/)).toBeInTheDocument();
+  });
+
+  it('maintien : pas de barre, ligne poids actuel (+ cible si présente)', () => {
+    addWeight('marc', '2026-09-09', 78.4);
+    render(
+      <ObjectifBloc
+        profile={profileV2('marc', { poidsObjectif: 74, objectif: { type: 'maintien' } })}
+      />,
+    );
+    expect(document.querySelector('.obj-bar')).toBeNull();
+    // Le libellé est morcelé par des <b> (maquette) : on teste le texte de la ligne.
+    expect(document.querySelector('.obj-plain')).toHaveTextContent(
+      'Poids actuel 78,4 kg · cible 74,0 kg',
+    );
+  });
+
+  it('sans pesée : aucun crash, pas de barre ni de poids', () => {
+    render(<ObjectifBloc profile={profileV2('marc', { poidsObjectif: 74 })} />);
+    expect(document.querySelector('.obj-bar')).toBeNull();
+    expect(screen.queryByText(/Poids actuel/)).not.toBeInTheDocument();
+  });
+
+  it('affiche la pill régime sauf si « aucun », et les compléments en chips', () => {
+    render(
+      <ObjectifBloc
+        profile={profileV2('marc', { complements: ['Whey', 'Zinc'], regime: 'keto' })}
+      />,
+    );
+    expect(screen.getByText('Keto')).toBeInTheDocument();
+    expect(screen.getByText('Whey')).toBeInTheDocument();
+    expect(screen.getByText('Zinc')).toBeInTheDocument();
+
+    render(<ObjectifBloc profile={profileV2('melanie', { regime: 'aucun' })} />);
+    expect(screen.queryByText('Aucun')).not.toBeInTheDocument();
   });
 });
 

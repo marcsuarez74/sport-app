@@ -1660,6 +1660,130 @@ progress {
   font-weight: 700;
 }
 
+/* ——— Bloc objectif (tête de Mon suivi) ——— */
+.obj-bloc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.obj-pills {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.obj-pill-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--accent);
+  color: #fff;
+}
+.obj-pill-reg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--accent-2) 60%, var(--surface));
+  color: var(--text);
+}
+.obj-echeance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.obj-echeance b {
+  color: var(--text);
+}
+.obj-echeance.late b {
+  color: var(--danger);
+}
+.obj-prog {
+  margin-top: 12px;
+}
+.obj-kg {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.obj-kg small {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 2px;
+}
+.obj-kg span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 2px;
+}
+.obj-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  margin-top: 9px;
+  overflow: hidden;
+}
+.obj-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+}
+.obj-det {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.obj-plain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.obj-plain b {
+  color: var(--text);
+}
+.obj-comps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.obj-comps-label {
+  width: 100%;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.cchip {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
 /* ---------- Écran Profil ---------- */
 
 .week-banner {
