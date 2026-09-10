@@ -343,7 +343,7 @@ describe("Semaine d'exemple — contenu réel (Menu A, S37)", () => {
 
     expect(data.courses.length).toBeGreaterThanOrEqual(30);
     expect(new Set(data.courses.map((c) => c.rayon)).size).toBeGreaterThanOrEqual(5);
-    expect(data.courses.find((c) => c.label === 'Pâtes')?.rayon).toBe('feculents');
+    expect(data.courses.find((c) => c.label === 'Pâtes — 500 g')?.rayon).toBe('feculents');
     expect(data.courses.find((c) => c.label === 'Amandes/noix')?.rayon).toBe('divers');
 
     expect(data.batch).toHaveLength(5);

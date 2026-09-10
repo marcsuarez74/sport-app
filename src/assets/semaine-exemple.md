@@ -9,37 +9,38 @@ au: 2026-09-13
 # Semaine 37
 
 ## Courses
+- budget: ≈ 35 €
 ### Protéines
-- Cuisses de poulet (famille)
-- Filet de dinde 600 g
-- Haché 5 % 600 g
-- Œufs ×20
-- Thon 2 boîtes
+- Cuisses de poulet — 8 (famille) · rituel
+- Filet de dinde — 600 g
+- Haché 5 % — 600 g
+- Œufs — ×20 (6 en durs) · rituel
+- Thon — 2 boîtes
 ### Laitiers
-- Skyr 4×150 g
-- Emmental râpé
-- Fromage frais
-- Yaourts grecs
+- Skyr — 4×150 g
+- Emmental râpé — 200 g
+- Fromage frais — 200 g
+- Yaourts grecs — 4
 ### Féculents
-- Riz basmati
-- Pâtes
-- Quinoa
-- Galettes complètes
-- Pain complet
+- Riz basmati — 500 g · rituel
+- Pâtes — 500 g
+- Quinoa — 300 g · rituel
+- Galettes complètes — 8
+- Pain complet — 1
 ### Légumes
-- Courgettes
-- Poivrons
-- Épinards
-- Carottes
-- Salade
-- Tomates
-- Oignons
-- Brocolis (surgelés OK)
+- Courgettes — 4 · rituel
+- Poivrons — 2
+- Épinards — 250 g
+- Carottes — 1 kg · rituel
+- Salade | à acheter vendredi, pas avant
+- Tomates — 6
+- Oignons — 3
+- Brocolis — 500 g (surgelés OK)
 ### Fruits
-- Bananes (navettes)
-- Pommes
-- Fruits rouges (skyr)
-- Citron
+- Bananes — 4 (navettes)
+- Pommes — 4
+- Fruits rouges — 300 g (skyr)
+- Citron — 2
 ### Divers
 - Amandes/noix
 - Huile d'olive
@@ -48,11 +49,11 @@ au: 2026-09-13
 - Sauce soja, gingembre, miel
 - Parmesan (courgettes spaghetti Mél)
 ### Keto
-- Avocats ×3-4
-- Beurre 250 g · crème fraîche
+- Avocats — ×3-4
+- Beurre — 250 g · crème fraîche
 - Chocolat noir ≥ 85 %
-- Olives 1 bocal
-- Baies surgelées 300 g
+- Olives — 1 bocal
+- Baies surgelées — 300 g
 
 ## Menu
 ### Lundi
@@ -104,6 +105,9 @@ proteines: 48
 glucides: 45
 lipides: 28
 score: 7
+fraicheur: batch dimanche → boîte frigo
+- portions marc: riz 150 g cuit · 2 cuisses + légumes rôtis
+- portions melanie: poulet + légumes rôtis ×2 (sans riz ni patate douce)
 image: https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80&auto=format&fit=crop
 - pour 4: 6-8 cuisses · 600 g carottes · 600 g patates douces · 250 g riz · huile, paprika, thym
 1. Four 200°. Cuisses : huile + sel + paprika + thym, dans un plat avec les légumes en gros dés.
@@ -119,6 +123,9 @@ proteines: 42
 glucides: 68
 lipides: 18
 score: 6
+fraicheur: sauce batchée mercredi → frigo 3 j
+- portions marc: pâtes 120 g cuites + bolo
+- portions melanie: bolo sur courgettes spaghetti (sans pâtes)
 image: https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80&auto=format&fit=crop
 bases: B4, B6
 - pour 4: 800 g haché 5 % · 2 oignons · ail · 2 boîtes tomates + passata · 400 g pâtes · parmesan · salade
@@ -135,6 +142,9 @@ proteines: 36
 glucides: 38
 lipides: 24
 score: 7
+fraicheur: cuisson du jour
+- portions marc: 4 œufs + jambon + pommes vapeur
+- portions melanie: 2 œufs + salade + ½ avocat (sans pommes)
 image: https://images.unsplash.com/photo-1510693206972-df098062cb71?w=800&q=80&auto=format&fit=crop
 - pour 4: 10 œufs · 4 tranches jambon · 80 g râpé · 700 g pommes de terre · salade
 1. Pommes vapeur 15 min (vapeur ou cocotte).
@@ -149,6 +159,9 @@ proteines: 44
 glucides: 62
 lipides: 18
 score: 7
+fraicheur: riz batché lundi → frigo
+- portions marc: poulet 180 g + riz 150 g
+- portions melanie: poulet + légumes verts ×2 (sans riz)
 image: https://images.unsplash.com/photo-1512058564366-18510be2db19?w=800&q=80&auto=format&fit=crop
 - pour 4: 600 g escalopes de poulet · 800 g légumes wok surgelés · riz restant (lun) · sauce soja + sésame
 1. Wok très chaud : poulet en dés 6-7 min.
@@ -163,6 +176,9 @@ proteines: 38
 glucides: 58
 lipides: 26
 score: 5
+fraicheur: haché bolo de mercredi → à consommer vendredi
+- portions marc: 2 galettes + crudités
+- portions melanie: bowl sans galette + guacamole
 image: https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80&auto=format&fit=crop
 - pour 4: 8 galettes de blé · haché bolo (reste mer) · 2 tomates · ½ concombre · yaourt + citron · salade
 1. Haché bolo réchauffé 5 min à la poêle.
@@ -177,6 +193,9 @@ proteines: 22
 glucides: 54
 lipides: 16
 score: 8
+fraicheur: œufs durs du batch → frigo
+- portions marc: 2 tartines + 2 œufs + soupe
+- portions melanie: soupe réduite + 2 œufs (sans tartines)
 image: https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80&auto=format&fit=crop
 bases: B3
 - pour 4: 1 butternut · 4 carottes · 1 oignon · 1 l bouillon · filet crème · pain complet · 6 œufs durs · comté
@@ -193,6 +212,9 @@ proteines: 52
 glucides: 52
 lipides: 24
 score: 8
+fraicheur: GROS BATCH dimanche → boîte lundi
+- portions marc: quinoa 150 g + dinde 180 g
+- portions melanie: dinde + gratin ×2 (sans quinoa)
 image: https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80&auto=format&fit=crop
 - pour 4: rôti de dinde ~800 g (en prévoir 2) · 4 courgettes · 15 cl crème + 80 g fromage râpé · 300 g quinoa
 1. Four 180°. Rôti : huile + herbes + sel, 50-55 min (repos 10 min avant découpe).
