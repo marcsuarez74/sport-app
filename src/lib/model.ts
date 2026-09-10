@@ -104,3 +104,43 @@ export interface UserProfile {
 }
 
 export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };
+
+// ——— Profil v2 (objectif, compléments, régime) ———
+
+export type ObjectifType = 'perte' | 'affiner' | 'masse' | 'maintien';
+export type Regime = 'keto' | 'vegetarien' | 'vegan' | 'sans-gluten' | 'aucun';
+
+export interface Objectif {
+  type: ObjectifType;
+  echeance?: string; // AAAA-MM-JJ, optionnelle
+}
+
+// Ancienne forme stockée avant migration — lecture seule, préremplissage only.
+export interface ProfilLegacy {
+  id: ProfileKey;
+  age: number;
+  taille: number;
+  poidsObjectif?: number;
+  kcalObjectif?: number; // conservé pour le type legacy, ignoré au préremplissage
+}
+
+export const OBJECTIF_TYPES: Array<{ id: ObjectifType; nom: string; desc: string; icone: 'scale' | 'flame' | 'meat' | 'target' }> = [
+  { id: 'perte', nom: 'Perte de poids', desc: 'Réduire progressivement, sans yoyo', icone: 'scale' },
+  { id: 'affiner', nom: 'Affiner', desc: 'Recomposition : même poids, moins de gras', icone: 'flame' },
+  { id: 'masse', nom: 'Prise de masse', desc: 'Prendre du muscle, avec la mangeoire qui va bien', icone: 'meat' },
+  { id: 'maintien', nom: 'Maintien', desc: 'Stabiliser ce qui est en place', icone: 'target' },
+];
+
+export const REGIMES: Array<{ id: Regime; nom: string }> = [
+  { id: 'keto', nom: 'Keto' },
+  { id: 'vegetarien', nom: 'Végétarien' },
+  { id: 'vegan', nom: 'Vegan' },
+  { id: 'sans-gluten', nom: 'Sans gluten' },
+  { id: 'aucun', nom: 'Aucun' },
+];
+
+export const COMPLEMENTS_PRESETS = ['Whey', 'Créatine', 'Oméga-3', 'Collagène', 'Magnésium', 'Vitamine D'];
+
+// Comparaison insensible casse/accents pour dédoublonner les compléments.
+export const normaliseComplement = (s: string): string =>
+  s.trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
