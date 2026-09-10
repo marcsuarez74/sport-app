@@ -1,7 +1,7 @@
 /*
  * Rituel — design system « Herbes » (thème clair unique, fin du dark mode).
  * Palette sauge/basilic/citron : fond #f0f2eb, action basilic #3e7a46 (texte blanc
- * dessus ≈ 5,9:1), surbrillance citron #f2dc7b (texte encre dessus ≈ 8,9:1 — le citron
+ * dessus ≈ 5,2:1), surbrillance citron #f2dc7b (texte encre dessus ≈ 9,8:1 — le citron
  * n'est jamais une couleur de texte).
  * Cibles tactiles ≥ 48px, transitions douces sur les éléments interactifs uniquement.
  */
@@ -1607,13 +1607,13 @@ progress {
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  /* Cible tactile : 44px = standard des boutons secondaires compacts du thème
-     (les actions primaires restent à 48px) — 28px était sous le plancher. */
-  min-height: 44px;
-  padding: 4px 14px;
+  /* Cible tactile : plancher 48px du repo, comme tous les boutons.
+     Texte basilic mixé 90 % d'encre pour rester ≥ 4,5:1 sur surface-2. */
+  min-height: 48px;
+  padding: 4px 16px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  color: color-mix(in srgb, var(--accent) 90%, var(--text));
   cursor: pointer;
   transition: background-color 0.2s ease;
 }

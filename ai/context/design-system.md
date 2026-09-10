@@ -94,7 +94,7 @@ Rayons dérivés : boutons et cartes compactes `12px`, pills `999px` (`.menu-pil
 | `.rtoggle` | bouton « Voir la recette » | pleine largeur 48px, chevron SVG pivotant, `aria-expanded` |
 | `.recette-nutri` | bloc nutrition | barre `--surface-2` radius 8, cellules conditionnelles (icônes SVG : kcal / C / P / F) 11px muted, nowrap, traits verticaux `--border` |
 | `.recette-score` / `.score-bar` | health score | valeur + barre 97px (10 segments, `.score-seg.on` = accent) |
-| `.recette-detail` + `.recette-*` | détail déplié dans la carte (séparateur pointillé) | pour, `.recette-bchip` cliquable 44px (état `.on` = bordure accent), `.recette-etapes`, `.recette-mel` / `.recette-bat` pastilles via `color-mix` + `::before` |
+| `.recette-detail` + `.recette-*` | détail déplié dans la carte (séparateur pointillé) | pour, `.recette-bchip` cliquable 48px (état `.on` = bordure accent), `.recette-etapes`, `.recette-mel` / `.recette-bat` pastilles via `color-mix` + `::before` |
 | `.progress` + `progress` | compteurs de progression | texte bold mix muted, barre native `accent-color: --accent` |
 | `.batch-section` / `.batch-section-head` | cartes du Batch (rituel, micro-batch, guidé) | surface + bordure + radius tokens, titre 17px |
 | `.lancer` / `.batch-guide` | mode guidé « Lancer le batch » | pill basilic 48px texte blanc ; guide = étape num basilic, titre 19px, progress, CTA `.btn` + retour `.btn-ghost`, état final `.guide-done-ic` |
