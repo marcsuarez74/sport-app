@@ -276,7 +276,7 @@ p {
 }
 
 .tabbar-segmented[data-active='suivi']::before {
-  transform: translateX(calc(100% + 8px));
+  transform: translateX(calc(100% + 4px));
 }
 
 .seg-tab {

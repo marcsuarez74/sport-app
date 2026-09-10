@@ -35,6 +35,30 @@ test.describe('Nav segmented — mobile', () => {
     await expect(page.locator('.tabbar-segmented')).toHaveAttribute('data-active', 'cuisine');
   });
 
+  test('la pilule active recouvre exactement le segment actif', async ({ page }) => {
+    await page.goto(ORIGIN);
+    for (const onglet of ['Mon suivi', 'Cuisine']) {
+      await page.getByRole('button', { name: onglet }).click();
+      await page.waitForTimeout(500); // laisser la transition (0,32s) se terminer
+      const { gauche, droite } = await page.evaluate(() => {
+        const nav = document.querySelector('.tabbar-segmented')!;
+        const cs = getComputedStyle(nav, '::before');
+        const navRect = nav.getBoundingClientRect();
+        const matrice = new DOMMatrixReadOnly(cs.transform === 'none' ? '' : cs.transform);
+        const largeur = Number.parseFloat(cs.width);
+        // ::before est positionné à left:4px depuis le padding edge (bordure
+        // de 1px incluse via clientLeft), puis translaté
+        const piluleGauche = navRect.left + nav.clientLeft + 4 + matrice.e;
+        return { gauche: piluleGauche, droite: piluleGauche + largeur };
+      });
+      const segRect = await page
+        .locator('.seg-tab-active')
+        .evaluate((el) => el.getBoundingClientRect());
+      expect(Math.abs(gauche - segRect.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(droite - segRect.right)).toBeLessThanOrEqual(1);
+    }
+  });
+
   for (const largeur of [320, 375]) {
     test(`zéro débordement horizontal sur les 2 onglets à ${largeur}px`, async ({ page }) => {
       await page.setViewportSize({ width: largeur, height: 700 });

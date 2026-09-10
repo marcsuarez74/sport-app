@@ -272,8 +272,8 @@ describe('Design system & sémantique', () => {
     const nav = document.querySelector('.tabbar-segmented');
     expect(nav).not.toBeNull();
     expect(nav).toHaveAttribute('data-active', 'cuisine');
-    const cuisine = screen.getAllByRole('button').find((b) => b.textContent?.includes('Cuisine'))!;
-    const suivi = screen.getAllByRole('button').find((b) => b.textContent?.includes('Mon suivi'))!;
+    const cuisine = screen.getByRole('button', { name: 'Cuisine' });
+    const suivi = screen.getByRole('button', { name: 'Mon suivi' });
     expect(cuisine).toHaveAttribute('aria-current', 'page');
     // les DEUX labels sont rendus (plus d'icône seule inactive)
     expect(cuisine.textContent).toContain('Cuisine');
