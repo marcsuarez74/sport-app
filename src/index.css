@@ -1338,18 +1338,6 @@ progress {
   transform: scale(0.97);
 }
 
-.onboarding-back {
-  min-height: 48px;
-  padding: 10px;
-  border: none;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
 /* ——— Onboarding 4 étapes + migration ——— */
 .onb-note {
   display: flex;

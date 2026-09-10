@@ -149,6 +149,23 @@ describe('Onboarding — étape 3 (objectif)', () => {
   });
 });
 
+describe('Onboarding — navigation clavier (Entrée = Continuer)', () => {
+  it('Entrée à l étape 2 avance à l étape 3 (form submit → continuerInfos)', async () => {
+    const user = await allerEtape2();
+    await remplirEtape2(user);
+    soumettre();
+
+    expect(screen.getByRole('heading', { name: /Ton objectif/ })).toBeInTheDocument();
+  });
+
+  it('Entrée à l étape 3 avance à l étape 4 (form submit → continuerObjectif)', async () => {
+    await allerEtape3();
+    soumettre();
+
+    expect(screen.getByRole('heading', { name: /Personnalisation/ })).toBeInTheDocument();
+  });
+});
+
 describe('Onboarding — étape 4 (compléments et régime)', () => {
   it('bascule les compléments presets', async () => {
     const user = await allerEtape4();
@@ -171,6 +188,22 @@ describe('Onboarding — étape 4 (compléments et régime)', () => {
     await user.type(screen.getByLabelText('Ajouter un complément'), 'Zinc');
     await user.click(screen.getByRole('button', { name: /Ajouter/ }));
     expect(screen.getByRole('button', { name: /Zinc/ })).toBeInTheDocument();
+  });
+
+  it('refuse « creatine » quand le chip « Créatine » est actif (accents ignorés)', async () => {
+    const user = await allerEtape4();
+    await user.click(screen.getByRole('button', { name: 'Créatine' }));
+    await user.type(screen.getByLabelText('Ajouter un complément'), 'creatine');
+    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/déjà sélectionné/i);
+    await user.clear(screen.getByLabelText('Ajouter un complément'));
+    soumettre();
+    await waitFor(() =>
+      expect(onDone).toHaveBeenCalledWith(
+        expect.objectContaining({ complements: ['Créatine'] }),
+      ),
+    );
   });
 
   it('choisit un régime et enregistre le profil v2 complet (C est parti)', async () => {
@@ -252,6 +285,16 @@ describe('Onboarding — migration (prefill ancienne forme)', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/incomplet/i);
   });
 
+  it('migration sans pesée : le message d erreur cite la date seule (pas le poids)', async () => {
+    const user = userEvent.setup();
+    render(<Onboarding onDone={() => {}} prefill={legacy} />);
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+
+    const alerte = screen.getByRole('alert');
+    expect(alerte).toHaveTextContent(/incomplet/i);
+    expect(alerte.textContent).not.toContain('poids');
+  });
+
   it('enregistre le profil v2 (migration à sens unique) et appelle onDone', async () => {
     addWeight('marc', '2026-09-09', 78.4);
     const user = userEvent.setup();
@@ -272,5 +315,17 @@ describe('Onboarding — migration (prefill ancienne forme)', () => {
         regime: 'aucun',
       } satisfies UserProfile),
     );
+  });
+
+  it('migration sans pesée : aucune pesée n est créée à l enregistrement', async () => {
+    const user = userEvent.setup();
+    render(<Onboarding onDone={onDone} prefill={legacy} />);
+    saisirDate('Date de naissance', '1985-04-12');
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    soumettre();
+
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
+    expect(getWeights('marc')).toEqual([]);
   });
 });

@@ -70,7 +70,16 @@ export function Onboarding({
       Number.isNaN(cm) ||
       (!migration && (!poids || Number.isNaN(kg)))
     ) {
-      setError('Formulaire incomplet : remplis ton poids, ta date de naissance et ta taille.');
+      // En migration le poids est optionnel : ne citer que ce qui manque vraiment.
+      const manques: string[] = [];
+      if (!migration && (!poids || Number.isNaN(kg))) manques.push('ton poids');
+      if (!dateNaissance) manques.push('ta date de naissance');
+      if (!taille || Number.isNaN(cm)) manques.push('ta taille');
+      const liste =
+        manques.length > 1
+          ? `${manques.slice(0, -1).join(', ')} et ${manques[manques.length - 1]}`
+          : manques[0];
+      setError(`Formulaire incomplet : remplis ${liste}.`);
       return null;
     }
     if (poids && (Number.isNaN(kg) || kg < 30 || kg > 250)) {
@@ -199,7 +208,9 @@ export function Onboarding({
           className="onboarding-form"
           onSubmit={(e) => {
             e.preventDefault();
-            if (step === 4) valider();
+            if (step === 2) continuerInfos();
+            else if (step === 3) continuerObjectif();
+            else valider();
           }}
         >
           {step === 2 && (
@@ -265,9 +276,9 @@ export function Onboarding({
               </div>
               {migration && (
                 <div className="onboarding-field">
-                  <label htmlFor="ob-obj-poids">Poids objectif (kg)</label>
+                  <label htmlFor={`ob-obj-poids-${step}`}>Poids objectif (kg)</label>
                   <input
-                    id="ob-obj-poids"
+                    id={`ob-obj-poids-${step}`}
                     type="number"
                     inputMode="decimal"
                     step="0.1"
@@ -336,9 +347,9 @@ export function Onboarding({
                 />
               </div>
               <div className="onboarding-field">
-                <label htmlFor="ob-obj-poids">Poids objectif (kg)</label>
+                <label htmlFor={`ob-obj-poids-${step}`}>Poids objectif (kg)</label>
                 <input
-                  id="ob-obj-poids"
+                  id={`ob-obj-poids-${step}`}
                   type="number"
                   inputMode="decimal"
                   step="0.1"
@@ -456,9 +467,9 @@ export function Onboarding({
                 ))}
               </div>
               <div className="onboarding-field">
-                <label htmlFor="ob-obj-poids">Poids objectif (kg)</label>
+                <label htmlFor={`ob-obj-poids-${step}`}>Poids objectif (kg)</label>
                 <input
-                  id="ob-obj-poids"
+                  id={`ob-obj-poids-${step}`}
                   type="number"
                   inputMode="decimal"
                   step="0.1"

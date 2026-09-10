@@ -222,6 +222,21 @@ describe('ProfilScreen (unité)', () => {
     ).toBeInTheDocument();
   });
 
+  it('date de naissance vidée : le hint propose de saisir (pas d’âge fantôme « 2026 ans »)', () => {
+    vi.setSystemTime(new Date('2026-09-09T10:00:00'));
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
+    );
+
+    expect(screen.getByText('41 ans — calculé automatiquement.')).toBeInTheDocument();
+    // input[type=date] ne se laisse pas taper : convention repo = fireEvent.change.
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '' } });
+
+    expect(screen.queryByText(/2026 ans/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Saisis ta date de naissance/)).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
   it('refuse un poids objectif hors bornes avec une erreur explicite', async () => {
     render(
       <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,

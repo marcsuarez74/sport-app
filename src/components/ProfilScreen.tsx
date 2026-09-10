@@ -91,7 +91,11 @@ export function ProfilScreen({
                 setDateNaissance(e.target.value);
               }}
             />
-            <p className="onb-hint">{`${ageDepuis(dateNaissance)} ans — calculé automatiquement.`}</p>
+            <p className="onb-hint">
+              {dateNaissance
+                ? `${ageDepuis(dateNaissance)} ans — calculé automatiquement.`
+                : 'Saisis ta date de naissance pour voir ton âge.'}
+            </p>
           </div>
           <div className="onboarding-field">
             <label htmlFor="pf-taille">Taille (cm)</label>
