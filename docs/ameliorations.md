@@ -66,7 +66,8 @@ onboarding 5e étape, « Copier les paramètres IA ». Noté pour mémoire :
 → **Livré** (chantier 2, profil v2) :
 `docs/superpowers/specs/2026-09-09-profil-objectifs-design.md` — profil v2
 (date de naissance, objectif 4 types + échéance, compléments, régime),
-onboarding 4 étapes avec migration préremplie, bloc Objectif dans le suivi,
+onboarding (4 étapes à la livraison, 5e étape ajoutée par le chantier 3)
+avec migration préremplie, bloc Objectif dans le suivi,
 stat-cards réduites à Poids. Noté pour mémoire :
 
 - **Âge → date de naissance** : stocker la date de naissance plutôt que l'âge

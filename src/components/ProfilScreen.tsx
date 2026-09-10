@@ -482,11 +482,11 @@ export function ProfilScreen({
             maxLength={40}
             placeholder="Ajouter une préférence…"
             aria-label="Ajouter une préférence"
-          onChange={(e) => {
-            setCopie(false);
-            clearErreur('maison');
-            setNouvellePreference(e.target.value);
-          }}
+            onChange={(e) => {
+              setCopie(false);
+              clearErreur('maison');
+              setNouvellePreference(e.target.value);
+            }}
           />
           <button type="button" onClick={ajouterPreference}>
             <Icon name="plus" size={13} /> Ajouter

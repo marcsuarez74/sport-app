@@ -7,6 +7,8 @@ import { expect, test } from '@playwright/test';
 // `menu: A` (pill assertée), le menu compte 33 lignes repas (5+5+5+4+4+5+5)
 // et la 3ᵉ carte (nth(2)) = lundi diner-famille → R1 (kcal/étapes) — le test
 // fiche recette s'y accroche. Les coches menu partent d'un storageState vierge.
+// Le test dépenses sème aussi une dépense datée 2026-09-09 (∈ S37) et épingle
+// le total « Payé cette semaine » à 73,30 € — déplacer les deux au refresh.
 const ORIGIN = process.env.E2E_PREVIEW ? 'http://localhost:4173' : 'http://localhost:5173';
 
 // Jours en français, lundi premier (getDay() est dimanche premier → rotation).
