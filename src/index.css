@@ -1350,13 +1350,268 @@ progress {
   cursor: pointer;
 }
 
+/* ——— Onboarding 4 étapes + migration ——— */
+.onb-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--accent-2) 32%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent-2) 55%, var(--border));
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.onb-note svg {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.mig-prof {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+.mig-prof span:last-child {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 11.5px;
+}
+.onb-req::after {
+  content: ' · à compléter';
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 11px;
+}
+.onb-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+.onb-opt {
+  font-weight: 500;
+}
+.onb-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 18px;
+}
+.onb-btnrow {
+  display: flex;
+  gap: 9px;
+  margin-top: 24px;
+  align-items: center;
+}
+.onb-next {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 700 14px Poppins, sans-serif;
+  cursor: pointer;
+}
+.onb-next:active {
+  transform: scale(0.97);
+}
+.onb-back {
+  min-height: 48px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0 18px;
+  font: 600 13px Poppins, sans-serif;
+  cursor: pointer;
+}
+.onb-back:active {
+  transform: scale(0.97);
+}
+.onb-full {
+  width: 100%;
+  margin-top: 24px;
+}
+
+/* ——— Cartes radio objectif ——— */
+.rcards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+.rcard {
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  min-height: 48px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.rcard-t {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.rcard-d {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.rcard.sel {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.rcard.sel .rcard-t {
+  color: var(--accent);
+}
+
+/* ——— Radios en ligne (régime, objectif au profil) ——— */
+.rline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.rl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 11px 14px;
+  min-height: 48px;
+  font: 600 13.5px Poppins, sans-serif;
+  color: var(--text);
+  cursor: pointer;
+}
+.rl-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rl.sel {
+  border-color: var(--accent);
+}
+.rl.sel .rl-dot {
+  border-color: var(--accent);
+}
+.rl.sel .rl-dot::after {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ——— Chips compléments ——— */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 8px 13px;
+  min-height: 42px;
+  font: 600 12.5px Poppins, sans-serif;
+  color: var(--text);
+  cursor: pointer;
+}
+.chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.chip .rm {
+  margin-left: 4px;
+  opacity: 0.7;
+}
+.addrow {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.addrow input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: 500 13px Poppins, sans-serif;
+  color: var(--text);
+}
+.addrow button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 42px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0 15px;
+  font: 600 12.5px Poppins, sans-serif;
+  color: var(--text);
+  cursor: pointer;
+}
+
 /* ---------- Stat-cards (Mon suivi) ---------- */
 
 .stat-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.stat-card-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.stat-card-hero .stat-value {
+  font-size: 26px;
+  margin-top: 0;
+}
+.stat-delta small {
+  display: block;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 2px;
 }
 
 .stat-card {
@@ -1406,29 +1661,6 @@ progress {
 
 .stat-delta-neutre {
   color: var(--muted);
-}
-
-.stat-bar {
-  display: block;
-  height: 6px;
-  margin-top: 6px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  overflow: hidden;
-}
-
-.stat-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
-
-.stat-bar-accent {
-  background: var(--accent);
-}
-
-.stat-bar-lime {
-  background: var(--accent-2);
 }
 
 /* ---------- Accueil personnalisé (onglet Mon suivi) ---------- */

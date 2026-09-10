@@ -97,10 +97,12 @@ export interface ImportedWeek {
 
 export interface UserProfile {
   id: ProfileKey;
-  age: number;
+  dateNaissance: string; // AAAA-MM-JJ — l'âge s'affiche calculé (ageDepuis)
   taille: number;
   poidsObjectif?: number;
-  kcalObjectif?: number;
+  objectif: Objectif;
+  complements: string[];
+  regime: Regime;
 }
 
 export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };

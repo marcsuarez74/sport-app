@@ -11,7 +11,7 @@ import { CuisineView } from './components/cuisine/CuisineView';
 import { PRENOMS } from './lib/model';
 import type { ImportedWeek, UserProfile } from './lib/model';
 import { parseWeeklyFile } from './lib/parse';
-import { loadProfile, loadWeeks, removeProfile } from './lib/storage';
+import { loadProfile, loadProfilLegacy, loadWeeks, removeProfile } from './lib/storage';
 import { indexSemaineCourante, semainesTriees } from './lib/weeks';
 import { todayISO } from './lib/dates';
 import sampleRaw from './assets/semaine-exemple.md?raw';
@@ -29,7 +29,11 @@ const semainesInitiales = (): ImportedWeek[] => {
 };
 
 function App() {
-  const [profile, setProfile] = useState<UserProfile | null>(() => loadProfile());
+  // La lecture legacy précède loadProfile (strict) : loadProfile retire la clé v1
+  // comme « corrompue », alors qu'elle est seulement ancienne — à migrer, pas à jeter.
+  const [profile, setProfile] = useState<UserProfile | null>(() =>
+    loadProfilLegacy() ? null : loadProfile(),
+  );
   const [semaines, setSemaines] = useState<ImportedWeek[]>(semainesInitiales);
   // Navigation en session : null = auto (semaine du jour) ; sinon l'id de la
   // semaine consultée via les chevrons. Rien n'est persisté.
@@ -71,7 +75,9 @@ function App() {
     setTab(dx < 0 ? 'suivi' : 'cuisine');
   };
 
-  if (!profile) return <Onboarding onDone={setProfile} />;
+  if (!profile) {
+    return <Onboarding onDone={setProfile} prefill={loadProfilLegacy() ?? undefined} />;
+  }
 
   if (profilOuvert) {
     return (
@@ -132,7 +138,7 @@ function App() {
         {tab === 'suivi' && (
           <>
             <p className="greeting">Salut {PRENOMS[profile.id]} 👋</p>
-            <StatCards key={weightsBump} data={affichee.data} profile={profile} />
+            <StatCards key={weightsBump} profile={profile} />
             <ProfileView
               profile={profile}
               data={affichee.data.profiles[profile.id]}

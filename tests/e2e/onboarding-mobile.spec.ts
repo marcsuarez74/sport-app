@@ -11,18 +11,16 @@ async function assertPasDeDebordement(page: import('@playwright/test').Page) {
   expect(overflow, 'la page ne doit pas scroller horizontalement').toBeLessThanOrEqual(OVERFLOW_TOLERANCE);
 }
 
-test.describe('Onboarding — formulaire poids/âge/taille sur mobile', () => {
+test.describe('Onboarding 4 étapes — mobile', () => {
   test('étape 2 : aucun débordement horizontal et champs dans le viewport', async ({ page }) => {
     const largeur = page.viewportSize()!.width;
     await page.goto('/');
     await page.getByRole('button', { name: /Mélanie/ }).click();
 
-    // Deux rows (Âge/Taille puis objectifs) : la première suffit pour le check viewport
-    const row = page.locator('.onboarding-row').first();
-    await expect(row).toBeVisible();
+    await expect(page.getByLabel('Date de naissance')).toBeVisible();
     await assertPasDeDebordement(page);
 
-    for (const label of ['Âge', 'Taille (cm)']) {
+    for (const label of ['Date de naissance', 'Taille (cm)']) {
       const champ = page.getByLabel(label);
       await expect(champ).toBeVisible();
       const box = (await champ.boundingBox())!;
@@ -34,19 +32,32 @@ test.describe('Onboarding — formulaire poids/âge/taille sur mobile', () => {
     }
   });
 
-  test('étape 2 : soumission complète possible au doigt', async ({ page }) => {
+  test('parcours complet : soumission au doigt sur les 4 étapes', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: /Mélanie/ }).click();
 
     await page.getByLabel('Poids (kg)').fill('62.4');
-    await page.getByLabel('Âge').fill('38');
+    await page.getByLabel('Date de naissance').fill('1987-03-02');
     await page.getByLabel('Taille (cm)').fill('165');
+    await page.getByRole('button', { name: /Continuer/ }).click();
+
+    await expect(page.getByRole('heading', { name: /Ton objectif/ })).toBeVisible();
+    await page.getByRole('button', { name: /Continuer/ }).click();
+
+    await expect(page.getByRole('heading', { name: /Personnalisation/ })).toBeVisible();
     await page.getByRole('button', { name: /C'est parti/ }).click();
 
     // Profil enregistré + semaine d'exemple auto-chargée → shell direct
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
     const profil = await page.evaluate(() => JSON.parse(localStorage.getItem('sportapp:profile')!));
-    expect(profil).toEqual({ id: 'melanie', age: 38, taille: 165 });
+    expect(profil).toEqual({
+      id: 'melanie',
+      dateNaissance: '1987-03-02',
+      taille: 165,
+      objectif: { type: 'perte' },
+      complements: [],
+      regime: 'aucun',
+    });
   });
 });
 
@@ -60,7 +71,17 @@ test.describe('Écran Profil — mobile', () => {
         {
           origin: ORIGIN,
           localStorage: [
-            { name: 'sportapp:profile', value: JSON.stringify({ id: 'melanie', age: 38, taille: 165 }) },
+            {
+              name: 'sportapp:profile',
+              value: JSON.stringify({
+                id: 'melanie',
+                dateNaissance: '1987-03-02',
+                taille: 165,
+                objectif: { type: 'perte', echeance: '2026-12-15' },
+                complements: [],
+                regime: 'keto',
+              }),
+            },
           ],
         },
       ],
@@ -72,7 +93,7 @@ test.describe('Écran Profil — mobile', () => {
     await page.getByRole('button', { name: 'Mon profil' }).click();
 
     await expect(page.getByRole('heading', { name: 'Profil' })).toBeVisible();
-    await expect(page.getByLabel('Âge')).toBeVisible();
+    await expect(page.getByLabel('Date de naissance')).toBeVisible();
     await assertPasDeDebordement(page);
   });
 });

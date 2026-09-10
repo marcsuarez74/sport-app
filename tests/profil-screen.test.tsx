@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Mock } from 'vitest';
 import App from '../src/App';
@@ -51,7 +51,14 @@ au: 2026-09-13
 - Électrolytes
 `;
 
-const profileMarc: UserProfile = { id: 'marc', age: 41, taille: 178 };
+const profileMarc: UserProfile = {
+  id: 'marc',
+  dateNaissance: '1985-04-12',
+  taille: 178,
+  objectif: { type: 'perte', echeance: '2026-12-15' },
+  complements: [],
+  regime: 'aucun',
+};
 
 const monterApp = () => {
   saveWeek(fixture(), parseWeeklyFile(fixture()).data);
@@ -86,7 +93,7 @@ describe('ProfilScreen (unité)', () => {
 
     expect(screen.getByRole('heading', { name: 'Profil', level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Retour/ })).toBeInTheDocument();
-    expect(screen.getByLabelText('Âge')).toHaveValue(41);
+    expect(screen.getByLabelText('Date de naissance')).toHaveValue('1985-04-12');
     expect(screen.getByLabelText('Taille (cm)')).toHaveValue(178);
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Changer de profil/ })).toBeInTheDocument();
@@ -95,44 +102,53 @@ describe('ProfilScreen (unité)', () => {
     expect(screen.getByText('Importer un cycle (.md)')).toBeInTheDocument();
   });
 
-  it('enregistre les infos modifiées dans le store', async () => {
+  it('enregistre les infos modifiées dans le store', () => {
     render(
       <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
-    const user = userEvent.setup();
 
-    await user.clear(screen.getByLabelText('Âge'));
-    await user.type(screen.getByLabelText('Âge'), '42');
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    // input[type=date] ne se laisse pas taper : convention repo = fireEvent.change.
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1984-04-12' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(loadProfile()).toEqual({ id: 'marc', age: 42, taille: 178 });
+    expect(loadProfile()).toEqual({
+      id: 'marc',
+      dateNaissance: '1984-04-12',
+      taille: 178,
+      objectif: { type: 'perte', echeance: '2026-12-15' },
+      complements: [],
+      regime: 'aucun',
+    });
   });
 
-  it('refuse les valeurs hors bornes avec une erreur explicite (cohérent avec l’onboarding)', async () => {
+  it('refuse une date de naissance donnant un âge hors bornes (cohérent avec l’onboarding)', () => {
     render(
       <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
-    const user = userEvent.setup();
 
-    await user.clear(screen.getByLabelText('Âge'));
-    await user.type(screen.getByLabelText('Âge'), '999');
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '2020-01-01' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(screen.getByRole('alert')).toHaveTextContent(/âge/i);
     expect(loadProfile()).toBeNull();
   });
 
-  it('prévient le parent après enregistrement (état App resynchronisé)', async () => {
+  it('prévient le parent après enregistrement (état App resynchronisé)', () => {
     render(
       <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
     );
-    const user = userEvent.setup();
 
-    await user.clear(screen.getByLabelText('Âge'));
-    await user.type(screen.getByLabelText('Âge'), '42');
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1984-04-12' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(onProfileSaved).toHaveBeenCalledWith({ id: 'marc', age: 42, taille: 178 });
+    expect(onProfileSaved).toHaveBeenCalledWith({
+      id: 'marc',
+      dateNaissance: '1984-04-12',
+      taille: 178,
+      objectif: { type: 'perte', echeance: '2026-12-15' },
+      complements: [],
+      regime: 'aucun',
+    });
   });
 
   it('change de profil après confirmation (et seulement après)', async () => {
@@ -157,7 +173,7 @@ describe('ProfilScreen (unité)', () => {
   it('affiche les objectifs existants et enregistre leurs modifications', async () => {
     render(
       <ProfilScreen
-        profile={{ id: 'marc', age: 41, taille: 178, poidsObjectif: 72, kcalObjectif: 2000 }}
+        profile={{ ...profileMarc, poidsObjectif: 72 }}
         onBack={onBack}
         onChangeProfile={onChangeProfile}
         onProfileSaved={onProfileSaved}
@@ -167,21 +183,21 @@ describe('ProfilScreen (unité)', () => {
     const user = userEvent.setup();
 
     expect(screen.getByLabelText('Poids objectif (kg)')).toHaveValue(72);
-    expect(screen.getByLabelText('Objectif kcal/jour')).toHaveValue(2000);
+    expect(screen.queryByLabelText('Objectif kcal/jour')).not.toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Poids objectif (kg)'));
     await user.type(screen.getByLabelText('Poids objectif (kg)'), '70');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    const attendu = { id: 'marc', age: 41, taille: 178, poidsObjectif: 70, kcalObjectif: 2000 };
+    const attendu = { ...profileMarc, poidsObjectif: 70 };
     expect(loadProfile()).toEqual(attendu);
     expect(onProfileSaved).toHaveBeenCalledWith(attendu);
   });
 
-  it('permet de supprimer les objectifs en vidant les champs', async () => {
+  it('permet de supprimer le poids objectif en vidant le champ', async () => {
     render(
       <ProfilScreen
-        profile={{ id: 'marc', age: 41, taille: 178, poidsObjectif: 72, kcalObjectif: 2000 }}
+        profile={{ ...profileMarc, poidsObjectif: 72 }}
         onBack={onBack}
         onChangeProfile={onChangeProfile}
         onProfileSaved={onProfileSaved}
@@ -191,10 +207,9 @@ describe('ProfilScreen (unité)', () => {
     const user = userEvent.setup();
 
     await user.clear(screen.getByLabelText('Poids objectif (kg)'));
-    await user.clear(screen.getByLabelText('Objectif kcal/jour'));
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
+    expect(loadProfile()).toEqual(profileMarc);
   });
 
   it('affiche la version de l’app en pied d’écran', () => {
@@ -242,14 +257,13 @@ describe('ProfilScreen (intégration via App)', () => {
     const user = monterApp();
 
     await user.click(screen.getByRole('button', { name: 'Mon profil' }));
-    await user.clear(screen.getByLabelText('Âge'));
-    await user.type(screen.getByLabelText('Âge'), '42');
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1984-04-12' } });
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     await user.click(screen.getByRole('button', { name: /Retour/ }));
     await user.click(screen.getByRole('button', { name: 'Mon profil' }));
 
-    expect(screen.getByLabelText('Âge')).toHaveValue(42);
+    expect(screen.getByLabelText('Date de naissance')).toHaveValue('1984-04-12');
   });
 
   it('changer de profil efface le choix (onboarding) mais garde les données', async () => {

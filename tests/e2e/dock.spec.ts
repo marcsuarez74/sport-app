@@ -10,7 +10,17 @@ test.describe('Nav segmented — mobile', () => {
         {
           origin: ORIGIN,
           localStorage: [
-            { name: 'sportapp:profile', value: JSON.stringify({ id: 'marc', age: 41, taille: 178 }) },
+            {
+              name: 'sportapp:profile',
+              value: JSON.stringify({
+                id: 'marc',
+                dateNaissance: '1985-04-12',
+                taille: 178,
+                objectif: { type: 'perte', echeance: '2026-12-15' },
+                complements: [],
+                regime: 'aucun',
+              }),
+            },
           ],
         },
       ],

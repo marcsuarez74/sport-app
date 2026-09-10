@@ -144,19 +144,30 @@ export const removeProfile = (): void => {
   localStorage.removeItem(PROFILE_KEY);
 };
 
+const OBJECTIF_TYPES_VALIDES = ['perte', 'affiner', 'masse', 'maintien'];
+const REGIMES_VALIDES = ['keto', 'vegetarien', 'vegan', 'sans-gluten', 'aucun'];
+
 export const loadProfile = (): UserProfile | null => {
   const raw = localStorage.getItem(PROFILE_KEY);
   if (raw === null) return null;
   const parsed = safeParse<unknown>(PROFILE_KEY, raw, null);
   const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+  const isStr = (v: unknown): v is string => typeof v === 'string';
   const optionalNum = (v: unknown): boolean => v === undefined || isNum(v);
+  const obj = isPlainObject(parsed) ? parsed.objectif : undefined;
+  const complements = isPlainObject(parsed) ? parsed.complements : undefined;
   const ok =
     isPlainObject(parsed) &&
     (parsed.id === 'marc' || parsed.id === 'melanie') &&
-    isNum(parsed.age) &&
+    isStr(parsed.dateNaissance) &&
     isNum(parsed.taille) &&
     optionalNum(parsed.poidsObjectif) &&
-    optionalNum(parsed.kcalObjectif);
+    isPlainObject(obj) &&
+    OBJECTIF_TYPES_VALIDES.includes(obj.type as string) &&
+    (obj.echeance === undefined || isStr(obj.echeance)) &&
+    Array.isArray(complements) &&
+    complements.every(isStr) &&
+    REGIMES_VALIDES.includes(parsed.regime as string);
   if (!ok) {
     console.warn(`Profil corrompu ignoré : ${PROFILE_KEY}`);
     localStorage.removeItem(PROFILE_KEY);

@@ -81,6 +81,7 @@ const ICONS = {
     <path d="M12 3.5c.8 2.8 3.5 4.2 3.5 7.5a3.5 3.5 0 0 1-7 0c0-1.3.4-2.4 1.2-3.4.4.9 1 1.6 1.9 2-.7-2-.4-4.2.4-6.1z" />
   ),
   drop: <path d="M12 3.5c3.5 4 6 7.2 6 10.2a6 6 0 0 1-12 0c0-3 2.5-6.2 6-10.2z" />,
+  plus: <path d="M12 5.5v13M5.5 12h13" />,
   play: <path d="M8 5.5v13l10-6.5z" />,
 } satisfies Record<string, ReactNode>;
 

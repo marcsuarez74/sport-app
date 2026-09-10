@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { UserProfile } from '../lib/model';
 import { PRENOMS } from '../lib/model';
+import { ageDepuis, todayISO } from '../lib/dates';
 import { saveProfile } from '../lib/storage';
 import { ImportButton } from './ImportButton';
 
@@ -17,26 +18,27 @@ export function ProfilScreen({
   onProfileSaved?: (p: UserProfile) => void;
   onImported: () => void;
 }) {
-  const [age, setAge] = useState(String(profile.age));
+  const [dateNaissance, setDateNaissance] = useState(profile.dateNaissance);
   const [taille, setTaille] = useState(String(profile.taille));
   const [poidsObjectif, setPoidsObjectif] = useState(
     profile.poidsObjectif != null ? String(profile.poidsObjectif) : '',
-  );
-  const [kcalObjectif, setKcalObjectif] = useState(
-    profile.kcalObjectif != null ? String(profile.kcalObjectif) : '',
   );
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const enregistrer = () => {
-    const ans = Number.parseInt(age, 10);
     const cm = Number.parseInt(taille, 10);
-    if (Number.isNaN(ans) || Number.isNaN(cm)) {
-      setError('Formulaire incomplet : remplis ton âge et ta taille.');
+    if (!dateNaissance || Number.isNaN(cm)) {
+      setError('Formulaire incomplet : remplis ta date de naissance et ta taille.');
       return;
     }
+    if (dateNaissance > todayISO()) {
+      setError('La date de naissance ne peut pas être dans le futur.');
+      return;
+    }
+    const ans = ageDepuis(dateNaissance);
     if (ans < 10 || ans > 100) {
-      setError('Âge invalide : entre 10 et 100 ans.');
+      setError('Âge calculé invalide : entre 10 et 100 ans.');
       return;
     }
     if (cm < 120 || cm > 230) {
@@ -48,18 +50,11 @@ export function ProfilScreen({
       setError('Poids objectif invalide : entre 30 et 250 kg.');
       return;
     }
-    const kcalObj = kcalObjectif ? Number.parseInt(kcalObjectif, 10) : undefined;
-    if (kcalObjectif && (kcalObj === undefined || kcalObj < 800 || kcalObj > 6000)) {
-      setError('Objectif kcal invalide : entre 800 et 6000.');
-      return;
-    }
-    const updated: UserProfile = {
-      id: profile.id,
-      age: ans,
-      taille: cm,
-      ...(obj != null ? { poidsObjectif: obj } : {}),
-      ...(kcalObj != null ? { kcalObjectif: kcalObj } : {}),
-    };
+    // Le spread préserve objectif/complements/régime (sections dédiées en Task 6) ;
+    // poidsObjectif est retiré si le champ est vidé.
+    const updated: UserProfile = { ...profile, dateNaissance, taille: cm };
+    delete updated.poidsObjectif;
+    if (obj != null) updated.poidsObjectif = obj;
     saveProfile(updated);
     onProfileSaved?.(updated);
     setSaved(true);
@@ -85,18 +80,18 @@ export function ProfilScreen({
         <h3>Mes infos</h3>
         <div className="onboarding-row">
           <div className="onboarding-field">
-            <label htmlFor="pf-age">Âge</label>
+            <label htmlFor="pf-naissance">Date de naissance</label>
             <input
-              id="pf-age"
-              type="number"
-              inputMode="numeric"
-              value={age}
+              id="pf-naissance"
+              type="date"
+              value={dateNaissance}
               onChange={(e) => {
                 setSaved(false);
                 setError(null);
-                setAge(e.target.value);
+                setDateNaissance(e.target.value);
               }}
             />
+            <p className="onb-hint">{`${ageDepuis(dateNaissance)} ans — calculé automatiquement.`}</p>
           </div>
           <div className="onboarding-field">
             <label htmlFor="pf-taille">Taille (cm)</label>
@@ -113,36 +108,20 @@ export function ProfilScreen({
             />
           </div>
         </div>
-        <div className="onboarding-row">
-          <div className="onboarding-field">
-            <label htmlFor="pf-obj-poids">Poids objectif (kg)</label>
-            <input
-              id="pf-obj-poids"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              value={poidsObjectif}
-              onChange={(e) => {
-                setSaved(false);
-                setError(null);
-                setPoidsObjectif(e.target.value);
-              }}
-            />
-          </div>
-          <div className="onboarding-field">
-            <label htmlFor="pf-obj-kcal">Objectif kcal/jour</label>
-            <input
-              id="pf-obj-kcal"
-              type="number"
-              inputMode="numeric"
-              value={kcalObjectif}
-              onChange={(e) => {
-                setSaved(false);
-                setError(null);
-                setKcalObjectif(e.target.value);
-              }}
-            />
-          </div>
+        <div className="onboarding-field">
+          <label htmlFor="pf-obj-poids">Poids objectif (kg)</label>
+          <input
+            id="pf-obj-poids"
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            value={poidsObjectif}
+            onChange={(e) => {
+              setSaved(false);
+              setError(null);
+              setPoidsObjectif(e.target.value);
+            }}
+          />
         </div>
         <button type="button" className="btn" onClick={enregistrer}>
           Enregistrer

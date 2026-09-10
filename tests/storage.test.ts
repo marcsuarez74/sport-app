@@ -1,4 +1,4 @@
-import type { WeeklyData } from '../src/lib/model';
+import type { UserProfile, WeeklyData } from '../src/lib/model';
 import { addWeight, getChecks, getWeights, loadProfile, loadProfilLegacy, loadWeek, loadWeeks, removeProfile, saveProfile, saveWeek, setCheck, upsertWeek, type WeightEntry } from '../src/lib/storage';
 import { todayKey } from '../src/lib/dates';
 
@@ -186,10 +186,20 @@ describe('storage: corrupted keys', () => {
   });
 });
 
-describe('storage: profil', () => {
+describe('storage: profil v2', () => {
   beforeEach(() => {
     localStorage.clear();
   });
+
+  const profilV2Complet: UserProfile = {
+    id: 'marc',
+    dateNaissance: '1985-04-12',
+    taille: 178,
+    poidsObjectif: 74,
+    objectif: { type: 'perte', echeance: '2026-12-15' },
+    complements: ['Whey', 'Créatine'],
+    regime: 'aucun',
+  };
 
   it('loadProfile returns null silently when nothing saved (no warn, no remove)', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -198,49 +208,48 @@ describe('storage: profil', () => {
     warnSpy.mockRestore();
   });
 
-  it('saveProfile then loadProfile roundtrips the profile', () => {
-    saveProfile({ id: 'marc', age: 41, taille: 178 });
-    expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
-    saveProfile({ id: 'melanie', age: 38, taille: 165 });
-    expect(loadProfile()).toEqual({ id: 'melanie', age: 38, taille: 165 });
+  it('saveProfile then loadProfile roundtrips the profile v2', () => {
+    saveProfile(profilV2Complet);
+    expect(loadProfile()).toEqual(profilV2Complet);
+    saveProfile({ ...profilV2Complet, id: 'melanie', dateNaissance: '1987-03-02', taille: 165 });
+    expect(loadProfile()).toEqual({
+      ...profilV2Complet,
+      id: 'melanie',
+      dateNaissance: '1987-03-02',
+      taille: 165,
+    });
+  });
+
+  it('les champs optionnels (poidsObjectif, echeance) restent optionnels', () => {
+    const minimal: UserProfile = {
+      id: 'marc',
+      dateNaissance: '1985-04-12',
+      taille: 178,
+      objectif: { type: 'maintien' },
+      complements: [],
+      regime: 'keto',
+    };
+    saveProfile(minimal);
+    expect(loadProfile()).toEqual(minimal);
   });
 
   it('removeProfile removes the stored profile', () => {
-    saveProfile({ id: 'marc', age: 41, taille: 178 });
+    saveProfile(profilV2Complet);
     removeProfile();
     expect(loadProfile()).toBeNull();
     expect(localStorage.getItem('sportapp:profile')).toBeNull();
   });
 
-  it('les objectifs optionnels sont persistés et rechargés', () => {
-    localStorage.clear();
-    saveProfile({ id: 'marc', age: 41, taille: 178, poidsObjectif: 72, kcalObjectif: 2450 });
-    expect(loadProfile()).toEqual({
-      id: 'marc',
-      age: 41,
-      taille: 178,
-      poidsObjectif: 72,
-      kcalObjectif: 2450,
-    });
-  });
-
-  it('un profil ancien sans objectifs charge tel quel', () => {
-    localStorage.clear();
-    localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'marc', age: 41, taille: 178 }));
-    expect(loadProfile()).toEqual({ id: 'marc', age: 41, taille: 178 });
-  });
-
-  it('un objectif non numérique invalide le profil (réparation silencieuse)', () => {
-    localStorage.clear();
+  it('un complément non string invalide le profil', () => {
     localStorage.setItem(
       'sportapp:profile',
-      JSON.stringify({ id: 'marc', age: 41, taille: 178, poidsObjectif: 'soixante' }),
+      JSON.stringify({ ...profilV2Complet, complements: [42] }),
     );
     expect(loadProfile()).toBeNull();
   });
 });
 
-describe('storage: profil corrompu', () => {
+describe('storage: profil v2 corrompu', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -252,6 +261,17 @@ describe('storage: profil corrompu', () => {
     warnSpy.mockRestore();
   });
 
+  const base: UserProfile = {
+    id: 'marc',
+    dateNaissance: '1985-04-12',
+    taille: 178,
+    objectif: { type: 'perte' },
+    complements: [],
+    regime: 'aucun',
+  };
+
+  const poser = (p: unknown) => localStorage.setItem('sportapp:profile', JSON.stringify(p));
+
   it('loadProfile returns null and removes corrupted JSON', () => {
     localStorage.setItem('sportapp:profile', '{oops');
     expect(loadProfile()).toBeNull();
@@ -259,23 +279,32 @@ describe('storage: profil corrompu', () => {
     expect(warnSpy).toHaveBeenCalledWith('Profil corrompu ignoré : sportapp:profile');
   });
 
-  it('loadProfile returns null and removes an unknown profile id', () => {
-    localStorage.setItem('sportapp:profile', '{"id":"jean","age":41,"taille":178}');
+  it('refuse un id inconnu', () => {
+    poser({ ...base, id: 'jean' });
     expect(loadProfile()).toBeNull();
-    expect(localStorage.getItem('sportapp:profile')).toBeNull();
     expect(warnSpy).toHaveBeenCalledWith('Profil corrompu ignoré : sportapp:profile');
   });
 
-  it('loadProfile returns null and removes non-numeric age', () => {
-    localStorage.setItem('sportapp:profile', '{"id":"marc","age":"41","taille":178}');
+  it('refuse une dateNaissance non string', () => {
+    poser({ ...base, dateNaissance: 1985 });
     expect(loadProfile()).toBeNull();
-    expect(localStorage.getItem('sportapp:profile')).toBeNull();
   });
 
-  it('loadProfile returns null and removes missing taille', () => {
-    localStorage.setItem('sportapp:profile', '{"id":"melanie","age":38}');
+  it('refuse un objectif manquant ou de type inconnu', () => {
+    poser({ id: 'marc', dateNaissance: '1985-04-12', taille: 178, complements: [], regime: 'aucun' });
     expect(loadProfile()).toBeNull();
-    expect(localStorage.getItem('sportapp:profile')).toBeNull();
+    poser({ ...base, objectif: { type: 'zigzag' } });
+    expect(loadProfile()).toBeNull();
+  });
+
+  it('refuse un regime inconnu', () => {
+    poser({ ...base, regime: 'carnivore' });
+    expect(loadProfile()).toBeNull();
+  });
+
+  it('refuse des complements absents', () => {
+    poser({ id: 'marc', dateNaissance: '1985-04-12', taille: 178, objectif: { type: 'perte' }, regime: 'aucun' });
+    expect(loadProfile()).toBeNull();
   });
 
   it('loadProfile returns null and removes wrong shape (array, null)', () => {

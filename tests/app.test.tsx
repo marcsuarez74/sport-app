@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import sampleRaw from '../src/assets/semaine-exemple.md?raw';
 import App from '../src/App';
 import { parseWeeklyFile } from '../src/lib/parse';
-import { saveProfile, saveWeek, upsertWeek } from '../src/lib/storage';
+import { saveProfile, saveWeek, upsertWeek, addWeight } from '../src/lib/storage';
 import type { ProfileKey } from '../src/lib/model';
 
 const fixture = (semaine = '2026-S37', extraCourse = 'Carottes') => `---
@@ -61,7 +61,15 @@ au: 2026-09-13
 `;
 
 // Toute vue shell suppose un profil choisi (onboarding passé).
-const initProfile = (id: ProfileKey = 'marc') => saveProfile({ id, age: 41, taille: 178 });
+const initProfile = (id: ProfileKey = 'marc') =>
+  saveProfile({
+    id,
+    dateNaissance: id === 'marc' ? '1985-04-12' : '1987-03-02',
+    taille: id === 'marc' ? 178 : 165,
+    objectif: { type: 'perte', echeance: '2026-12-15' },
+    complements: [],
+    regime: id === 'melanie' ? 'keto' : 'aucun',
+  });
 
 const fixtureSemaine = (
   semaine: string,
@@ -226,7 +234,7 @@ describe('Theming (accent unique)', () => {
   });
 
   it('ne pose plus data-profile sur <html>, quel que soit le profil', () => {
-    saveProfile({ id: 'melanie', age: 38, taille: 165 });
+    initProfile('melanie');
     const parsed = parseWeeklyFile(fixture());
     saveWeek(fixture(), parsed.data);
 
@@ -285,26 +293,69 @@ describe('Design system & sémantique', () => {
   });
 });
 
-describe('Onboarding — objectifs optionnels', () => {
+describe('Onboarding v2 — persistance via App', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it("l onboarding accepte des objectifs optionnels et les persiste", async () => {
+  it('parcours complet 4 étapes : objectif, compléments et régime persistés', async () => {
     render(<App />);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /Marc/ }));
     await user.type(screen.getByLabelText('Poids (kg)'), '85');
-    await user.type(screen.getByLabelText('Âge'), '41');
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1985-04-12' } });
     await user.type(screen.getByLabelText('Taille (cm)'), '178');
-    await user.type(screen.getByLabelText('Poids objectif (kg)'), '72');
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    await user.click(screen.getByRole('radio', { name: /Affiner/ }));
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    await user.click(screen.getByRole('button', { name: 'Créatine' }));
+    await user.click(screen.getByRole('radio', { name: 'Keto' }));
     // happy-dom ne soumet pas le form au clic du bouton (convention repo : fireEvent.submit)
     fireEvent.submit(document.querySelector('.onboarding-form')!);
 
     expect(JSON.parse(localStorage.getItem('sportapp:profile')!)).toMatchObject({
       id: 'marc',
-      poidsObjectif: 72,
+      objectif: { type: 'affiner' },
+      complements: ['Créatine'],
+      regime: 'keto',
     });
+    expect(screen.getByText('Semaine 2026-S37')).toBeInTheDocument();
+  });
+});
+
+describe('Migration profil v1 → v2', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('un profil ancien (age) relance l onboarding prérempli à l étape 2', () => {
+    localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'marc', age: 41, taille: 178 }));
+    addWeight('marc', '2026-09-09', 78.4);
+    render(<App />);
+
+    expect(screen.getByText(/Une mise à jour/)).toBeInTheDocument();
+    expect(screen.getByText(/non modifiable ici/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Poids (kg)')).toHaveValue(78.4);
+    expect(screen.getByLabelText('Date de naissance')).toHaveValue('');
+    expect(screen.queryByRole('button', { name: /Mélanie/ })).not.toBeInTheDocument();
+  });
+
+  it('après migration, le profil v2 est enregistré et l app s affiche', async () => {
+    localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'melanie', age: 38, taille: 165 }));
+    const user = userEvent.setup();
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1987-03-02' } });
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    fireEvent.submit(document.querySelector('.onboarding-form')!);
+
+    expect(JSON.parse(localStorage.getItem('sportapp:profile')!)).toMatchObject({
+      id: 'melanie',
+      dateNaissance: '1987-03-02',
+      objectif: { type: 'perte' },
+      regime: 'aucun',
+    });
+    expect(screen.getByText('Semaine 2026-S37')).toBeInTheDocument();
   });
 });
 
@@ -382,7 +433,7 @@ describe("Semaine d'exemple — contenu réel (Menu A, S37)", () => {
 describe('App — multi-semaines', () => {
   beforeEach(() => {
     localStorage.clear();
-    saveProfile({ id: 'marc', age: 41, taille: 178 });
+    initProfile();
   });
 
   afterEach(() => {

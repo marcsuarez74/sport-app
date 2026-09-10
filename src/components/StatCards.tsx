@@ -1,38 +1,26 @@
 import { useState } from 'react';
-import type { UserProfile, WeeklyData } from '../lib/model';
-import { getChecks, getWeights } from '../lib/storage';
+import { getWeights } from '../lib/storage';
+import { poidsActuel, variationKg7j } from '../lib/stats';
+import type { UserProfile } from '../lib/model';
 import { Icon } from './Icon';
-import {
-  compteChecklist,
-  kcalDuJour,
-  poidsActuel,
-  trouverJourDuJour,
-  variationPoids7j,
-} from '../lib/stats';
 
-export function StatCards({ data, profile }: { data: WeeklyData; profile: UserProfile }) {
+export function StatCards({ profile }: { profile: UserProfile }) {
   // Invariant : le profil actif ne change jamais en place — un changement passe par
   // removeProfile → Onboarding, qui démonte tout le sous-arbre suivi. Si un changement
   // de profil en place était un jour ajouté, il faudrait ici un render-phase reset
   // (pattern syncedProfile) pour relire les pesées du nouveau profil.
   const [weights] = useState(() => getWeights(profile.id));
-  const checks = getChecks(data.meta.semaine);
 
   const actuel = poidsActuel(weights);
-  const variation = variationPoids7j(weights);
-  const jour = trouverJourDuJour(data.menu);
-  const kcal = kcalDuJour(jour, data.recettes ?? [], profile.id);
-  const seances = compteChecklist(checks, data.profiles[profile.id].seances);
-  const courses = compteChecklist(checks, data.courses);
-  const coursesRestantes = courses.total - courses.faites;
+  const variation = variationKg7j(weights);
 
   // La variation est « bonne » si elle va dans le sens de l'objectif.
   let deltaClass = 'stat-delta-neutre';
   let deltaTexte: string | null = null;
   if (actuel && variation != null) {
-    const pct = variation.toFixed(1).replace('.', ',');
+    const kg = Math.abs(variation).toFixed(1).replace('.', ',');
     const fleche = variation < 0 ? '▼' : '▲';
-    deltaTexte = `${fleche} ${variation < 0 ? '' : '+'}${pct} % vs 7 j`;
+    deltaTexte = `${fleche} ${variation < 0 ? '-' : '+'}${kg} kg`;
     if (profile.poidsObjectif != null) {
       const perte = profile.poidsObjectif < actuel.kg;
       deltaClass = (variation < 0) === perte ? 'stat-delta-bon' : 'stat-delta-alerte';
@@ -41,59 +29,22 @@ export function StatCards({ data, profile }: { data: WeeklyData; profile: UserPr
 
   return (
     <div className="stat-cards" role="list" aria-label="Résumé de mon suivi">
-      <div className="stat-card" role="listitem" aria-label="Poids">
-        <span className="stat-label">
-          <Icon name="scale" size={13} /> Poids
-        </span>
-        <span className="stat-value">
-          {actuel ? `${actuel.kg.toFixed(1).replace('.', ',')}` : '—'}
-          {actuel && <small> kg</small>}
-        </span>
-        {deltaTexte && <span className={`stat-delta ${deltaClass}`}>{deltaTexte}</span>}
-      </div>
-      <div className="stat-card" role="listitem" aria-label="Kcal du jour">
-        <span className="stat-label">
-          <Icon name="flame" size={13} /> Kcal du jour
-        </span>
-        <span className="stat-value">
-          {kcal != null ? kcal.toLocaleString('fr-FR') : '—'}
-          {kcal != null && <small> kcal</small>}
-        </span>
-        {profile.kcalObjectif != null && (
-          <span className="stat-delta stat-delta-neutre">
-            objectif {profile.kcalObjectif.toLocaleString('fr-FR')}
+      <div className="stat-card stat-card-hero" role="listitem" aria-label="Poids">
+        <div>
+          <span className="stat-label">
+            <Icon name="scale" size={13} /> Poids
+          </span>
+          <span className="stat-value">
+            {actuel ? `${actuel.kg.toFixed(1).replace('.', ',')}` : '—'}
+            {actuel && <small> kg</small>}
+          </span>
+        </div>
+        {deltaTexte && (
+          <span className={`stat-delta ${deltaClass}`}>
+            {deltaTexte}
+            <small>vs 7 jours</small>
           </span>
         )}
-      </div>
-      <div className="stat-card" role="listitem" aria-label="Séances">
-        <span className="stat-label">
-          <Icon name="check" size={13} /> Séances
-        </span>
-        <span className="stat-value">
-          {seances.faites}
-          <small>/{seances.total}</small>
-        </span>
-        <span className="stat-bar" aria-hidden="true">
-          <span
-            className="stat-bar-fill stat-bar-accent"
-            style={{ width: seances.total ? `${(seances.faites / seances.total) * 100}%` : '0%' }}
-          />
-        </span>
-      </div>
-      <div className="stat-card" role="listitem" aria-label="Courses">
-        <span className="stat-label">
-          <Icon name="cart" size={13} /> Courses
-        </span>
-        <span className="stat-value">
-          {coursesRestantes}
-          <small> restantes</small>
-        </span>
-        <span className="stat-bar" aria-hidden="true">
-          <span
-            className="stat-bar-fill stat-bar-lime"
-            style={{ width: courses.total ? `${(courses.faites / courses.total) * 100}%` : '0%' }}
-          />
-        </span>
       </div>
     </div>
   );
