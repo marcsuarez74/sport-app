@@ -951,8 +951,8 @@ progress {
   margin: 0 auto;
   padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-left)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-right));
   background:
-    radial-gradient(120% 90% at 15% 0%, rgb(255 162 87 / 0.18), transparent 55%),
-    radial-gradient(120% 90% at 85% 100%, rgb(194 230 110 / 0.16), transparent 55%),
+    radial-gradient(120% 90% at 15% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%),
+    radial-gradient(120% 90% at 85% 100%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 55%),
     var(--bg);
 }
 
@@ -1009,13 +1009,13 @@ progress {
 
 .onboarding-card-marc {
   background: linear-gradient(135deg, #3e7a46, #2e5d35);
-  box-shadow: 0 6px 18px rgb(255 162 87 / 0.35);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
   color: #ffffff;
 }
 
 .onboarding-card-melanie {
   background: linear-gradient(135deg, #f2dc7b, #d9bc4f);
-  box-shadow: 0 6px 18px rgb(194 230 110 / 0.35);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent-2) 35%, transparent);
   color: var(--text);
 }
 
