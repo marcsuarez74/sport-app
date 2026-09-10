@@ -63,7 +63,7 @@ export function ProfileView({
         <h3>Séances de la semaine</h3>
         <Checklist items={data.seances} semaine={semaine} />
       </section>
-      <section className="profile-section">
+      <section className="profile-section pesee-card">
         <h3>Suivi poids</h3>
         <form className="weight-form" onSubmit={handleSubmit}>
           <input

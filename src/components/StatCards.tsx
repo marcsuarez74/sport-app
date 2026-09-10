@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { UserProfile, WeeklyData } from '../lib/model';
 import { getChecks, getWeights } from '../lib/storage';
+import { Icon } from './Icon';
 import {
   compteChecklist,
   kcalDuJour,
@@ -41,7 +42,9 @@ export function StatCards({ data, profile }: { data: WeeklyData; profile: UserPr
   return (
     <div className="stat-cards" role="list" aria-label="Résumé de mon suivi">
       <div className="stat-card" role="listitem" aria-label="Poids">
-        <span className="stat-label">Poids</span>
+        <span className="stat-label">
+          <Icon name="scale" size={13} /> Poids
+        </span>
         <span className="stat-value">
           {actuel ? `${actuel.kg.toFixed(1).replace('.', ',')}` : '—'}
           {actuel && <small> kg</small>}
@@ -49,7 +52,9 @@ export function StatCards({ data, profile }: { data: WeeklyData; profile: UserPr
         {deltaTexte && <span className={`stat-delta ${deltaClass}`}>{deltaTexte}</span>}
       </div>
       <div className="stat-card" role="listitem" aria-label="Kcal du jour">
-        <span className="stat-label">Kcal du jour</span>
+        <span className="stat-label">
+          <Icon name="flame" size={13} /> Kcal du jour
+        </span>
         <span className="stat-value">
           {kcal != null ? kcal.toLocaleString('fr-FR') : '—'}
           {kcal != null && <small> kcal</small>}
@@ -61,7 +66,9 @@ export function StatCards({ data, profile }: { data: WeeklyData; profile: UserPr
         )}
       </div>
       <div className="stat-card" role="listitem" aria-label="Séances">
-        <span className="stat-label">Séances</span>
+        <span className="stat-label">
+          <Icon name="check" size={13} /> Séances
+        </span>
         <span className="stat-value">
           {seances.faites}
           <small>/{seances.total}</small>
@@ -74,7 +81,9 @@ export function StatCards({ data, profile }: { data: WeeklyData; profile: UserPr
         </span>
       </div>
       <div className="stat-card" role="listitem" aria-label="Courses">
-        <span className="stat-label">Courses</span>
+        <span className="stat-label">
+          <Icon name="cart" size={13} /> Courses
+        </span>
         <span className="stat-value">
           {coursesRestantes}
           <small> restantes</small>

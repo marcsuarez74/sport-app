@@ -1,5 +1,6 @@
 import type { WeekMeta } from '../lib/model';
 import { formatDayMonth } from '../lib/dates';
+import { Icon } from './Icon';
 
 export function WeekBanner({
   meta,
@@ -27,7 +28,7 @@ export function WeekBanner({
           onClick={onPrev}
           disabled={!hasPrev}
         >
-          ‹
+          <Icon name="chev-left" size={16} />
         </button>
       )}
       <div className="week-banner-main">
@@ -48,7 +49,7 @@ export function WeekBanner({
           onClick={onNext}
           disabled={!hasNext}
         >
-          ›
+          <Icon name="chev-right" size={16} />
         </button>
       )}
       {onOpenProfile && (
