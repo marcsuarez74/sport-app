@@ -25,7 +25,7 @@ au moment de choisir la prochaine itération.
 
 ## 1. Design & identité visuelle
 
-→ **Traité par la spec « Herbes »** (chantier 1, en attente d'implémentation) :
+→ **Livré** (chantier 1, thème « Herbes ») :
 `docs/superpowers/specs/2026-09-09-refonte-herbes-design.md` — thème clair
 sauge/basilic/citron, respiration, icônes SVG maison, nav segmented + swipe.
 Ressenti initial noté pour mémoire :
@@ -39,7 +39,7 @@ Ressenti initial noté pour mémoire :
 ## 2. Onboarding enrichi (process au chargement de l'app)
 
 → **L'essentiel est traité par la spec « Maison & courses »** (chantier 3, maquette
-validée) : `docs/superpowers/specs/2026-09-09-maison-courses-design.md` — magasin,
+validée, à implémenter) : `docs/superpowers/specs/2026-09-09-maison-courses-design.md` — magasin,
 budget (estimé menu / payé réel / max hebdo), dépenses réelles (historique +
 comparatif par magasin), préférences (types de plats), personnes/repas par jour,
 onboarding 5e étape, « Copier les paramètres IA ». Noté pour mémoire :
@@ -59,7 +59,7 @@ onboarding 5e étape, « Copier les paramètres IA ». Noté pour mémoire :
 
 ## 3. Profil & objectifs
 
-→ **Traité par la spec « Profil & objectifs »** (chantier 2, maquette validée) :
+→ **Livré** (chantier 2, profil v2) :
 `docs/superpowers/specs/2026-09-09-profil-objectifs-design.md` — profil v2
 (date de naissance, objectif 4 types + échéance, compléments, régime),
 onboarding 4 étapes avec migration préremplie, bloc Objectif dans le suivi,
@@ -77,7 +77,7 @@ stat-cards réduites à Poids. Noté pour mémoire :
 
 ## 4. Onglet Cuisine
 
-→ **L'essentiel est traité par la spec « Herbes »** (chantier 1, cf. axe 1) :
+→ **Livré** (chantier 1, cf. axe 1) :
 bannière rituel + mode magasin (courses), **menu v2 « réserve de recettes »**
 (fin du jour imposé, coche « c'est fait », portions réelles par profil, recette
 sur chaque carte), mode guidé batch + textes de conservation. Reste à penser
