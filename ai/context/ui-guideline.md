@@ -46,7 +46,7 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 - **Présentatifs et minces** : props descendantes, la logique reste dans `src/lib/`
 - **Classes sémantiques** (`.menu-card`, `.checklist`, `.done`) — pas de classes utilitaires, pas de style inline (exception : `style` dimensionnel sur les barres des StatCards)
-- **Resynchronisation par prop** : pattern render-phase reset (`syncedSemaine`/`syncedProfile`) — voir `Checklist.tsx`. Interdit : `useEffect` de sync, `key` imposé au consommateur. **Une exception documentée** : `key={weightsBump}` sur `ObjectifBloc` et `StatCards` dans `App.tsx` (relisent les pesées au remount après une pesée ajoutée)
+- **Resynchronisation par prop** : pattern render-phase reset (`syncedSemaine`/`syncedProfile`) — voir `Checklist.tsx`. Interdit : `useEffect` de sync, `key` imposé au consommateur. **Une exception documentée** : keys dérivées de `weightsBump` (`key={`obj-${weightsBump}`}` sur `ObjectifBloc`, `key={weightsBump}` sur `StatCards`) dans `App.tsx` (relisent les pesées au remount après une pesée ajoutée)
 - **Rétrocompatibilité des props** : un composant existant ne change de signature qu'en ajoutant des props optionnelles (ex. `onChecksChange?` de Checklist)
 
 ## Formulaires
