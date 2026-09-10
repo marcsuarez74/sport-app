@@ -1,5 +1,5 @@
-import type { UserProfile, WeeklyData } from '../src/lib/model';
-import { addWeight, getChecks, getWeights, loadProfile, loadProfilLegacy, loadWeek, loadWeeks, removeProfile, saveProfile, saveWeek, setCheck, upsertWeek, type WeightEntry } from '../src/lib/storage';
+import type { DepenseEntry, UserProfile, WeeklyData } from '../src/lib/model';
+import { addWeight, deleteDepense, getChecks, getDepenses, getWeights, loadProfile, loadProfilLegacy, loadWeek, loadWeeks, removeProfile, saveDepense, saveProfile, saveWeek, setCheck, upsertWeek, type WeightEntry } from '../src/lib/storage';
 import { todayKey } from '../src/lib/dates';
 
 const week = (): WeeklyData => ({
@@ -466,6 +466,139 @@ describe('storage: multi-semaines', () => {
     const semaines = loadWeeks();
     expect(Object.keys(semaines)).toEqual(['2026-S40']);
     expect(warnSpy).toHaveBeenCalledWith('Semaine corrompue ignorée : 2026-S38');
+    warnSpy.mockRestore();
+  });
+});
+
+describe('storage: dépenses', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('getDepenses retourne [] silencieusement quand la clé est absente (no warn, no remove)', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(getDepenses()).toEqual([]);
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(localStorage.getItem('sportapp:depenses')).toBeNull();
+    warnSpy.mockRestore();
+  });
+
+  it('saveDepense persiste et getDepenses relit', () => {
+    saveDepense('2026-09-09', 'Lidl', 38.2);
+    expect(getDepenses()).toEqual<DepenseEntry[]>([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+  });
+
+  it('saveDepense upsert : remplace la même paire (date, magasin) — casse du magasin ignorée', () => {
+    saveDepense('2026-09-09', 'Lidl', 38.2);
+    saveDepense('2026-09-09', 'lidl', 41.5);
+    expect(getDepenses()).toEqual<DepenseEntry[]>([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    saveDepense('2026-09-09', 'Lidl', 39.9);
+    expect(getDepenses()).toEqual<DepenseEntry[]>([{ date: '2026-09-09', magasin: 'Lidl', total: 39.9 }]);
+  });
+
+  it('deux magasins le même jour = deux entrées, triées par date desc', () => {
+    saveDepense('2026-09-02', 'Lidl', 35.1);
+    saveDepense('2026-09-09', 'Intermarché', 41.3);
+    saveDepense('2026-09-09', 'Lidl', 38.2);
+    expect(getDepenses()).toEqual<DepenseEntry[]>([
+      { date: '2026-09-09', magasin: 'Lidl', total: 38.2 },
+      { date: '2026-09-09', magasin: 'Intermarché', total: 41.3 },
+      { date: '2026-09-02', magasin: 'Lidl', total: 35.1 },
+    ]);
+  });
+
+  it('deleteDepense retire la ligne (casse ignorée)', () => {
+    saveDepense('2026-09-09', 'Lidl', 38.2);
+    saveDepense('2026-09-02', 'Lidl', 35.1);
+    deleteDepense('2026-09-09', 'lidl');
+    expect(getDepenses()).toEqual<DepenseEntry[]>([{ date: '2026-09-02', magasin: 'Lidl', total: 35.1 }]);
+  });
+
+  it('rejette les entrées illégales et garde les valides (warn par entrée)', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem(
+      'sportapp:depenses',
+      JSON.stringify([
+        { date: '2026-09-09', magasin: 'Lidl', total: 38.2 },
+        { date: 'invalide', magasin: 'X', total: 5 },
+        { date: '2026-09-02', magasin: '  ', total: 10 },
+        { date: '2026-09-01', magasin: 'Aldi', total: -3 },
+      ]),
+    );
+    expect(getDepenses()).toEqual<DepenseEntry[]>([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('clé entière corrompue → warn + remove + []', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem('sportapp:depenses', '{pas du json');
+    expect(getDepenses()).toEqual([]);
+    expect(localStorage.getItem('sportapp:depenses')).toBeNull();
+    warnSpy.mockRestore();
+  });
+
+  it('clé non-tableau → warn + remove + []', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    localStorage.setItem('sportapp:depenses', JSON.stringify({ oops: true }));
+    expect(getDepenses()).toEqual([]);
+    expect(localStorage.getItem('sportapp:depenses')).toBeNull();
+    warnSpy.mockRestore();
+  });
+});
+
+describe('storage: profil — champs maison & courses', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const base: UserProfile = {
+    id: 'marc',
+    dateNaissance: '1985-04-12',
+    taille: 178,
+    objectif: { type: 'maintien' },
+    complements: [],
+    regime: 'aucun',
+  };
+
+  it('roundtrip avec les champs maison remplis', () => {
+    const p: UserProfile = {
+      ...base,
+      magasin: 'Lidl',
+      budgetMax: 40,
+      preferences: ['Healthy', 'Petit budget'],
+      personnes: 4,
+      repasJour: 3,
+    };
+    saveProfile(p);
+    expect(loadProfile()).toEqual(p);
+  });
+
+  it('saveProfile dédoublonne et normalise preferences (casse/accents ignorés) et trim magasin', () => {
+    saveProfile({ ...base, magasin: '  Lidl  ', preferences: ['Healthy', 'healthy', '  HEALTHY '] });
+    expect(loadProfile()).toEqual({ ...base, magasin: 'Lidl', preferences: ['Healthy'] });
+  });
+
+  it('loadProfile ignore un champ optionnel illégal sans invalider le profil', () => {
+    saveProfile({ ...base, budgetMax: 40 });
+    // réécrit la clé en injectant des champs illégaux
+    const raw = JSON.parse(localStorage.getItem('sportapp:profile')!);
+    localStorage.setItem(
+      'sportapp:profile',
+      JSON.stringify({ ...raw, budgetMax: 'beaucoup', personnes: 0, magasin: 42 }),
+    );
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(loadProfile()).toEqual(base);
+    warnSpy.mockRestore();
+  });
+
+  it('loadProfile reste strict sur les champs requis', () => {
+    saveProfile({ ...base, budgetMax: 40 });
+    const raw = JSON.parse(localStorage.getItem('sportapp:profile')!);
+    localStorage.setItem('sportapp:profile', JSON.stringify({ ...raw, dateNaissance: 1985 }));
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(loadProfile()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBeNull();
     warnSpy.mockRestore();
   });
 });
