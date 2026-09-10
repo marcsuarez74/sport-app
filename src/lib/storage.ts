@@ -1,4 +1,4 @@
-import type { ImportedWeek, ProfileKey, UserProfile, WeeklyData } from './model';
+import type { ImportedWeek, ProfileKey, ProfilLegacy, UserProfile, WeeklyData } from './model';
 
 const WEEK_KEY = 'sportapp:week';
 const WEEKS_KEY = 'sportapp:weeks';
@@ -163,4 +163,28 @@ export const loadProfile = (): UserProfile | null => {
     return null;
   }
   return parsed as unknown as UserProfile;
+};
+
+// Ancienne forme du profil ({age}) — lecture read-only pour préremplir
+// l'onboarding de migration. Pas de warn ni de remove : la clé est écrasée
+// par le saveProfile v2, pas avant.
+export const loadProfilLegacy = (): ProfilLegacy | null => {
+  const raw = localStorage.getItem(PROFILE_KEY);
+  if (raw === null) return null;
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+  const optionalNum = (v: unknown): boolean => v === undefined || isNum(v);
+  const ok =
+    isPlainObject(parsed) &&
+    (parsed.id === 'marc' || parsed.id === 'melanie') &&
+    isNum(parsed.age) &&
+    isNum(parsed.taille) &&
+    optionalNum(parsed.poidsObjectif) &&
+    optionalNum(parsed.kcalObjectif);
+  return ok ? (parsed as unknown as ProfilLegacy) : null;
 };

@@ -1,5 +1,5 @@
 import type { WeeklyData } from '../src/lib/model';
-import { addWeight, getChecks, getWeights, loadProfile, loadWeek, loadWeeks, removeProfile, saveProfile, saveWeek, setCheck, upsertWeek, type WeightEntry } from '../src/lib/storage';
+import { addWeight, getChecks, getWeights, loadProfile, loadProfilLegacy, loadWeek, loadWeeks, removeProfile, saveProfile, saveWeek, setCheck, upsertWeek, type WeightEntry } from '../src/lib/storage';
 import { todayKey } from '../src/lib/dates';
 
 const week = (): WeeklyData => ({
@@ -284,6 +284,66 @@ describe('storage: profil corrompu', () => {
     localStorage.setItem('sportapp:profile', 'null');
     expect(loadProfile()).toBeNull();
     expect(localStorage.getItem('sportapp:profile')).toBeNull();
+  });
+});
+
+describe('storage: loadProfilLegacy (ancienne forme age)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('lit l ancienne forme {id, age, taille}', () => {
+    localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'marc', age: 41, taille: 178 }));
+    expect(loadProfilLegacy()).toEqual({ id: 'marc', age: 41, taille: 178 });
+  });
+
+  it('lit les objectifs optionnels de l ancienne forme', () => {
+    localStorage.setItem(
+      'sportapp:profile',
+      JSON.stringify({ id: 'melanie', age: 38, taille: 165, poidsObjectif: 62, kcalObjectif: 1450 }),
+    );
+    expect(loadProfilLegacy()).toEqual({
+      id: 'melanie',
+      age: 38,
+      taille: 165,
+      poidsObjectif: 62,
+      kcalObjectif: 1450,
+    });
+  });
+
+  it('retourne null sur la nouvelle forme v2 (pas un legacy)', () => {
+    localStorage.setItem(
+      'sportapp:profile',
+      JSON.stringify({
+        id: 'marc',
+        dateNaissance: '1985-04-12',
+        taille: 178,
+        objectif: { type: 'perte' },
+        complements: [],
+        regime: 'aucun',
+      }),
+    );
+    expect(loadProfilLegacy()).toBeNull();
+  });
+
+  it('retourne null si absent ou corrompu (silencieux, clé conservée)', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(loadProfilLegacy()).toBeNull();
+    localStorage.setItem('sportapp:profile', '{oops');
+    expect(loadProfilLegacy()).toBeNull();
+    expect(localStorage.getItem('sportapp:profile')).toBe('{oops');
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('ne touche pas à la clé (migration à l enregistrement, pas à la lecture)', () => {
+    localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'marc', age: 41, taille: 178 }));
+    loadProfilLegacy();
+    expect(JSON.parse(localStorage.getItem('sportapp:profile')!)).toEqual({
+      id: 'marc',
+      age: 41,
+      taille: 178,
+    });
   });
 });
 
