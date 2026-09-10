@@ -1886,6 +1886,17 @@ progress {
   cursor: pointer;
 }
 
+.profil-ghost {
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  width: 100%;
+  min-height: 48px;
+  font: 600 13px Poppins, sans-serif;
+  cursor: pointer;
+}
+
 .profil-switch:active {
   transform: scale(0.97);
 }

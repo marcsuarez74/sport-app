@@ -262,7 +262,7 @@ describe('ProfilScreen (unité)', () => {
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText('Ajouter un complément'), 'whey');
-    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+    await user.click(within(section('Compléments')).getByRole('button', { name: /Ajouter/ }));
 
     expect(within(section('Compléments')).getByRole('alert')).toHaveTextContent(/déjà sélectionné/i);
     expect(within(section('Mes infos')).queryByRole('alert')).not.toBeInTheDocument();
@@ -294,7 +294,7 @@ describe('ProfilScreen (unité)', () => {
 
     expect(screen.getByRole('button', { name: /Whey/ })).toBeInTheDocument();
     await user.type(screen.getByLabelText('Ajouter un complément'), 'Zinc');
-    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+    await user.click(within(section('Compléments')).getByRole('button', { name: /Ajouter/ }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer les compléments' }));
 
     expect(loadProfile()).toMatchObject({ complements: ['Whey', 'Zinc'] });
@@ -314,6 +314,143 @@ describe('ProfilScreen (unité)', () => {
     await user.click(screen.getByRole('button', { name: 'Enregistrer le régime' }));
 
     expect(loadProfile()).toMatchObject({ regime: 'vegetarien' });
+  });
+});
+
+describe('ProfilScreen — Maison & courses', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('préremplit les champs depuis le profil et propose le datalist magasins', () => {
+    render(
+      <ProfilScreen
+        profile={{
+          ...profileMarc,
+          magasin: 'Lidl',
+          budgetMax: 40,
+          preferences: ['Healthy', 'Rapide'],
+          personnes: 4,
+          repasJour: 3,
+        }}
+        onBack={() => {}}
+        onChangeProfile={() => {}}
+        onImported={() => {}}
+      />,
+    );
+
+    const maison = section('Maison & courses');
+    expect(screen.getByLabelText('Magasin habituel')).toHaveValue('Lidl');
+    expect(screen.getByLabelText('Magasin habituel')).toHaveAttribute('list', 'pf-magasins');
+    // inputs texte (+ inputMode) : jest-dom renvoie la valeur sous forme de chaîne.
+    expect(screen.getByLabelText('Budget max courses / semaine (€)')).toHaveValue('40');
+    expect(screen.getByLabelText('Personnes à table')).toHaveValue('4');
+    expect(screen.getByLabelText('Repas par jour')).toHaveValue('3');
+    expect(within(maison).getByRole('button', { name: /Retirer Healthy/ })).toBeInTheDocument();
+    expect(within(maison).getByRole('button', { name: /Retirer Rapide/ })).toBeInTheDocument();
+  });
+
+  it('enregistre la section (validation incluse)', async () => {
+    const user = userEvent.setup();
+    render(
+      <ProfilScreen profile={profileMarc} onBack={() => {}} onChangeProfile={() => {}} onImported={() => {}} />,
+    );
+    const maison = section('Maison & courses');
+
+    await user.type(screen.getByLabelText('Magasin habituel'), 'Lidl');
+    await user.type(screen.getByLabelText('Budget max courses / semaine (€)'), '40');
+    await user.click(within(maison).getByRole('button', { name: /Ajouter/ })); // sans saisir → no-op
+    await user.type(screen.getByLabelText('Ajouter une préférence'), 'Batch-friendly');
+    await user.click(within(maison).getByRole('button', { name: /Ajouter/ }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer maison & courses' }));
+
+    expect(loadProfile()).toEqual(
+      expect.objectContaining({ magasin: 'Lidl', budgetMax: 40, preferences: ['Batch-friendly'] }),
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(/Enregistré/);
+  });
+
+  it('refuse un budget max invalide (erreur rendue dans la section)', async () => {
+    const user = userEvent.setup();
+    render(
+      <ProfilScreen profile={profileMarc} onBack={() => {}} onChangeProfile={() => {}} onImported={() => {}} />,
+    );
+
+    await user.type(screen.getByLabelText('Budget max courses / semaine (€)'), '0');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer maison & courses' }));
+
+    expect(within(section('Maison & courses')).getByRole('alert')).toHaveTextContent(/Budget max invalide/i);
+    expect(within(section('Mes infos')).queryByRole('alert')).not.toBeInTheDocument();
+    expect(loadProfile()).toBeNull();
+  });
+
+  it('vider les champs et enregistrer retire les données maison du profil', async () => {
+    const user = userEvent.setup();
+    render(
+      <ProfilScreen
+        profile={{
+          ...profileMarc,
+          magasin: 'Lidl',
+          budgetMax: 40,
+          preferences: ['Healthy'],
+          personnes: 4,
+          repasJour: 3,
+        }}
+        onBack={() => {}}
+        onChangeProfile={() => {}}
+        onImported={() => {}}
+      />,
+    );
+
+    await user.clear(screen.getByLabelText('Magasin habituel'));
+    await user.clear(screen.getByLabelText('Budget max courses / semaine (€)'));
+    await user.clear(screen.getByLabelText('Personnes à table'));
+    await user.clear(screen.getByLabelText('Repas par jour'));
+    await user.click(screen.getByRole('button', { name: /Retirer Healthy/ }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer maison & courses' }));
+
+    expect(loadProfile()).toEqual(profileMarc);
+  });
+});
+
+describe('ProfilScreen — Génération IA', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'clipboard');
+  });
+
+  it('est masqué quand aucune donnée maison n est renseignée', () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={() => {}} onChangeProfile={() => {}} onImported={() => {}} />,
+    );
+
+    expect(screen.queryByRole('button', { name: /Copier les paramètres IA/ })).not.toBeInTheDocument();
+  });
+
+  it('copie le bloc paramètres avec confirmation', async () => {
+    const user = userEvent.setup();
+    // user-event réinstalle le clipboard natif au setup() : le mock se pose APRÈS.
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    render(
+      <ProfilScreen
+        profile={{ ...profileMarc, magasin: 'Lidl', budgetMax: 40, personnes: 4, repasJour: 3, regime: 'keto' }}
+        onBack={() => {}}
+        onChangeProfile={() => {}}
+        onImported={() => {}}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Copier les paramètres IA/ }));
+    // formatEuro insère une espace insécable (U+00A0) avant € — cf. lib/prix.test.ts.
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      [
+        '- Magasin : Lidl',
+        '- Budget courses / semaine : 40,00\u00a0€',
+        '- Personnes à table : 4 · 3 repas/jour',
+        '- Régime : keto',
+      ].join('\n'),
+    );
+    expect(screen.getByText(/Paramètres copiés/)).toBeInTheDocument();
   });
 });
 

@@ -1,14 +1,34 @@
 import { useState } from 'react';
-import { OBJECTIF_TYPES, PRENOMS, REGIMES, normaliseComplement } from '../lib/model';
+import { MAGASINS_PRESETS, OBJECTIF_TYPES, PRENOMS, REGIMES, normaliseComplement } from '../lib/model';
 import type { ObjectifType, Regime, UserProfile } from '../lib/model';
+import { formatEuro, parseEuro } from '../lib/prix';
 import { ageDepuis, todayISO } from '../lib/dates';
 import { saveProfile } from '../lib/storage';
 import { ImportButton } from './ImportButton';
 import { Icon } from './Icon';
 
-type Section = 'infos' | 'objectif' | 'complements' | 'regime';
-type SectionAvecErreur = 'infos' | 'objectif' | 'complements';
+type Section = 'infos' | 'objectif' | 'complements' | 'regime' | 'maison';
+type SectionAvecErreur = 'infos' | 'objectif' | 'complements' | 'maison';
 type Erreur = { section: SectionAvecErreur; texte: string };
+
+// Bloc « Paramètres » recopié dans le prompt de génération de cycle.
+// Une ligne par donnée présente ; régime omis si aucun ; null si rien.
+const paramsIaTexte = (p: UserProfile): string | null => {
+  const lignes: string[] = [];
+  if (p.magasin) lignes.push(`- Magasin : ${p.magasin}`);
+  if (p.budgetMax != null) lignes.push(`- Budget courses / semaine : ${formatEuro(p.budgetMax)}`);
+  if (p.personnes != null || p.repasJour != null) {
+    const parties: string[] = [];
+    if (p.personnes != null) parties.push(`${p.personnes}`);
+    if (p.repasJour != null) parties.push(`${p.repasJour} repas/jour`);
+    lignes.push(`- Personnes à table : ${parties.join(' · ')}`);
+  }
+  if (p.preferences && p.preferences.length > 0) {
+    lignes.push(`- Préférences : ${p.preferences.map((x) => x.toLowerCase()).join(', ')}`);
+  }
+  if (p.regime !== 'aucun') lignes.push(`- Régime : ${p.regime}`);
+  return lignes.length > 0 ? lignes.join('\n') : null;
+};
 
 export function ProfilScreen({
   profile,
@@ -33,6 +53,13 @@ export function ProfilScreen({
   const [complements, setComplements] = useState<string[]>([...profile.complements]);
   const [nouveauComplement, setNouveauComplement] = useState('');
   const [regime, setRegime] = useState<Regime>(profile.regime);
+  const [magasin, setMagasin] = useState(profile.magasin ?? '');
+  const [budgetMax, setBudgetMax] = useState(profile.budgetMax != null ? String(profile.budgetMax) : '');
+  const [personnes, setPersonnes] = useState(profile.personnes != null ? String(profile.personnes) : '');
+  const [repasJour, setRepasJour] = useState(profile.repasJour != null ? String(profile.repasJour) : '');
+  const [preferences, setPreferences] = useState<string[]>([...(profile.preferences ?? [])]);
+  const [nouvellePreference, setNouvellePreference] = useState('');
+  const [copie, setCopie] = useState(false);
   const [savedSection, setSavedSection] = useState<Section | null>(null);
   const [erreur, setErreur] = useState<Erreur | null>(null);
 
@@ -90,6 +117,67 @@ export function ProfilScreen({
   };
 
   const enregistrerRegime = () => maj('regime', { ...profile, regime });
+
+  const enregistrerMaison = () => {
+    const bud = budgetMax ? parseEuro(budgetMax) : undefined;
+    if (bud !== undefined && (bud === null || bud > 10000)) {
+      setErreur({ section: 'maison', texte: 'Budget max invalide : entre un montant en euros (ex. 40).' });
+      return;
+    }
+    const pers = personnes ? Number.parseInt(personnes, 10) : undefined;
+    if (personnes && (pers === undefined || pers < 1 || pers > 12)) {
+      setErreur({ section: 'maison', texte: 'Personnes à table : entre 1 et 12.' });
+      return;
+    }
+    const repas = repasJour ? Number.parseInt(repasJour, 10) : undefined;
+    if (repasJour && (repas === undefined || repas < 1 || repas > 12)) {
+      setErreur({ section: 'maison', texte: 'Repas par jour : entre 1 et 12.' });
+      return;
+    }
+    clearErreur('maison');
+    // Clés maison reconstruites : un champ vidé retire la donnée (pattern
+    // delete + set de enregistrerObjectif) — jamais de valeur vide écrite.
+    const updated: UserProfile = { ...profile };
+    delete updated.magasin;
+    delete updated.budgetMax;
+    delete updated.preferences;
+    delete updated.personnes;
+    delete updated.repasJour;
+    if (magasin.trim()) updated.magasin = magasin.trim();
+    if (bud != null) updated.budgetMax = bud;
+    if (preferences.length > 0) updated.preferences = [...preferences];
+    if (pers != null) updated.personnes = pers;
+    if (repas != null) updated.repasJour = repas;
+    maj('maison', updated);
+  };
+
+  const ajouterPreference = () => {
+    const v = nouvellePreference.trim().slice(0, 40);
+    if (!v) return;
+    if (preferences.some((p) => normaliseComplement(p) === normaliseComplement(v))) {
+      setErreur({ section: 'maison', texte: 'Cette préférence est déjà sélectionnée.' });
+      return;
+    }
+    clearErreur('maison');
+    setPreferences([...preferences, v]);
+    setNouvellePreference('');
+  };
+
+  const copierParametres = async () => {
+    const texte = paramsIaTexte(profile);
+    if (!texte) return;
+    try {
+      await navigator.clipboard.writeText(texte);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = texte;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    setCopie(true);
+  };
 
   const ajouterComplement = () => {
     const v = nouveauComplement.trim().slice(0, 40);
@@ -296,6 +384,128 @@ export function ProfilScreen({
           Enregistrer le régime
         </button>
         {fil('regime')}
+      </section>
+
+      <section className="profile-section">
+        <h3>Maison &amp; courses</h3>
+        <div className="onboarding-field">
+          <label htmlFor="pf-magasin">Magasin habituel</label>
+          <input
+            id="pf-magasin"
+            list="pf-magasins"
+            placeholder="Lidl, Intermarché…"
+            value={magasin}
+            onChange={(e) => {
+              setSavedSection(null);
+              clearErreur('maison');
+              setMagasin(e.target.value);
+            }}
+          />
+          <datalist id="pf-magasins">
+            {MAGASINS_PRESETS.map((m) => (
+              <option key={m} value={m} />
+            ))}
+          </datalist>
+        </div>
+        <div className="onboarding-field">
+          <label htmlFor="pf-budget">Budget max courses / semaine (€)</label>
+          <input
+            id="pf-budget"
+            inputMode="decimal"
+            value={budgetMax}
+            onChange={(e) => {
+              setSavedSection(null);
+              clearErreur('maison');
+              setBudgetMax(e.target.value);
+            }}
+          />
+        </div>
+        <div className="onb-row2">
+          <div className="onboarding-field">
+            <label htmlFor="pf-personnes">Personnes à table</label>
+            <input
+              id="pf-personnes"
+              inputMode="numeric"
+              value={personnes}
+              onChange={(e) => {
+                setSavedSection(null);
+                clearErreur('maison');
+                setPersonnes(e.target.value);
+              }}
+            />
+          </div>
+          <div className="onboarding-field">
+            <label htmlFor="pf-repas">Repas par jour</label>
+            <input
+              id="pf-repas"
+              inputMode="numeric"
+              value={repasJour}
+              onChange={(e) => {
+                setSavedSection(null);
+                clearErreur('maison');
+                setRepasJour(e.target.value);
+              }}
+            />
+          </div>
+        </div>
+        <div className="chips">
+          {preferences.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className="chip"
+              onClick={() => {
+                setSavedSection(null);
+                setPreferences(preferences.filter((x) => x !== p));
+              }}
+            >
+              {p}
+              <span className="rm" aria-hidden="true">
+                ✕
+              </span>
+              <span className="sr-only">{`Retirer ${p}`}</span>
+            </button>
+          ))}
+        </div>
+        <div className="addrow">
+          <input
+            value={nouvellePreference}
+            maxLength={40}
+            placeholder="Ajouter une préférence…"
+            aria-label="Ajouter une préférence"
+            onChange={(e) => {
+              clearErreur('maison');
+              setNouvellePreference(e.target.value);
+            }}
+          />
+          <button type="button" onClick={ajouterPreference}>
+            <Icon name="plus" size={13} /> Ajouter
+          </button>
+        </div>
+        <button type="button" className="btn profil-save" onClick={enregistrerMaison}>
+          Enregistrer maison &amp; courses
+        </button>
+        {alerte('maison')}
+        {fil('maison')}
+      </section>
+
+      <section className="profile-section">
+        <h3>Génération IA</h3>
+        {paramsIaTexte(profile) !== null && (
+          <>
+            <p className="onb-hint">
+              Ces réglages complètent les « Paramètres » du prompt de génération de cycle — recopie-les d'un geste.
+            </p>
+            <button type="button" className="profil-ghost" onClick={copierParametres}>
+              Copier les paramètres IA
+            </button>
+            {copie && (
+              <p className="muted" role="status">
+                Paramètres copiés ✓ — colle-les dans le prompt.
+              </p>
+            )}
+          </>
+        )}
       </section>
 
       <section className="profile-section">
