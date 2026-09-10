@@ -2,24 +2,12 @@
 
 Guide pour les agents IA travaillant sur ce repo. Règles courtes, KISS : si une règle bloque plus qu'elle n'aide, elle est probablement fausse — signalez-le plutôt que de la contourner.
 
-## Chantiers en cours — ordre d'exécution (section à retirer une fois livrés)
-
-Un chantier restant :
-
-1. **Maison & courses** — magasin, budget (estimé menu / payé réel / max), dépenses réelles avec historique et comparatif par magasin, préférences (types de plats), personnes/repas par jour, onboarding 5e étape, « Copier les paramètres IA ».
-   - Spec : `docs/superpowers/specs/2026-09-09-maison-courses-design.md`
-   - Plan : à écrire (TDD) après validation de la spec
-   - **Prérequis : chantiers 1 et 2 livrés** — la spec réutilise les tokens/icônes Herbes, `Icon.tsx`, le prop `renderLabel` de `Checklist` et le profil v2 (shape `sportapp:profile` v2).
-   - Maquette de référence **validée** : `docs/superpowers/mockups/maison-courses-v2.html`
-
-Ne pas entamer un travail UI hors de ces plans sans discussion ; à la fin de chaque chantier, mettre à jour cette section (chantier livré → le retirer).
-
 ## Le projet
 
 **Rituel** — PWA React (thème clair « Herbes ») de suivi cuisine/diet/sport pour Marc & Mélanie. 100 % front, zéro backend :
 
-- **UX personnalisée** : au premier lancement, un onboarding en **4 étapes** (profil, infos avec date de naissance, objectif 4 types + échéance, compléments & régime) — clé `sportapp:profile` ; une **migration préremplie** relance l'onboarding quand un profil de l'ancienne forme est détecté. L'app utilise un **accent unique** (basilic #3e7a46 + citron #f2dc7b, palette Herbes) — plus de teinte par profil — et n'affiche que « ce qui me concerne » + la cuisine
-- L'app affiche **2 onglets en nav segmented** sous la bannière : 🛒 Cuisine (Courses / Menu / Batch, partagé — fiches recettes dépliables, timeline rituel, encadré keto) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, changer de profil) via l'icône en haut à droite
+- **UX personnalisée** : au premier lancement, un onboarding en **5 étapes** (profil, infos avec date de naissance, objectif 4 types + échéance, compléments & régime, maison & courses) — clé `sportapp:profile` ; une **migration préremplie** relance l'onboarding quand un profil de l'ancienne forme est détecté. L'app utilise un **accent unique** (basilic #3e7a46 + citron #f2dc7b, palette Herbes) — plus de teinte par profil — et n'affiche que « ce qui me concerne » + la cuisine
+- L'app affiche **2 onglets en nav segmented** sous la bannière : 🛒 Cuisine (Courses / Menu / Batch, partagé — carte budget courses, panneau dépenses réelles, fiches recettes dépliables, timeline rituel, encadré keto) · 🎯 Mon suivi (cibles/séances/rappels/pesées du profil actif) ; écran **Profil** (infos, maison & courses, changer de profil, « Copier les paramètres IA ») via l'icône en haut à droite
 - Le contenu : une **semaine d'exemple auto-chargée** au premier lancement (fallback en mémoire, l'app est donc toujours utilisable). L'import .md est **retiré de l'UI** pour l'instant — il reviendra avec une convention « template » ; le parser `parse.ts` reste la référence du format
 - Coches + pesées persistées en **localStorage** (aucune donnée ne quitte le téléphone)
 - Déployée en PWA offline-first sur GitHub Pages : https://marcsuarez74.github.io/rituel-app/
@@ -108,7 +96,8 @@ Clés existantes — ne pas renommer (données réelles des téléphones) :
 
 - `sportapp:week` — semaine courante (raw + parsée + date d'import)
 - `sportapp:weeks` — stock multi-semaines (`{ semaines: { [id]: { raw, data, importedAt } } }`) ; l'ancienne clé `sportapp:week` est migrée à la première lecture puis laissée en place
-- `sportapp:profile` — profil actif, **shape v2** : `{ id: 'marc'|'melanie', dateNaissance: 'AAAA-MM-JJ', taille, poidsObjectif?, objectif: { type: 'perte'|'affiner'|'masse'|'maintien', echeance? }, complements: string[], regime }`. L'ancienne forme `{ id, age, taille }` est lue par `loadProfilLegacy()` (read-only) pour préremplir l'onboarding de migration, puis écrasée au save
+- `sportapp:profile` — profil actif, **shape v2.1** : `{ id: 'marc'|'melanie', dateNaissance: 'AAAA-MM-JJ', taille, poidsObjectif?, objectif: { type: 'perte'|'affiner'|'masse'|'maintien', echeance? }, complements: string[], regime, magasin?, budgetMax?, preferences?: string[], personnes?, repasJour? }`. L'ancienne forme `{ id, age, taille }` est lue par `loadProfilLegacy()` (read-only) pour préremplir l'onboarding de migration, puis écrasée au save
+- `sportapp:depenses` — dépenses réelles de courses (`[{ date, magasin, total }]`, trié par date desc, upsert par (date, magasin))
 - `sportapp:checks:{semaine}` — coches par semaine
 - `sportapp:weights:{marc|melanie}` — pesées par profil
 

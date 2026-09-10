@@ -23,6 +23,9 @@ async function assertPasDeDebordement(page: import('@playwright/test').Page) {
 
 test.describe('Onglets Cuisine v2 — mobile', () => {
   // Profil seul suffit : la semaine d'exemple se charge automatiquement (fallback mémoire).
+  // Profil étendu maison (magasin + budget max) + une dépense seedée le 2026-09-09
+  // (dans la semaine d'exemple S37, 2026-09-07 → 2026-09-13) → la carte budget
+  // affiche « Payé cette semaine : 38,20 € ».
   test.use({
     storageState: {
       cookies: [],
@@ -39,7 +42,13 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
                 objectif: { type: 'perte', echeance: '2026-12-15' },
                 complements: [],
                 regime: 'aucun',
+                magasin: 'Lidl',
+                budgetMax: 40,
               }),
+            },
+            {
+              name: 'sportapp:depenses',
+              value: JSON.stringify([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]),
             },
           ],
         },
@@ -99,6 +108,31 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await page.locator('.mm').click();
     await expect(page.getByRole('button', { name: /Tout revoir/ })).toBeVisible();
     await page.locator('.mm').click();
+  });
+
+  test('carte budget + saisie d une dépense → historique', async ({ page }) => {
+    await page.goto(ORIGIN);
+
+    await expect(page.getByText('Budget courses')).toBeVisible();
+    await expect(page.getByText('38,20 €')).toBeVisible();
+
+    await page.getByRole('button', { name: /Total payé/ }).click();
+    await expect(page.getByRole('heading', { name: /Mes dépenses réelles/ })).toBeVisible();
+    await page.getByLabel('Total (€)').fill('35,10');
+    await page.getByLabel('Magasin').fill('Carrefour');
+    await page.getByRole('button', { name: /Enregistrer/ }).click();
+    await expect(page.getByText('Enregistré ✓')).toBeVisible();
+    // Deux magasins → deux lignes, aucun upsert croisé (même si la date du jour
+    // coïncide avec le seed) :
+    await expect(page.locator('.dep')).toHaveCount(2);
+    await page.getByRole('button', { name: /Retour/ }).first().click();
+    // De retour sur la carte, le payé additionne les deux sessions de la semaine.
+    await expect(page.getByText('73,30 €')).toBeVisible();
+
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
   });
 
   test('batch : timeline du rituel (5 étapes) et carrousel micro-batch', async ({ page }) => {

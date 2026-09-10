@@ -38,8 +38,8 @@ Ressenti initial noté pour mémoire :
 
 ## 2. Onboarding enrichi (process au chargement de l'app)
 
-→ **L'essentiel est traité par la spec « Maison & courses »** (chantier 3, maquette
-validée, à implémenter) : `docs/superpowers/specs/2026-09-09-maison-courses-design.md` — magasin,
+→ **Livré** (chantier 3, profil v2.1) :
+`docs/superpowers/specs/2026-09-09-maison-courses-design.md` — magasin,
 budget (estimé menu / payé réel / max hebdo), dépenses réelles (historique +
 comparatif par magasin), préférences (types de plats), personnes/repas par jour,
 onboarding 5e étape, « Copier les paramètres IA ». Noté pour mémoire :
@@ -54,6 +54,10 @@ onboarding 5e étape, « Copier les paramètres IA ». Noté pour mémoire :
   comparé au payé réel ; le par repas reste à penser)
 - **Nombre de repas** par jour et **nombre de personnes** à table — traité
   (paramètres IA seuls)
+- **Polish à arbitrer** (retour d'usage) : le budget estimé est affiché en
+  double (cellule « Estimé menu » de la carte Budget courses + suffixe
+  « ≈ X € estimés. » de la bannière rituel du chantier 1) — à arbitrer si
+  retour utilisateur
 - **Partie « Objectif »** → **traitée par la spec Profil & objectifs**
   (chantier 2)
 

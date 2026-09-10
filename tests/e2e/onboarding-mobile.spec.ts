@@ -53,6 +53,8 @@ test.describe('Onboarding 5 étapes — mobile', () => {
 
     await expect(page.getByRole('heading', { name: /Maison & courses/ })).toBeVisible();
     await assertPasDeDebordement(page);
+    await page.getByLabel('Magasin habituel').fill('Lidl');
+    await page.getByLabel('Budget max courses / semaine').fill('40');
     await page.getByRole('button', { name: /C'est parti/ }).click();
 
     // Profil enregistré + semaine d'exemple auto-chargée → shell direct
@@ -65,6 +67,8 @@ test.describe('Onboarding 5 étapes — mobile', () => {
       objectif: { type: 'affiner' },
       complements: ['Créatine'],
       regime: 'keto',
+      magasin: 'Lidl',
+      budgetMax: 40,
     });
   });
 

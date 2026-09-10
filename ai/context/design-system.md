@@ -66,11 +66,12 @@ Rayons dérivés : boutons et cartes compactes `12px`, pills `999px` (`.menu-pil
 
 | Classe | Rôle | Points clés |
 |---|---|---|
-| `.onboarding` | premier lancement (4 étapes) + migration préremplie | fond halos radiaux basilic/citron, full-dvh, safe-areas ; note migration `.onb-note` (fond citron 32 %) + `.mig-prof` (profil ancien détecté) |
-| `.onboarding-dots` / `.onboarding-dot-active` | progression 4 étapes | pill 12→22px, active = `--accent` |
+| `.onboarding` | premier lancement (5 étapes) + migration préremplie | fond halos radiaux basilic/citron, full-dvh, safe-areas ; note migration `.onb-note` (fond citron 32 %) + `.mig-prof` (profil ancien détecté) |
+| `.onboarding-dots` / `.onboarding-dot-active` | progression 5 étapes | pill 12→22px, active = `--accent` |
 | `.onboarding-card-marc` / `-melanie` | choix du profil | dégradés 135deg (basilic `#3e7a46`→`#2e5d35` texte blanc ; citron `#f2dc7b`→`#d9bc4f` texte encre) + glow coloré, émoji 38px, prénom 19px/700, active `scale(0.97)` |
-| `.onboarding-cta` (+ `.onb-full`) | CTA final « C'est parti ! 🚀 » (étape 4) | fond `--accent`, texte blanc, 48px, glow, pleine largeur |
-| `.onb-btnrow` / `.onb-next` / `.onb-back` | navigation entre les étapes 2-4 | row flex ; next = pill basilic (flex: 1) texte blanc 48px ; back = ghost bordure `--border` 48px — ≥ 48px partout |
+| `.onboarding-cta` (+ `.onb-full`) | CTA final « C'est parti ! 🚀 » (étape 5) | fond `--accent`, texte blanc, 48px, glow, pleine largeur |
+| `.onb-btnrow` / `.onb-next` / `.onb-back` | navigation entre les étapes 2-5 (retour seul à l'étape 5) | row flex ; next = pill basilic (flex: 1) texte blanc 48px ; back = ghost bordure `--border` 48px — ≥ 48px partout |
+| `.onb-label` / `.onb-hint` / `.onb-row2` | étiquette de bloc, hint muted et row 2 champs (personnes / repas par jour — onboarding étape 5 et Profil) | label 12px/700 uppercase muted ; row2 = flex, chaque champ `flex: 1` + `min-width: 0` |
 | `.profil-back` | navigation retour écran Profil | ghost, ≥ 48px (encre 14px/600) |
 | `.btn` | action principale | fond `--accent`, texte blanc, 700, min-height 48 px, active `scale(0.97)` |
 | `.rcards` / `.rcard` (+ `.rcard-t` `.rcard-d` `.sel`) | cartes radio 2 colonnes (objectif 4 types) | grid 1fr 1fr gap 9px, ≥ 48px, radius 14px ; sélection = bordure basilic + fond accent 8 % + inset ring, titre basilic |
@@ -86,9 +87,13 @@ Rayons dérivés : boutons et cartes compactes `12px`, pills `999px` (`.menu-pil
 | `.rayon-cnt` | compteur d'items d'un rayon | muted 13px/700, collé à droite (`margin-left: auto`) |
 | `.item-rituel` / `.item-note` | marqueurs d'item course | `· rituel` basilic (icône pot 12px, items destinés au batch) ; note fraîcheur 12px mix muted |
 | `.mm` | Mode magasin (Courses) | pill 48px bordure `--border`, `aria-pressed` ; actif = plein `--accent` texte blanc ; masque les items cochés, bouton « Tout revoir » |
+| `.bud` (+ `.bud-head` `.mag` `.bud-grid` `.bud-cell` `.bud-foot` `.bud-bar` `.bud-pct` `.bud-actions`) | carte « Budget courses » au-dessus de la liste (onglet Courses) | surface + radius tokens ; pill magasin citron 60 % (texte encre) ; grid 3 cellules (estimé menu / payé cette semaine / budget max, `.cols2` si pas de max) ; barre + pourcentage — dépassement = `.alerte` (`--danger`) ; actions = `.bsoft` « Total payé » + `.blink` « Voir mes dépenses réelles » ; carte absente si aucune donnée budget |
+| `.bsoft` / `.blink` | boutons sobres des écrans maison & courses (le gros basilic reste réservé au CTA onboarding et aux « Enregistrer » du Profil) | `.bsoft` = pill bordure accent 35 %, texte basilic, 40px ; `.blink` = lien basilic sans bordure |
+| `.dep-panel` (+ `.dep-head` `.dep-back` `.dep-form` `.dep-sec-label` `.dep-sum` `.dep-list` `.dep-hint`) | panneau « Mes dépenses réelles » (écran poussé de l'onglet Courses) | retour muted en tête, h1 20px ; form `.dep-form` (frow 3 colonnes date/magasin/total, total tabulaire aligné droite — frow passe en 1 colonne empilée < 360px), actions « Annuler » + `.bgo` basilic 38px ; résumé « Par magasin » = grid 2 cartes (total + moyenne tabulaires) ; historique = lignes date/magasin/total + suppression ✕ 32px |
 | `.keto-box` / `.keto-title` | encadré keto de Mélanie (rayon `### Keto`) | fond `--accent-2` 12% + bordure 45% (`color-mix`), titre encre 15px/700 (icône leaf basilic) — affiché en dernier |
 | `.profile-icon-btn` | accès écran Profil | 48px, surface-2, icône SVG person `currentColor` |
 | `.profil-screen` / `.profil-switch` | écran Profil | sections `.profile-section` ; switch = bordure `--danger` (action sensible) |
+| `.profil-ghost` | bouton secondaire du Profil (« Copier les paramètres IA ») | ghost bordure `--border`, pill pleine largeur 48px, texte encre |
 | `.greeting` | accueil personnalisé Mon suivi | muted, 14px/700 |
 | `.obj-bloc` (+ `.obj-pills` `.obj-pill-type` `.obj-pill-reg` `.obj-echeance` `.obj-prog` `.obj-kg` `.obj-bar` `.obj-comps` `.cchip`) | bloc objectif en tête de Mon suivi | surface + radius ; pill type basilic texte blanc, pill régime citron 60 % (texte encre), échéance `.late` = `--danger`, barre progression `--accent` sur `--surface-2`, compléments `.cchip` surface-2 sous filet pointillé |
 | `.checklist` + `.done` | listes cochables | label min-height 48 px, checkbox 22 px `accent-color: --accent` ; done = barré + muted |

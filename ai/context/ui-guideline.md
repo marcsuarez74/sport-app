@@ -19,17 +19,19 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 ## Onboarding (premier lancement)
 
-- 4 étapes obligatoires, lancées si `sportapp:profile` absent **ou en ancienne forme** (→ **migration préremplie**) ; style « grand écart fun » : dégradés saturés, émojis géants, **points de progression** en haut, boutons `.onb-back`/`.onb-next` à partir de l'étape 2
+- 5 étapes obligatoires, lancées si `sportapp:profile` absent **ou en ancienne forme** (→ **migration préremplie**) ; style « grand écart fun » : dégradés saturés, émojis géants, **points de progression** en haut, boutons `.onb-back`/`.onb-next` à partir de l'étape 2
 - Étape 1 : deux grandes cartes profil (💪 Marc basilic / 🌿 Mélanie citron, tagline « Diet & sport » / « Keto & sport »)
 - Étape 2 (infos) : « Salut {prénom} 👋 » + **date de naissance** (l'âge s'affiche calculé) + poids/taille avec bornes (30–250 kg, âge calculé 10–100 ans, 120–230 cm), erreur inline `role="alert"` ; en migration, note `.onb-note` + `.mig-prof`, étape 2 directe, seule la date à compléter
 - Étape 3 (objectif) : 4 cartes radio `.rcard` (Perte / Affiner / Masse / Maintien) + échéance (date optionnelle) + poids objectif — **pas de kcal/jour**
-- Étape 4 (compléments & régime) : chips presets + ajout libre (`.chips`/`.addrow`), radios `.rl` régime ; CTA final « C'est parti ! 🚀 »
-- Submit = `saveProfile` (shape v2) + première pesée datée du jour ; pas de bouton « passer » (l'app est inutilisable sans profil — c'est voulu)
+- Étape 4 (compléments & régime) : chips presets + ajout libre (`.chips`/`.addrow`), radios `.rl` régime ; bouton « Continuer »
+- Étape 5 (maison & courses) : magasin habituel (datalist presets), budget max hebdo, foyer (`.onb-row2` personnes / repas par jour), préférences de plats (chips + libre) — **tout optionnel** ; CTA final « C'est parti ! 🚀 »
+- Submit = `saveProfile` (shape v2.1) + première pesée datée du jour ; pas de bouton « passer » (l'app est inutilisable sans profil — c'est voulu)
 - Accent unique Herbes partout : basilic = action/valeur principale, citron = surbrillance (jamais une couleur de texte)
 
 ## Écran Profil
 
-- 4 sections éditables séparément : **Mes infos** (date de naissance/taille, âge calculé), **Objectif** (cartes radio + échéance + poids objectif), **Compléments** (chips presets + libre), **Régime** (radios) — enregistrement **par section**, feedback « enregistrées ✓ » en `role="status"` ; une erreur est rendue **dans sa section**
+- 5 sections éditables séparément : **Mes infos** (date de naissance/taille, âge calculé), **Objectif** (cartes radio + échéance + poids objectif), **Compléments** (chips presets + libre), **Régime** (radios), **Maison & courses** (magasin datalist, budget max, foyer `.onb-row2`, préférences — mêmes champs que l'onboarding, un champ vidé retire la donnée) — enregistrement **par section**, feedback « enregistrées ✓ » en `role="status"` ; une erreur est rendue **dans sa section**
+- **Génération IA** : bouton `.profil-ghost` « Copier les paramètres IA » (clipboard + fallback execCommand, confirmation « Paramètres copiés ✓ ») — **masqué si aucun champ maison** (magasin, budget, personnes/repas, préférences) : le régime seul ne justifie pas le bloc ; toute édition maison efface la confirmation (paramètres périmés)
 - **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
 - Après changement : retour à l'onboarding (le sous-arbre suivi est démonté, les données restent en storage)
 
@@ -40,6 +42,8 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 - **Fiches recettes dépliables** : état local par carte (plusieurs ouvertes possibles), `aria-expanded` sur le bouton ET sur les chips de bases
 - **Tags de profil** : chaque repas porte un tag coloré (Marc / Mé / Famille / Batch) — jamais la couleur seule comme information
 - **Courses** : compteurs d'items par rayon (`.rayon-cnt`) et encadré keto dédié en dernier — le rayon `Keto` n'est pas un rayon comme les autres
+- **Budget courses** (`.bud`) : carte au-dessus de la liste — estimé menu vs payé réel de la semaine (`sportapp:depenses`, dates dans [du..au]) vs budget max ; barre + alerte de dépassement ; visible seulement si une donnée budget existe ; « Total payé » ouvre le panneau avec focus total
+- **Panneau « Mes dépenses réelles »** : écran poussé de l'onglet Courses (pas de nav segmented) — saisie (upsert par (date, magasin), date non future, total > 0), résumé « Par magasin » (casse ignorée, première graphie conservée), historique trié date desc avec suppression directe ✕
 - **Batch** : rituel = timeline cochable (lignes ≥ 48px, coche barrée comme les checklists), micro-batch = carrousel horizontal (`overflow-x: auto` interne, scrollbar masquée — scroll natif du navigateur, jamais de carrousel JS)
 
 ## Composants — conventions
