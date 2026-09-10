@@ -6,7 +6,7 @@ Design rules:
 
 Project constraints (Rituel — override any generic habit):
 
-- dark mode ONLY, no light theme, no prefers-color-scheme logic
+- light Herbes theme ONLY (sage/basilic/citron), no dark mode, no prefers-color-scheme logic
 - plain CSS in a single file (src/index.css), semantic classes — NO Tailwind, no CSS-in-JS
 - tokens live as CSS variables on :root — map every color/spacing/radius to var(--token)
 - touch targets >= 48px, contrast >= 4.5:1 ("ultra visible" is a product requirement)
@@ -26,7 +26,7 @@ Spacing:
 Colors:
 
 - map colors to semantic CSS variables (see ai/context/design-system.md)
-- avoid raw hex values in components (dark text #272932 on light accent fills is the one accepted literal, per design-system.md)
+- avoid raw hex values in components (white #ffffff on basilic fills, ink #26312b on citron fills are the accepted literals, per design-system.md)
 
 Typography:
 

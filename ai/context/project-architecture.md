@@ -17,7 +17,7 @@ Déployée sur GitHub Pages : https://marcsuarez74.github.io/rituel-app/
 | Langage | TypeScript strict (mode strict complet) | 5.9 |
 | Tests | Vitest + Testing Library (happy-dom) | 5.x |
 | PWA | vite-plugin-pwa (Workbox, autoUpdate) | 1.x |
-| Styling | CSS pur, un seul fichier `src/index.css`, **dark mode only** | — |
+| Styling | CSS pur, un seul fichier `src/index.css`, **thème clair Herbes** | — |
 | Frontmatter .md | js-yaml | 5.x |
 | Lint | ESLint 9 (flat config) + typescript-eslint + react-hooks | 9.x |
 
@@ -39,7 +39,7 @@ src/
 │   └── dates.ts          # Jours FR, todayKey, todayISO, formatage DD/MM
 ├── components/
 │   ├── WeekBanner.tsx    # Bannière semaine (h1, pill Menu, dates FR) + icône profil
-│   ├── TabBar.tsx        # Dock flottant 2 onglets (Cuisine / Mon suivi), export type TabId
+│   ├── TabBar.tsx        # Nav segmented 2 onglets (Cuisine / Mon suivi), export type TabId
 │   ├── ProfilScreen.tsx  # Écran poussé : infos perso + objectifs + changer de profil
 │   ├── Checklist.tsx     # Checklists persistées par semaine (pattern réutilisable)
 │   ├── StatCards.tsx     # 4 cartes résumé Mon suivi (poids, kcal du jour, séances, courses)
@@ -47,9 +47,9 @@ src/
 │   ├── ProfileView.tsx   # Vue générique Marc/Mélanie (cibles, séances, poids, rappels)
 │   └── cuisine/          # Onglet Cuisine
 │       ├── CuisineView.tsx   # Sous-onglets Courses / Menu / Batch
-│       ├── ShoppingList.tsx  # Courses par rayon (miniature, compteurs) + encadré keto en dernier
-│       ├── MenuView.tsx      # Menu réordonné (jour courant en tête, jours passés en fin)
-│       │                     # + fiches recettes dépliables (RecetteCard, accordéon)
+│       ├── ShoppingList.tsx  # Courses par rayon (miniature, compteurs, mode magasin) + encadré keto en dernier
+│       ├── MenuView.tsx      # Menu v2 : réserve de recettes en cartes (coche, portions, fraîcheur)
+│       │                     # + détail recette dépliable
 │       └── BatchView.tsx     # Checklist batch + rituel dimanche (timeline) + micro-batch (carrousel)
 ├── assets/
 │   ├── semaine-exemple.md    # SEMAINE D'EXEMPLE auto-chargée = référence du contrat de format

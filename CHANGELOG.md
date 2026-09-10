@@ -6,6 +6,21 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr-FR/1.1.0/) et le
 
 ## [Non publié]
 
+### Ajouté
+
+- Icônes SVG maison (`Icon.tsx`), bannière « Pensées pour le rituel » + budget, note de fraîcheur et marqueur batch sur les items, Mode magasin, bannière « Ce soir », mode guidé « Lancer le batch », swipe Cuisine ↔ Mon suivi, portions par profil + indice de fraîcheur des recettes
+
+### Modifié
+
+- Thème clair « Herbes » (sauge/basilic/citron) — le dark mode est retiré
+- Navigation segmented sous la bannière (le dock flottant disparaît)
+- Menu : réserve de recettes en cartes (coche « c'est fait », plus aucun jour imposé)
+- Format .md v2 (rétrocompatible) : `- budget:`, suffixes ` · rituel` / ` | note`, `fraicheur:`, `- portions marc/melanie:`
+
+### Retiré
+
+- Dock flottant, thème sombre, badge « Aujourd'hui » du menu
+
 ## [1.0.0] - 2026-09-09
 
 Première version étiquetée — état de l'app après le redesign Nutrigo et le renommage en Rituel.
