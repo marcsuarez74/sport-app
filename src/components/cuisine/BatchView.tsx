@@ -16,6 +16,13 @@ export function BatchView({
 }) {
   const [mode, setMode] = useState<'apercu' | 'run' | 'fini'>('apercu');
   const [idx, setIdx] = useState(0);
+  // Garde anti-crash : BatchView reste montée au changement de semaine (chevrons) ;
+  // si le rituel raccourcit sous l'étape en cours, le run n'est plus valide → aperçu.
+  // Garde différentielle (ne re-tire que si l'état diffère) et muette au premier montage.
+  if (mode === 'run' && !(rituel && idx < rituel.length)) {
+    setMode('apercu');
+    setIdx(0);
+  }
   const hasRituel = !!rituel?.length;
   const hasMicro = !!microBatch?.length;
   const ceSoir = microBatch?.find((m) => m.jour === todayKey());
@@ -42,7 +49,7 @@ export function BatchView({
           }}
         />
       )}
-      {hasRituel && rituel && mode === 'run' && (
+      {hasRituel && rituel && mode === 'run' && idx < rituel.length && (
         <section className="batch-section batch-guide" aria-live="polite">
           <div className="guide-etape-num">
             Étape {idx + 1}/{rituel.length} · {rituel[idx].creneau}

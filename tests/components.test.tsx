@@ -652,6 +652,20 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     expect(screen.getAllByRole('checkbox').every((c) => !(c as HTMLInputElement).checked)).toBe(true);
   });
 
+  it('garde anti-crash : rituel plus court pendant un run → retour aperçu (render-phase reset)', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<BatchView rituel={RITUEL} microBatch={[]} semaine="2026-S39" />);
+    await user.click(screen.getByRole('button', { name: /Lancer le batch/ }));
+    await user.click(screen.getByRole('button', { name: 'Étape terminée →' }));
+    await user.click(screen.getByRole('button', { name: 'Étape terminée →' }));
+    await user.click(screen.getByRole('button', { name: 'Étape terminée →' }));
+    expect(document.querySelector('.guide-etape-num')).toHaveTextContent('Étape 4/5');
+    // changement de semaine : le nouveau rituel n'a qu'une étape (idx 3 hors bornes)
+    rerender(<BatchView rituel={[RITUEL[0]]} microBatch={[]} semaine="2026-S40" />);
+    expect(screen.getByRole('button', { name: /Lancer le batch/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Étape /)).not.toBeInTheDocument();
+  });
+
   it('sans rituel ni micro-batch : message muted seul', () => {
     const { container } = render(<BatchView semaine="2026-S39" />);
     expect(screen.getByText('Aucun batch prévu cette semaine.')).toBeInTheDocument();
