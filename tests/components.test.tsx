@@ -22,6 +22,7 @@ import { BatchView } from '../src/components/cuisine/BatchView';
 import { CuisineView } from '../src/components/cuisine/CuisineView';
 import { ProfileView } from '../src/components/ProfileView';
 import { WeekBanner } from '../src/components/WeekBanner';
+import { Icon } from '../src/components/Icon';
 
 const items: ChecklistItem[] = [
   { id: 'repas-a', label: 'Préparer les repas' },
@@ -1152,5 +1153,36 @@ describe('ImportButton', () => {
     );
     expect(loadWeeks()['2026-S38'].raw).not.toBe('ancien');
     vi.unstubAllGlobals();
+  });
+});
+
+describe('Icon', () => {
+  const NAMES = [
+    'cart', 'target', 'chev', 'chev-left', 'chev-right', 'pot', 'scale', 'moon',
+    'box', 'snow', 'fish', 'leaf', 'wheat', 'bowl', 'meat', 'check', 'clock',
+    'flame', 'drop', 'play',
+  ] as const;
+
+  it('rend un svg 24×24 stroke currentColor à la taille demandée', () => {
+    render(<Icon name="cart" size={15} />);
+    const svg = document.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg).toHaveAttribute('viewBox', '0 0 24 24');
+    expect(svg).toHaveAttribute('width', '15');
+    expect(svg).toHaveAttribute('stroke', 'currentColor');
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('accepte un strokeWidth custom (check géant)', () => {
+    render(<Icon name="check" size={24} strokeWidth={2.5} />);
+    expect(document.querySelector('svg')).toHaveAttribute('stroke-width', '2.5');
+  });
+
+  it('couvre les 20 noms du design system sans crash', () => {
+    for (const name of NAMES) {
+      const { unmount } = render(<Icon name={name} />);
+      expect(document.querySelector('svg')).not.toBeNull();
+      unmount();
+    }
   });
 });
