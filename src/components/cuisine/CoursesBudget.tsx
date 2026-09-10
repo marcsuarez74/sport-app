@@ -110,8 +110,8 @@ export function DepensesPanel({
       setError('Total invalide : entre un montant supérieur à 0.');
       return;
     }
-    if (date > todayISO()) {
-      setError('La date ne peut pas être dans le futur.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > todayISO()) {
+      setError('La date doit être valide et non future.');
       return;
     }
     if (!magasin.trim()) {
@@ -119,8 +119,24 @@ export function DepensesPanel({
       return;
     }
     setError(null);
-    setSaved(true);
-    setDepenses(saveDepense(date, magasin, t));
+    const maj = saveDepense(date, magasin, t);
+    // saveDepense renvoie la liste inchangée quand l'upsert est ignoré
+    // (première graphie gagne) — getDepenses repart du storage, donc pas
+    // d'égalité de référence : on compare le contenu.
+    const ignoree =
+      maj.length === depenses.length &&
+      maj.every(
+        (d, i) =>
+          d.date === depenses[i].date &&
+          d.magasin === depenses[i].magasin &&
+          d.total === depenses[i].total,
+      );
+    if (ignoree) {
+      setError('Cette session existe déjà sous une autre graphie de magasin — total inchangé.');
+    } else {
+      setSaved(true);
+    }
+    setDepenses(maj);
     setTotal('');
   };
 

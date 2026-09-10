@@ -2352,16 +2352,15 @@ progress {
   border-radius: 8px;
   flex-shrink: 0;
 }
-.dep-hint {
-  margin-top: 12px;
-}
-
 /* Classe générique des hints (maquette maison-courses-v2 : petit texte muted) */
 .hint {
   font-size: 11px;
   color: var(--muted);
   margin-top: 5px;
   line-height: 1.4;
+}
+.dep-hint {
+  margin-top: 12px;
 }
 
 @media (max-width: 360px) {

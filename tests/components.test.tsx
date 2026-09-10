@@ -1306,6 +1306,10 @@ describe('DepensesPanel — saisie, par magasin, historique', () => {
     localStorage.clear();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const rendrePanel = (profile = profileV2('marc', { magasin: 'Lidl' }), focusTotal = false) =>
     render(<DepensesPanel profile={profile} focusTotal={focusTotal} onRetour={() => {}} />);
 
@@ -1315,7 +1319,6 @@ describe('DepensesPanel — saisie, par magasin, historique', () => {
 
     expect(screen.getByLabelText('Date')).toHaveValue('2026-09-09');
     expect(screen.getByLabelText('Magasin')).toHaveValue('Lidl');
-    vi.useRealTimers();
   });
 
   it('enregistre une dépense (virgule acceptée) et la montre dans l historique', async () => {
@@ -1353,6 +1356,20 @@ describe('DepensesPanel — saisie, par magasin, historique', () => {
     expect(getDepenses()).toEqual([]);
   });
 
+  it('refuse une date vide (rien n est sauvé)', async () => {
+    const user = userEvent.setup();
+    rendrePanel();
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Date'), { target: { value: '' } });
+    });
+    await user.type(screen.getByLabelText('Total (€)'), '38,20');
+    await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/date/i);
+    expect(getDepenses()).toEqual([]);
+  });
+
   it('upsert : ressaisir la même paire (date, magasin) remplace le total', async () => {
     seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
     const user = userEvent.setup();
@@ -1371,6 +1388,25 @@ describe('DepensesPanel — saisie, par magasin, historique', () => {
     await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
 
     expect(getDepenses()).toEqual([{ date: '2026-09-09', magasin: 'Lidl', total: 40 }]);
+  });
+
+  it('prévient (sans succès) quand la re-saisie est ignorée pour une autre graphie', async () => {
+    seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    const user = userEvent.setup();
+    rendrePanel();
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-09-09' } });
+    });
+    await user.clear(screen.getByLabelText('Magasin'));
+    await user.type(screen.getByLabelText('Magasin'), 'lidl');
+    await user.clear(screen.getByLabelText('Total (€)'));
+    await user.type(screen.getByLabelText('Total (€)'), '41,5');
+    await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/graphie/i);
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(getDepenses()).toEqual([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
   });
 
   it('regroupe par magasin (casse ignorée) avec total et moyenne', () => {
