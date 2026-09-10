@@ -30,7 +30,9 @@ export function CuisineView({ data }: { data: WeeklyData }) {
           </button>
         ))}
       </nav>
-      {tab === 'courses' && <ShoppingList items={data.courses} semaine={semaine} />}
+      {tab === 'courses' && (
+        <ShoppingList items={data.courses} semaine={semaine} budget={data.budget} />
+      )}
       {tab === 'menu' && (
         <MenuView menu={data.menu} recettes={data.recettes} bases={data.bases} />
       )}

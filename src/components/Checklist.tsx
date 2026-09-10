@@ -1,15 +1,18 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import type { ChecklistItem } from '../lib/model';
 import { getChecks, setCheck } from '../lib/storage';
 
-export function Checklist({
+export function Checklist<T extends ChecklistItem>({
   items,
   semaine,
   onChecksChange,
+  renderLabel,
 }: {
-  items: ChecklistItem[];
+  items: T[];
   semaine: string;
   onChecksChange?: (checks: Record<string, boolean>) => void;
+  renderLabel?: (item: T) => ReactNode;
 }) {
   const [checks, setChecks] = useState<Record<string, boolean>>(() => getChecks(semaine));
   const [syncedSemaine, setSyncedSemaine] = useState(semaine);
@@ -30,7 +33,7 @@ export function Checklist({
         <li key={it.id}>
           <label className={checks[it.id] ? 'done' : ''}>
             <input type="checkbox" checked={!!checks[it.id]} onChange={() => toggle(it)} />
-            <span>{it.label}</span>
+            {renderLabel ? renderLabel(it) : <span>{it.label}</span>}
           </label>
         </li>
       ))}

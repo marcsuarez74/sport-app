@@ -352,6 +352,48 @@ describe('ShoppingList', () => {
     expect(avocats).not.toBeChecked();
     expect(getChecks('2026-S39')).toEqual({ 'courses:keto:avocats': false });
   });
+
+  it('affiche la bannière rituel avec le budget de la semaine', () => {
+    render(<ShoppingList items={courseItems} semaine="2026-S37" budget="≈ 35 €" />);
+    const ban = document.querySelector('.batch-banner');
+    expect(ban).not.toBeNull();
+    expect(ban).toHaveTextContent(/Pensées pour le rituel/);
+    expect(ban).toHaveTextContent('≈ 35 €');
+  });
+
+  it('n’affiche pas de budget quand la semaine n’en a pas', () => {
+    render(<ShoppingList items={courseItems} semaine="2026-S37" />);
+    const ban = document.querySelector('.batch-banner');
+    expect(ban).toHaveTextContent(/Pensées pour le rituel/);
+    expect(ban?.textContent).not.toContain('€');
+  });
+
+  it('affiche le marqueur rituel et la note sur les items concernés', () => {
+    const itemsMarques = [
+      { id: 'courses:p:poulet', rayon: 'proteines', label: 'Poulet — 1 kg', rituel: true },
+      {
+        id: 'courses:p:saumon',
+        rayon: 'proteines',
+        label: 'Pavés de saumon — 2',
+        note: 'poisson frais : vendredi, pas avant',
+      },
+    ];
+    render(<ShoppingList items={itemsMarques} semaine="2026-S37" />);
+    expect(document.querySelector('.item-rituel')).toHaveTextContent('rituel');
+    expect(document.querySelector('.item-note')).toHaveTextContent('poisson frais : vendredi, pas avant');
+  });
+
+  it('Mode magasin masque les items cochés ; Tout revoir les remontre', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingList items={courseItems} semaine="2026-S37" />);
+    await user.click(screen.getAllByRole('checkbox')[0]!);
+    const cochesAvant = screen.getAllByRole('checkbox').filter((c) => (c as HTMLInputElement).checked);
+    expect(cochesAvant.length).toBe(1);
+    await user.click(screen.getByRole('button', { name: /Mode magasin/ }));
+    expect(screen.getAllByRole('checkbox').every((c) => !(c as HTMLInputElement).checked)).toBe(true);
+    await user.click(screen.getByRole('button', { name: /Tout revoir/ }));
+    expect(screen.getAllByRole('checkbox').length).toBe(courseItems.length);
+  });
 });
 
 const menuFixture: MenuDay[] = [

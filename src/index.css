@@ -386,6 +386,82 @@ p {
   color: var(--accent-2);
 }
 
+/* ---------- Bannière rituel (Courses + Batch « Ce soir ») ---------- */
+
+.batch-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+.batch-banner b {
+  font-weight: 700;
+}
+.bb-ic {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  color: var(--accent);
+}
+.batch-banner.ce-soir .bb-ic {
+  background: color-mix(in srgb, var(--accent-2) 30%, var(--surface));
+  color: var(--text);
+}
+
+/* ---------- Marqueurs item course ---------- */
+
+.course-label {
+  display: block;
+}
+.item-rituel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 6px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.item-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Mode magasin ---------- */
+
+.mm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  min-height: 36px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mm[aria-pressed='true'] {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
 /* ---------- Boutons ---------- */
 
 button {
@@ -446,6 +522,10 @@ input[type='checkbox'] {
 /* ---------- Progression ---------- */
 
 .progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
   color: var(--muted);
   font-weight: 700;
