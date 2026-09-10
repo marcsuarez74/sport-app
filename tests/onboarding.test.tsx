@@ -182,6 +182,16 @@ describe('Onboarding — navigation clavier (Entrée = Continuer)', () => {
 
     expect(screen.getByRole('heading', { name: /Personnalisation/ })).toBeInTheDocument();
   });
+
+  it('Entrée à l étape 4 avance à l étape 5 (form submit → aller(5)), sans enregistrer', async () => {
+    const user = await allerEtape4();
+    await user.type(screen.getByLabelText('Ajouter un complément'), 'Zinc');
+    soumettre();
+
+    expect(screen.getByRole('heading', { name: /Maison & courses/ })).toBeInTheDocument();
+    expect(onDone).not.toHaveBeenCalled();
+    expect(loadProfile()).toBeNull();
+  });
 });
 
 describe('Onboarding — étape 4 (compléments et régime)', () => {
@@ -216,6 +226,7 @@ describe('Onboarding — étape 4 (compléments et régime)', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent(/déjà sélectionné/i);
     await user.clear(screen.getByLabelText('Ajouter un complément'));
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
     soumettre();
     await waitFor(() =>
       expect(onDone).toHaveBeenCalledWith(
@@ -229,7 +240,7 @@ describe('Onboarding — étape 5 (maison & courses)', () => {
   it('affiche les champs maison avec le datalist magasins', async () => {
     await allerEtape5();
 
-    expect(screen.getByLabelText('Magasin habituel')).toHaveAttribute('list');
+    expect(screen.getByLabelText('Magasin habituel')).toHaveAttribute('list', 'ob-magasins');
     // <option value="…"/> n'a pas de texte : on vérifie les valeurs du datalist.
     const valeurs = [...document.querySelectorAll('#ob-magasins option')].map((o) =>
       o.getAttribute('value'),
@@ -359,6 +370,7 @@ describe('Onboarding — migration (prefill ancienne forme)', () => {
     saisirDate('Date de naissance', '1985-04-12');
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
     soumettre();
 
     await waitFor(() =>
@@ -378,6 +390,7 @@ describe('Onboarding — migration (prefill ancienne forme)', () => {
     const user = userEvent.setup();
     render(<Onboarding onDone={onDone} prefill={legacy} />);
     saisirDate('Date de naissance', '1985-04-12');
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
     soumettre();

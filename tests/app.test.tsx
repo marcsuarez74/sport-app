@@ -310,6 +310,7 @@ describe('Onboarding v2 — persistance via App', () => {
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
     await user.click(screen.getByRole('button', { name: 'Créatine' }));
     await user.click(screen.getByRole('radio', { name: 'Keto' }));
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
     // happy-dom ne soumet pas le form au clic du bouton (convention repo : fireEvent.submit)
     fireEvent.submit(document.querySelector('.onboarding-form')!);
 
@@ -345,6 +346,7 @@ describe('Migration profil v1 → v2', () => {
     const user = userEvent.setup();
     render(<App />);
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1987-03-02' } });
+    await user.click(screen.getByRole('button', { name: /Continuer/ }));
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
     await user.click(screen.getByRole('button', { name: /Continuer/ }));
     fireEvent.submit(document.querySelector('.onboarding-form')!);

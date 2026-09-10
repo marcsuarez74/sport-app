@@ -270,6 +270,7 @@ export function Onboarding({
             e.preventDefault();
             if (step === 2) continuerInfos();
             else if (step === 3) continuerObjectif();
+            else if (step === 4) aller(5);
             else valider();
           }}
         >
@@ -635,7 +636,7 @@ export function Onboarding({
                   );
                 })}
                 {preferences
-                  .filter((p) => !PREFERENCES_PRESETS.some((preset) => preset === p))
+                  .filter((p) => !PREFERENCES_PRESETS.some((preset) => normaliseComplement(preset) === normaliseComplement(p)))
                   .map((p) => (
                     <button
                       key={p}
