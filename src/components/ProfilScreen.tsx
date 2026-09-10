@@ -13,6 +13,7 @@ type Erreur = { section: SectionAvecErreur; texte: string };
 
 // Bloc « Paramètres » recopié dans le prompt de génération de cycle.
 // Une ligne par donnée présente ; régime omis si aucun ; null si rien.
+// Le régime seul ne justifie pas le bloc : au moins un champ maison requis.
 const paramsIaTexte = (p: UserProfile): string | null => {
   const lignes: string[] = [];
   if (p.magasin) lignes.push(`- Magasin : ${p.magasin}`);
@@ -26,8 +27,9 @@ const paramsIaTexte = (p: UserProfile): string | null => {
   if (p.preferences && p.preferences.length > 0) {
     lignes.push(`- Préférences : ${p.preferences.map((x) => x.toLowerCase()).join(', ')}`);
   }
+  if (lignes.length === 0) return null;
   if (p.regime !== 'aucun') lignes.push(`- Régime : ${p.regime}`);
-  return lignes.length > 0 ? lignes.join('\n') : null;
+  return lignes.join('\n');
 };
 
 export function ProfilScreen({
@@ -159,6 +161,7 @@ export function ProfilScreen({
       return;
     }
     clearErreur('maison');
+    setCopie(false);
     setPreferences([...preferences, v]);
     setNouvellePreference('');
   };
@@ -397,6 +400,7 @@ export function ProfilScreen({
             value={magasin}
             onChange={(e) => {
               setSavedSection(null);
+              setCopie(false);
               clearErreur('maison');
               setMagasin(e.target.value);
             }}
@@ -415,6 +419,7 @@ export function ProfilScreen({
             value={budgetMax}
             onChange={(e) => {
               setSavedSection(null);
+              setCopie(false);
               clearErreur('maison');
               setBudgetMax(e.target.value);
             }}
@@ -429,6 +434,7 @@ export function ProfilScreen({
               value={personnes}
               onChange={(e) => {
                 setSavedSection(null);
+                setCopie(false);
                 clearErreur('maison');
                 setPersonnes(e.target.value);
               }}
@@ -442,12 +448,14 @@ export function ProfilScreen({
               value={repasJour}
               onChange={(e) => {
                 setSavedSection(null);
+                setCopie(false);
                 clearErreur('maison');
                 setRepasJour(e.target.value);
               }}
             />
           </div>
         </div>
+        <p className="onb-label">Préférences pour les prochains cycles</p>
         <div className="chips">
           {preferences.map((p) => (
             <button
@@ -456,6 +464,7 @@ export function ProfilScreen({
               className="chip"
               onClick={() => {
                 setSavedSection(null);
+                setCopie(false);
                 setPreferences(preferences.filter((x) => x !== p));
               }}
             >
@@ -473,10 +482,11 @@ export function ProfilScreen({
             maxLength={40}
             placeholder="Ajouter une préférence…"
             aria-label="Ajouter une préférence"
-            onChange={(e) => {
-              clearErreur('maison');
-              setNouvellePreference(e.target.value);
-            }}
+          onChange={(e) => {
+            setCopie(false);
+            clearErreur('maison');
+            setNouvellePreference(e.target.value);
+          }}
           />
           <button type="button" onClick={ajouterPreference}>
             <Icon name="plus" size={13} /> Ajouter

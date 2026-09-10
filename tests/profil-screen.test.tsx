@@ -348,6 +348,8 @@ describe('ProfilScreen — Maison & courses', () => {
     expect(screen.getByLabelText('Repas par jour')).toHaveValue('3');
     expect(within(maison).getByRole('button', { name: /Retirer Healthy/ })).toBeInTheDocument();
     expect(within(maison).getByRole('button', { name: /Retirer Rapide/ })).toBeInTheDocument();
+    // Mêmes champs que l'onboarding : le bloc de chips porte le même libellé.
+    expect(within(maison).getByText('Préférences pour les prochains cycles')).toBeInTheDocument();
   });
 
   it('enregistre la section (validation incluse)', async () => {
@@ -426,6 +428,20 @@ describe('ProfilScreen — Génération IA', () => {
     expect(screen.queryByRole('button', { name: /Copier les paramètres IA/ })).not.toBeInTheDocument();
   });
 
+  it('est masqué si le régime seul est renseigné (aucun champ maison)', () => {
+    // Spec §4 : le régime seul ne justifie pas le bloc.
+    render(
+      <ProfilScreen
+        profile={{ ...profileMarc, regime: 'keto' }}
+        onBack={() => {}}
+        onChangeProfile={() => {}}
+        onImported={() => {}}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: /Copier les paramètres IA/ })).not.toBeInTheDocument();
+  });
+
   it('copie le bloc paramètres avec confirmation', async () => {
     const user = userEvent.setup();
     // user-event réinstalle le clipboard natif au setup() : le mock se pose APRÈS.
@@ -451,6 +467,28 @@ describe('ProfilScreen — Génération IA', () => {
       ].join('\n'),
     );
     expect(screen.getByText(/Paramètres copiés/)).toBeInTheDocument();
+  });
+
+  it('efface la confirmation dès qu un champ maison change (paramètres périmés)', async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    render(
+      <ProfilScreen
+        profile={{ ...profileMarc, magasin: 'Lidl', budgetMax: 40 }}
+        onBack={() => {}}
+        onChangeProfile={() => {}}
+        onImported={() => {}}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Copier les paramètres IA/ }));
+    expect(screen.getByText(/Paramètres copiés/)).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText('Magasin habituel'));
+    await user.type(screen.getByLabelText('Magasin habituel'), 'Intermarché');
+
+    expect(screen.queryByText(/Paramètres copiés/)).not.toBeInTheDocument();
   });
 });
 
