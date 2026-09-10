@@ -35,6 +35,29 @@ test.describe('Nav segmented — mobile', () => {
     await expect(page.locator('.tabbar-segmented')).toHaveAttribute('data-active', 'cuisine');
   });
 
+  // Le swipe est envoyé via page.mouse : WebKit (projets mobiles) génère bien
+  // les pointer events pointerdown/pointerup qui alimentent le handler de App.
+  // document.fonts.ready fixe le layout : sans lui, le swap de police peut
+  // amener le bouton « Mode magasin » au point de départ (300, 400) et le
+  // swipe est ignoré (le handler exclut les contrôles interactifs).
+  test('swipe horizontal bascule Cuisine ↔ Mon suivi', async ({ page }) => {
+    await page.goto(ORIGIN);
+    await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    // swipe vers la gauche → Mon suivi
+    await page.mouse.move(300, 400);
+    await page.mouse.down();
+    await page.mouse.move(100, 400, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.locator('.tabbar-segmented')).toHaveAttribute('data-active', 'suivi');
+    // swipe vers la droite → Cuisine
+    await page.mouse.move(100, 400);
+    await page.mouse.down();
+    await page.mouse.move(300, 400, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.locator('.tabbar-segmented')).toHaveAttribute('data-active', 'cuisine');
+  });
+
   test('la pilule active recouvre exactement le segment actif', async ({ page }) => {
     await page.goto(ORIGIN);
     for (const onglet of ['Mon suivi', 'Cuisine']) {

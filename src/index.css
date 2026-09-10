@@ -127,6 +127,12 @@ textarea {
   padding-right: max(16px, env(safe-area-inset-right));
 }
 
+/* Le swipe horizontal (Cuisine ↔ Suivi) est capturé par les pointer events
+   de App : le scroll vertical reste natif. */
+main {
+  touch-action: pan-y;
+}
+
 h1,
 h2,
 h3 {

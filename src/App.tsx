@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { ProfilScreen } from './components/ProfilScreen';
 import { ProfileView } from './components/ProfileView';
 import { StatCards } from './components/StatCards';
@@ -38,6 +39,29 @@ function App() {
   // weightsBump pour remonter StatCards et relire les pesées.
   const [weightsBump, setWeightsBump] = useState(0);
   const [tab, setTab] = useState<TabId>('cuisine');
+
+  // Swipe Cuisine ↔ Suivi (pointer events ; ignoré si reduced-motion ou geste
+  // démarré sur un contrôle interactif).
+  const swipeX = useRef<number | null>(null);
+  const swipeY = useRef<number | null>(null);
+  const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = e.target as HTMLElement;
+    if (t.closest('button, input, textarea, select, label, a, .micro-batch')) return;
+    swipeX.current = e.clientX;
+    swipeY.current = e.clientY;
+  };
+  const onPointerUp = (e: ReactPointerEvent<HTMLElement>) => {
+    const x0 = swipeX.current;
+    const y0 = swipeY.current;
+    swipeX.current = null;
+    swipeY.current = null;
+    if (x0 == null || y0 == null) return;
+    const dx = e.clientX - x0;
+    const dy = e.clientY - y0;
+    if (Math.abs(dx) < 80 || Math.abs(dy) > 60) return;
+    setTab(dx < 0 ? 'suivi' : 'cuisine');
+  };
 
   if (!profile) return <Onboarding onDone={setProfile} />;
 
@@ -95,7 +119,7 @@ function App() {
         hasNext={navigable && idxAffiche < semaines.length - 1}
       />
       <TabBar active={tab} onSelect={setTab} />
-      <main>
+      <main onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
         {tab === 'cuisine' && <CuisineView data={affichee.data} />}
         {tab === 'suivi' && (
           <>
