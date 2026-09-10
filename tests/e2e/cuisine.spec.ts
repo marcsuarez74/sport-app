@@ -9,6 +9,9 @@ import { expect, test } from '@playwright/test';
 // fiche recette s'y accroche. Les coches menu partent d'un storageState vierge.
 const ORIGIN = process.env.E2E_PREVIEW ? 'http://localhost:4173' : 'http://localhost:5173';
 
+// Jours en français, lundi premier (getDay() est dimanche premier → rotation).
+const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+
 const OVERFLOW_TOLERANCE = 1; // arrondis de sous-pixel
 
 async function assertPasDeDebordement(page: import('@playwright/test').Page) {
@@ -76,6 +79,16 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await expect(dernier).toHaveClass(/keto-box/);
     await expect(dernier.locator('.keto-title')).toContainText('Les extras keto de Mélanie');
     await expect(dernier.locator('.rayon-cnt')).toHaveText('0/5');
+
+    // Bannière rituel + budget (`- budget: ≈ 35 €` de la sample → « ≈ 35 € estimés. »)
+    await expect(page.locator('.batch-banner')).toContainText('Pensées pour le rituel');
+    await expect(page.locator('.batch-banner')).toContainText('≈ 35 €');
+
+    // Mode magasin : rien n'est coché dans ce test, la liste reste donc entière —
+    // on vérifie la bascule du bouton puis le retour à l'état initial.
+    await page.locator('.mm').click();
+    await expect(page.getByRole('button', { name: /Tout revoir/ })).toBeVisible();
+    await page.locator('.mm').click();
   });
 
   test('batch : timeline du rituel (5 étapes) et carrousel micro-batch', async ({ page }) => {
@@ -89,15 +102,26 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
 
     // La bannière « Ce soir » dépend du jour réel d'exécution : le micro-batch
     // de la semaine d'exemple couvre lundi, mardi et samedi.
-    const jour = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'][
-      (new Date().getDay() + 6) % 7
-    ];
-    const banniereAttendue = ['lundi', 'mardi', 'samedi'].includes(jour) ? 1 : 0;
-    await expect(page.locator('.batch-banner')).toHaveCount(banniereAttendue);
+    const jour = JOURS[(new Date().getDay() + 6) % 7];
+    const avecCeSoir = ['lundi', 'mardi', 'samedi'].includes(jour);
+    await expect(page.locator('.batch-banner')).toHaveCount(avecCeSoir ? 1 : 0);
+    if (avecCeSoir) await expect(page.locator('.batch-banner')).toContainText(new RegExp(jour, 'i'));
 
     await expect(page.locator('.micro-batch')).toBeVisible();
     await expect(page.locator('.micro-jour')).toHaveCount(3);
     await expect(page.locator('.micro-dots i')).toHaveCount(3);
+
+    // Parcours guidé : le run ne coche aucune étape — au retour à l'aperçu,
+    // la timeline retrouve ses 5 étapes dans leur état d'origine.
+    await page.getByRole('button', { name: 'Lancer le batch' }).click();
+    for (let i = 0; i < 4; i++) {
+      await page.getByRole('button', { name: 'Étape terminée →' }).click();
+    }
+    await page.getByRole('button', { name: 'Terminer le batch ✓' }).click();
+    await expect(page.getByText('Batch terminé !')).toBeVisible();
+    await page.getByRole('button', { name: "Revenir à l'aperçu" }).click();
+    await expect(page.locator('.rituel-timeline')).toBeVisible();
+    await expect(page.locator('.rituel-etape.done')).toHaveCount(0);
   });
 
   for (const largeur of [320, 375]) {
