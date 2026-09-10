@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
 import type { MicroBatchJour, RituelEtape } from '../../lib/model';
 import { getChecks, setCheck } from '../../lib/storage';
+import { todayKey } from '../../lib/dates';
 import { capitalize } from '../../lib/text';
+import { Icon } from '../Icon';
 
 export function BatchView({
   rituel,
@@ -12,12 +14,74 @@ export function BatchView({
   microBatch?: MicroBatchJour[];
   semaine: string;
 }) {
+  const [mode, setMode] = useState<'apercu' | 'run' | 'fini'>('apercu');
+  const [idx, setIdx] = useState(0);
   const hasRituel = !!rituel?.length;
   const hasMicro = !!microBatch?.length;
+  const ceSoir = microBatch?.find((m) => m.jour === todayKey());
+
   return (
     <>
-      {hasRituel && rituel && <RituelTimeline etapes={rituel} semaine={semaine} />}
-      {hasMicro && microBatch && <MicroBatch jours={microBatch} />}
+      {ceSoir && (
+        <div className="batch-banner ce-soir">
+          <span className="bb-ic">
+            <Icon name="moon" size={16} />
+          </span>
+          <span>
+            <b>Ce soir ({ceSoir.jour})</b> — {ceSoir.quoi}
+          </span>
+        </div>
+      )}
+      {hasRituel && rituel && mode === 'apercu' && (
+        <RituelTimeline
+          etapes={rituel}
+          semaine={semaine}
+          onLancer={() => {
+            setMode('run');
+            setIdx(0);
+          }}
+        />
+      )}
+      {hasRituel && rituel && mode === 'run' && (
+        <section className="batch-section batch-guide" aria-live="polite">
+          <div className="guide-etape-num">
+            Étape {idx + 1}/{rituel.length} · {rituel[idx].creneau}
+          </div>
+          <h3 className="guide-titre">{rituel[idx].label}</h3>
+          {rituel[idx].detail && <p className="guide-detail">{rituel[idx].detail}</p>}
+          <progress value={idx} max={rituel.length} aria-hidden="true" />
+          <button
+            type="button"
+            className="btn"
+            onClick={() => (idx + 1 < rituel.length ? setIdx(idx + 1) : setMode('fini'))}
+          >
+            {idx + 1 < rituel.length ? 'Étape terminée →' : 'Terminer le batch ✓'}
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              setMode('apercu');
+              setIdx(0);
+            }}
+          >
+            Revenir à l'aperçu
+          </button>
+        </section>
+      )}
+      {hasRituel && mode === 'fini' && (
+        <section className="batch-section batch-guide" aria-live="polite">
+          <span className="guide-done-ic">
+            <Icon name="check" size={28} strokeWidth={2.5} />
+          </span>
+          <h3 className="guide-titre">Batch terminé !</h3>
+          <p className="guide-detail">Tout est prêt pour la semaine.</p>
+          <button type="button" className="btn-ghost" onClick={() => setMode('apercu')}>
+            Revenir à l'aperçu
+          </button>
+        </section>
+      )}
+      {hasMicro && mode === 'apercu' && microBatch && <MicroBatch jours={microBatch} />}
       {!hasRituel && !hasMicro && <p className="muted">Aucun batch prévu cette semaine.</p>}
     </>
   );
@@ -53,7 +117,15 @@ function MicroBatch({ jours }: { jours: MicroBatchJour[] }) {
   );
 }
 
-function RituelTimeline({ etapes, semaine }: { etapes: RituelEtape[]; semaine: string }) {
+function RituelTimeline({
+  etapes,
+  semaine,
+  onLancer,
+}: {
+  etapes: RituelEtape[];
+  semaine: string;
+  onLancer: () => void;
+}) {
   const [checks, setChecks] = useState<Record<string, boolean>>(() => getChecks(semaine));
   const [syncedSemaine, setSyncedSemaine] = useState(semaine);
   if (syncedSemaine !== semaine) {
@@ -70,8 +142,13 @@ function RituelTimeline({ etapes, semaine }: { etapes: RituelEtape[]; semaine: s
     <section className="batch-section">
       <div className="batch-section-head">
         <h3>🕐 Rituel du dimanche · 45-60 min</h3>
-        <span className="rayon-cnt">
-          {done}/{etapes.length}
+        <span className="lancer-wrap">
+          <button type="button" className="lancer" onClick={onLancer}>
+            <Icon name="play" size={12} /> Lancer le batch
+          </button>
+          <span className="rayon-cnt">
+            {done}/{etapes.length}
+          </span>
         </span>
       </div>
       <ol className="rituel-timeline">

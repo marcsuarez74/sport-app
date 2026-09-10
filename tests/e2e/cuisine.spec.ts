@@ -87,7 +87,13 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await expect(page.locator('.rituel-etape')).toHaveCount(5);
     await expect(page.locator('.rituel-creneau').first()).toBeVisible();
 
-    await expect(page.locator('.batch-banner')).toHaveCount(0);
+    // La bannière « Ce soir » dépend du jour réel d'exécution : le micro-batch
+    // de la semaine d'exemple couvre lundi, mardi et samedi.
+    const jour = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'][
+      (new Date().getDay() + 6) % 7
+    ];
+    const banniereAttendue = ['lundi', 'mardi', 'samedi'].includes(jour) ? 1 : 0;
+    await expect(page.locator('.batch-banner')).toHaveCount(banniereAttendue);
 
     await expect(page.locator('.micro-batch')).toBeVisible();
     await expect(page.locator('.micro-jour')).toHaveCount(3);

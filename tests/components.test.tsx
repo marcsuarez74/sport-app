@@ -558,9 +558,13 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     localStorage.clear();
   });
 
+  // Les 5 étapes réelles de la semaine d'exemple (src/assets/semaine-exemple.md, § Rituel dimanche).
   const RITUEL = [
-    { id: 'batch:rituel:four-a-180', creneau: '0-5 min', label: 'Four à 180°', detail: 'egg muffins ×10 lancés' },
+    { id: 'batch:rituel:four-a-180', creneau: '0-5 min', label: 'Four à 180°', detail: 'egg muffins ×10 lancés, on fait le reste' },
     { id: 'batch:rituel:cuissons', creneau: '5-30 min', label: 'Cuissons en double', detail: 'dîner ×2 + féculent ×2' },
+    { id: 'batch:rituel:oeufs-durs', creneau: '30-35 min', label: 'Œufs durs ×6-8', detail: 'boxes de la semaine pour Mél' },
+    { id: 'batch:rituel:legumes', creneau: '35-50 min', label: 'Légumes + vinaigrette', detail: 'laver, couper, ranger' },
+    { id: 'batch:rituel:montage', creneau: '50-60 min', label: 'Montage des boxes', detail: 'boîte lundi Marc + 1 box keto Mél' },
   ];
   const MICRO = [
     { jour: 'lundi', quoi: 'doubler le plat' },
@@ -572,9 +576,9 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     expect(screen.getByText(/Rituel du dimanche/)).toBeInTheDocument();
     expect(screen.getByText('0-5 min')).toBeInTheDocument();
     expect(screen.getByText('Four à 180°')).toBeInTheDocument();
-    expect(screen.getByText('egg muffins ×10 lancés')).toBeInTheDocument();
-    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
-    expect(screen.getByText('0/2')).toBeInTheDocument();
+    expect(screen.getByText('egg muffins ×10 lancés, on fait le reste')).toBeInTheDocument();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
+    expect(screen.getByText('0/5')).toBeInTheDocument();
   });
 
   it('affiche le micro-batch en carrousel premium : badge jour + points de pagination', () => {
@@ -586,7 +590,7 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     expect(badge).toHaveClass('micro-jour-nom');
     expect(screen.getByText('doubler la sauce')).toBeInTheDocument();
     // seuls les étapes du rituel sont cochables
-    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
     const dots = container.querySelectorAll('.micro-dots i');
     expect(dots).toHaveLength(2);
     expect(dots[0]).toHaveClass('on');
@@ -598,11 +602,11 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     render(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
     await user.click(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' }));
     expect(getChecks('2026-S39')).toEqual({ 'batch:rituel:four-a-180': true });
-    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(screen.getByText('1/5')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' })).toBeChecked();
   });
 
-  it('affiche la timeline au-dessus du micro-batch, sans bannière ni checklist', () => {
+  it('affiche la timeline au-dessus du micro-batch, sans checklist', () => {
     const { container } = render(
       <BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />,
     );
@@ -610,9 +614,42 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     const micro = container.querySelector('.micro-batch');
     expect(timeline).not.toBeNull();
     expect(micro).not.toBeNull();
-    expect(container.querySelector('.batch-banner')).toBeNull();
     expect(container.querySelector('ul.checklist')).toBeNull();
     expect(timeline!.compareDocumentPosition(micro!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('affiche la bannière Ce soir uniquement quand le micro-batch contient aujourd’hui', () => {
+    vi.setSystemTime(new Date('2026-09-07T10:00:00')); // lundi — micro-batch lundi ✓
+    render(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
+    const ban = document.querySelector('.batch-banner.ce-soir');
+    expect(ban).toHaveTextContent('Ce soir (lundi)');
+    expect(ban).toHaveTextContent('doubler le plat');
+    vi.useRealTimers();
+  });
+
+  it('pas de bannière Ce soir les autres jours', () => {
+    vi.setSystemTime(new Date('2026-09-09T10:00:00')); // mercredi
+    render(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S39" />);
+    expect(document.querySelector('.batch-banner.ce-soir')).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it('mode guidé : Lancer le batch → étape par étape → écran terminé → retour aperçu (sans cocher)', async () => {
+    const user = userEvent.setup();
+    render(<BatchView rituel={RITUEL} microBatch={[]} semaine="2026-S39" />);
+    await user.click(screen.getByRole('button', { name: /Lancer le batch/ }));
+    expect(document.querySelector('.guide-etape-num')).toHaveTextContent('Étape 1/5');
+    expect(document.querySelector('.guide-titre')).toHaveTextContent('Four à 180°');
+    await user.click(screen.getByRole('button', { name: 'Étape terminée →' }));
+    expect(document.querySelector('.guide-etape-num')).toHaveTextContent('Étape 2/5');
+    for (let i = 0; i < 3; i++) await user.click(screen.getByRole('button', { name: 'Étape terminée →' }));
+    await user.click(screen.getByRole('button', { name: /Terminer le batch/ }));
+    expect(screen.getByText('Batch terminé !')).toBeInTheDocument();
+    // présentation pure : aucune coche de timeline posée
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    await user.click(screen.getByRole('button', { name: /Revenir à l'aperçu/ }));
+    expect(document.querySelector('.rituel-timeline')).not.toBeNull();
+    expect(screen.getAllByRole('checkbox').every((c) => !(c as HTMLInputElement).checked)).toBe(true);
   });
 
   it('sans rituel ni micro-batch : message muted seul', () => {
@@ -640,7 +677,7 @@ describe('BatchView v2 — rituel et micro-batch', () => {
     setCheck('2026-S39', 'batch:rituel:four-a-180', true);
     rerender(<BatchView rituel={RITUEL} microBatch={MICRO} semaine="2026-S40" />);
 
-    expect(screen.getByText('0/2')).toBeInTheDocument();
+    expect(screen.getByText('0/5')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Four à 180° (0-5 min)' })).not.toBeChecked();
     expect(getChecks('2026-S39')).toEqual({ 'batch:rituel:four-a-180': true });
     expect(getChecks('2026-S40')).toEqual({});
