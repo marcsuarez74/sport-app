@@ -32,22 +32,58 @@ test.describe('Onboarding 4 étapes — mobile', () => {
     }
   });
 
-  test('parcours complet : soumission au doigt sur les 4 étapes', async ({ page }) => {
+  test('parcours complet : poids/date/taille → objectif → personnalisation → shell', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: /Mélanie/ }).click();
 
     await page.getByLabel('Poids (kg)').fill('62.4');
     await page.getByLabel('Date de naissance').fill('1987-03-02');
     await page.getByLabel('Taille (cm)').fill('165');
+    await assertPasDeDebordement(page);
     await page.getByRole('button', { name: /Continuer/ }).click();
 
     await expect(page.getByRole('heading', { name: /Ton objectif/ })).toBeVisible();
+    await page.getByRole('radio', { name: /Affiner/ }).click();
     await page.getByRole('button', { name: /Continuer/ }).click();
 
     await expect(page.getByRole('heading', { name: /Personnalisation/ })).toBeVisible();
+    await page.getByRole('button', { name: 'Créatine' }).click();
+    await page.getByRole('radio', { name: 'Keto' }).click();
     await page.getByRole('button', { name: /C'est parti/ }).click();
 
     // Profil enregistré + semaine d'exemple auto-chargée → shell direct
+    await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
+    const profil = await page.evaluate(() => JSON.parse(localStorage.getItem('sportapp:profile')!));
+    expect(profil).toEqual({
+      id: 'melanie',
+      dateNaissance: '1987-03-02',
+      taille: 165,
+      objectif: { type: 'affiner' },
+      complements: ['Créatine'],
+      regime: 'keto',
+    });
+  });
+
+  test('migration : profil ancien → onboarding prérempli à l étape 2', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('sportapp:profile', JSON.stringify({ id: 'melanie', age: 38, taille: 165 }));
+      localStorage.setItem(
+        'sportapp:weights:melanie',
+        JSON.stringify([{ date: '2026-09-08', kg: 62.1 }]),
+      );
+    });
+    await page.goto('/');
+
+    await expect(page.getByText(/Une mise à jour/)).toBeVisible();
+    await expect(page.getByText(/non modifiable ici/)).toBeVisible();
+    await expect(page.getByLabel('Poids (kg)')).toHaveValue('62.1');
+    await expect(page.getByLabel('Date de naissance')).toHaveValue('');
+
+    await page.getByLabel('Date de naissance').fill('1987-03-02');
+    await page.getByRole('button', { name: /Continuer/ }).click();
+    await page.getByRole('button', { name: /Continuer/ }).click();
+    await page.getByRole('button', { name: /C'est parti/ }).click();
+
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
     const profil = await page.evaluate(() => JSON.parse(localStorage.getItem('sportapp:profile')!));
     expect(profil).toEqual({
@@ -62,8 +98,6 @@ test.describe('Onboarding 4 étapes — mobile', () => {
 });
 
 test.describe('Écran Profil — mobile', () => {
-  // Profil seul suffit : la semaine d'exemple se charge automatiquement,
-  // la bannière (et son icône profil) apparaît donc dans le shell.
   test.use({
     storageState: {
       cookies: [],
@@ -78,7 +112,7 @@ test.describe('Écran Profil — mobile', () => {
                 dateNaissance: '1987-03-02',
                 taille: 165,
                 objectif: { type: 'perte', echeance: '2026-12-15' },
-                complements: [],
+                complements: ['Whey'],
                 regime: 'keto',
               }),
             },
@@ -88,12 +122,15 @@ test.describe('Écran Profil — mobile', () => {
     },
   });
 
-  test('mes infos : aucun débordement horizontal', async ({ page }) => {
+  test('profil : sections v2 sans débordement horizontal', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Mon profil' }).click();
 
     await expect(page.getByRole('heading', { name: 'Profil' })).toBeVisible();
     await expect(page.getByLabel('Date de naissance')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Objectif', level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Compléments', level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Régime', level: 3 })).toBeVisible();
     await assertPasDeDebordement(page);
   });
 });
