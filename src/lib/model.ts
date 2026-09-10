@@ -103,7 +103,42 @@ export interface UserProfile {
   objectif: Objectif;
   complements: string[];
   regime: Regime;
+  // v2.1 — Maison & courses : tout optionnel, ignoré champ par champ si illégal (storage)
+  magasin?: string; // nom libre, trim (ex. « Lidl »)
+  budgetMax?: number; // € / semaine (plafond)
+  preferences?: string[]; // types de plats souhaités (presets + libre) — pour le prompt IA
+  personnes?: number; // personnes à table (entier ≥ 1)
+  repasJour?: number; // repas par jour (entier ≥ 1)
 }
+
+export interface DepenseEntry {
+  date: string; // AAAA-MM-JJ
+  magasin: string; // trim, non vide
+  total: number; // € positif, 2 décimales max
+}
+
+// Suggestions de la saisie magasin (datalist natif) — liste ouverte, la saisie
+// libre reste possible (magasin de quartier).
+export const MAGASINS_PRESETS: readonly string[] = [
+  'Lidl',
+  'Carrefour',
+  'Auchan',
+  'Intermarché',
+  'Grand Frais',
+  'Leclerc',
+  'Aldi',
+  'Super U',
+  'Monoprix',
+  'Casino',
+];
+
+// Presets des préférences (types de plats) — onboarding étape 5.
+export const PREFERENCES_PRESETS: readonly string[] = [
+  'Healthy',
+  'Petit budget',
+  'Rapide',
+  'Batch-friendly',
+];
 
 export const PRENOMS: Record<ProfileKey, string> = { marc: 'Marc', melanie: 'Mélanie' };
 
