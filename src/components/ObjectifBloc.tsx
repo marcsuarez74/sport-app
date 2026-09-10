@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { OBJECTIF_TYPES, REGIMES } from '../lib/model';
 import type { UserProfile } from '../lib/model';
 import { formatJourMoisCourt, joursRestants } from '../lib/dates';
+import { fmtKg } from '../lib/text';
 import { getWeights } from '../lib/storage';
 import { poidsActuel } from '../lib/stats';
 import { Icon } from './Icon';
-
-const fmt = (kg: number): string => kg.toFixed(1).replace('.', ',');
 
 // Progression perte/masse : départ = 1re pesée, actuel = dernière, 0-100 %.
 // Arrondi au dixième : 4,4/8,8 en flottant donnerait 49,999…% sans lui.
@@ -72,7 +71,7 @@ export function ObjectifBloc({ profile }: { profile: UserProfile }) {
       {barrePct != null && kgRestant != null && cible != null && depart && actuel ? (
         <div className="obj-prog">
           <p className="obj-kg">
-            {fmt(Math.abs(kgRestant))}
+            {fmtKg(Math.abs(kgRestant))}
             <small> kg</small>{' '}
             <span>{profile.objectif.type === 'perte' ? 'restants' : 'à prendre'}</span>
           </p>
@@ -80,17 +79,17 @@ export function ObjectifBloc({ profile }: { profile: UserProfile }) {
             <span style={{ width: `${barrePct}%` }} />
           </div>
           <p className="obj-det">
-            Départ {fmt(depart.kg)} kg · {fmt(depart.kg)} → {fmt(actuel.kg)} → cible {fmt(cible)} kg
+            Départ {fmtKg(depart.kg)} kg · {fmtKg(depart.kg)} → {fmtKg(actuel.kg)} → cible {fmtKg(cible)} kg
           </p>
         </div>
       ) : (
         actuel && (
           <p className="obj-plain">
             <Icon name="scale" size={13} />
-            Poids actuel <b>{fmt(actuel.kg)} kg</b>
+            Poids actuel <b>{fmtKg(actuel.kg)} kg</b>
             {cible != null && (
               <>
-                {' '}· cible <b>{fmt(cible)} kg</b>
+                {' '}· cible <b>{fmtKg(cible)} kg</b>
               </>
             )}
           </p>

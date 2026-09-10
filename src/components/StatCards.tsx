@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getWeights } from '../lib/storage';
 import { poidsActuel, variationKg7j } from '../lib/stats';
+import { fmtKg } from '../lib/text';
 import type { UserProfile } from '../lib/model';
 import { Icon } from './Icon';
 
@@ -18,7 +19,7 @@ export function StatCards({ profile }: { profile: UserProfile }) {
   let deltaClass = 'stat-delta-neutre';
   let deltaTexte: string | null = null;
   if (actuel && variation != null) {
-    const kg = Math.abs(variation).toFixed(1).replace('.', ',');
+    const kg = fmtKg(Math.abs(variation));
     const fleche = variation < 0 ? '▼' : '▲';
     deltaTexte = `${fleche} ${variation < 0 ? '-' : '+'}${kg} kg`;
     if (profile.poidsObjectif != null) {
@@ -35,7 +36,7 @@ export function StatCards({ profile }: { profile: UserProfile }) {
             <Icon name="scale" size={13} /> Poids
           </span>
           <span className="stat-value">
-            {actuel ? `${actuel.kg.toFixed(1).replace('.', ',')}` : '—'}
+            {actuel ? fmtKg(actuel.kg) : '—'}
             {actuel && <small> kg</small>}
           </span>
         </div>
