@@ -66,13 +66,17 @@ Rayons dérivés : boutons et cartes compactes `12px`, pills `999px` (`.menu-pil
 
 | Classe | Rôle | Points clés |
 |---|---|---|
-| `.onboarding` | premier lancement (2 étapes) | fond halos radiaux basilic/citron, full-dvh, safe-areas |
-| `.onboarding-dots` / `.onboarding-dot-active` | progression 2 étapes | pill 12→22px, active = `--accent` |
+| `.onboarding` | premier lancement (4 étapes) + migration préremplie | fond halos radiaux basilic/citron, full-dvh, safe-areas ; note migration `.onb-note` (fond citron 32 %) + `.mig-prof` (profil ancien détecté) |
+| `.onboarding-dots` / `.onboarding-dot-active` | progression 4 étapes | pill 12→22px, active = `--accent` |
 | `.onboarding-card-marc` / `-melanie` | choix du profil | dégradés 135deg (basilic `#3e7a46`→`#2e5d35` texte blanc ; citron `#f2dc7b`→`#d9bc4f` texte encre) + glow coloré, émoji 38px, prénom 19px/700, active `scale(0.97)` |
-| `.onboarding-cta` | validation étape 2 | fond `--accent`, texte blanc, 48px, glow |
-| `.onboarding-back` / `.profil-back` | navigation retour | ghost, ≥ 48px (`.profil-back` encre 14px/600) |
+| `.onboarding-cta` (+ `.onb-full`) | CTA final « C'est parti ! 🚀 » (étape 4) | fond `--accent`, texte blanc, 48px, glow, pleine largeur |
+| `.onb-btnrow` / `.onb-next` / `.onb-back` | navigation entre les étapes 2-4 | row flex ; next = pill basilic (flex: 1) texte blanc 48px ; back = ghost bordure `--border` 48px — ≥ 48px partout |
+| `.profil-back` | navigation retour écran Profil | ghost, ≥ 48px (encre 14px/600) |
 | `.btn` | action principale | fond `--accent`, texte blanc, 700, min-height 48 px, active `scale(0.97)` |
-| `.stat-cards` / `.stat-card` / `.stat-bar` | cartes résumé Mon suivi (poids, kcal du jour, séances, courses restantes) | grid 2 colonnes ; barres de progression `--accent` (séances) / `--accent-2` (courses) ; delta `stat-delta-bon` (basilic) / `stat-delta-alerte` (danger) vs objectif |
+| `.rcards` / `.rcard` (+ `.rcard-t` `.rcard-d` `.sel`) | cartes radio 2 colonnes (objectif 4 types) | grid 1fr 1fr gap 9px, ≥ 48px, radius 14px ; sélection = bordure basilic + fond accent 8 % + inset ring, titre basilic |
+| `.rline` / `.rl` (+ `.rl-dot` `.sel`) | radios en ligne (régime, poids objectif au Profil) | lignes pleine largeur ≥ 48px bordure `--border` ; dot 18px, sélection = point basilic 9px |
+| `.chips` / `.chip` (+ `.rm`) / `.addrow` | compléments (presets + ajout libre) | pills ≥ 42px, `.on` = plein basilic texte blanc ; `.addrow` = input (min-width: 0) + bouton pill |
+| `.stat-cards` / `.stat-card` / `.stat-card-hero` | carte Poids seule, pleine largeur (Mon suivi) | grid 1 colonne ; hero = valeur 26px + variation `▼/▲ x,x kg vs 7 jours` colorée selon le sens de l'objectif (`stat-delta-bon` basilic / `stat-delta-alerte` danger / `stat-delta-neutre` muted) |
 | `.weight-chart` + `.weight-*` | courbe de poids SVG (WeightChart) dans la carte citron `.pesee-card` | chips Départ/Actuel/Objectif, aire dégradée `--accent` 22 %→0, ligne lissée Catmull-Rom, ligne objectif, points départ/actuel ; labels SVG 8-9px mix muted ≥ 4,5:1 sur fond citron mixé |
 | `.tabbar-segmented` / `.seg-tab` / `.seg-tab-active` | **nav segmented sous la bannière** (2 onglets : Cuisine / Mon suivi) | grid 2 colonnes égales, gap 4px, padding 4px ; fond `--surface-2` + bordure, pill `999px` ; **pilule glissante** = `::before` (fond `--surface` + ombre), `transform: translateX(calc(100% + 4px))` quand `data-active='suivi'`, transition `0.32s cubic-bezier(0.34, 1.56, 0.64, 1)` (rebond élastique) ; **actif** = texte encre + `aria-current="page"` ; **inactif** = muted ; ≥ 48 px |
 | `.cuisine-tabs .tab` | sous-onglets Cuisine (Courses / Menu / Batch) | filets (`border-bottom`), actif = encre + barre basilic 2,5px |
@@ -86,7 +90,9 @@ Rayons dérivés : boutons et cartes compactes `12px`, pills `999px` (`.menu-pil
 | `.profile-icon-btn` | accès écran Profil | 48px, surface-2, icône SVG person `currentColor` |
 | `.profil-screen` / `.profil-switch` | écran Profil | sections `.profile-section` ; switch = bordure `--danger` (action sensible) |
 | `.greeting` | accueil personnalisé Mon suivi | muted, 14px/700 |
+| `.obj-bloc` (+ `.obj-pills` `.obj-pill-type` `.obj-pill-reg` `.obj-echeance` `.obj-prog` `.obj-kg` `.obj-bar` `.obj-comps` `.cchip`) | bloc objectif en tête de Mon suivi | surface + radius ; pill type basilic texte blanc, pill régime citron 60 % (texte encre), échéance `.late` = `--danger`, barre progression `--accent` sur `--surface-2`, compléments `.cchip` surface-2 sous filet pointillé |
 | `.checklist` + `.done` | listes cochables | label min-height 48 px, checkbox 22 px `accent-color: --accent` ; done = barré + muted |
+| `.seance-rec` (+ `.seance-txt`) | pastille « conseillé lun. » des séances | pill surface-2 10px/700 uppercase, texte mix muted 70 % (≥ 4,5:1 — la pastille porte la seule copie du jour), jamais barrée quand la séance est cochée |
 | `.menu-reserve` / `.menu-reserve-head` | réserve de recettes (Menu v2) | note d'ordre (batch/frigo d'abord) + compteur `.progress` (« N/33 faits ») — aucun jour imposé |
 | `.menu-card` (+ `.fait`) | carte repas (1 ligne repas = 1 occurrence cochable) | surface + bordure + radius ; coche custom `.menu-coche` 24px (basilic, check SVG blanc), tuile icône `.mtile`, tag `.mtag`, nom 14,5px/600 (fait = barré mix muted), meta `.mmeta` (temps, kcal), chips `.mchip`, fraîcheur `.mh` |
 | `.mtag` (`.tag-marc` `.tag-mel` `.tag-fam` `.tag-bat`) | tags de profil des repas | pills 11px/700 : Marc plein `--accent` (texte blanc), Mél citron 55% (texte encre), Famille `--surface-2`, Batch `--accent` 20% (texte basilic) |

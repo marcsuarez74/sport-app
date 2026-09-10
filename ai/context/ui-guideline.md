@@ -13,21 +13,24 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 - `App.tsx` choisit : `Onboarding` (pas de profil) → shell 2 onglets OU écran `ProfilScreen` poussé. **Pas d'écran intermédiaire** : sans semaine en storage, la semaine d'exemple se charge automatiquement (fallback en mémoire dans `App.tsx`)
 - Shell : `WeekBanner` (seul `h1`, + icône « Mon profil » à droite) → nav **segmented** sous la bannière (🛒 Cuisine / 🎯 Mon suivi) → vue active
-- **Mon suivi est personnalisé** : `ProfileView` rendu avec le profil actif uniquement + accueil « Salut {prénom} 👋 » — jamais les données de l'autre
+- **Mon suivi est personnalisé** : **bloc Objectif** (`.obj-bloc`) + carte Poids seule (`.stat-card-hero`) + `ProfileView` rendus avec le profil actif uniquement + accueil « Salut {prénom} 👋 » — jamais les données de l'autre
 - Sections = `h3` dans des cartes (`section` + classe sémantique). États vides systématiques (`.muted`)
 - Écran poussé (Profil) : bouton retour en haut, pas de nav segmented, sorties par retour ou action explicite
 
 ## Onboarding (premier lancement)
 
-- 2 étapes obligatoires, lancées seulement si `sportapp:profile` absent ; style « grand écart fun » : dégradés saturés, émojis géants, CTA plein + **points de progression** en haut
+- 4 étapes obligatoires, lancées si `sportapp:profile` absent **ou en ancienne forme** (→ **migration préremplie**) ; style « grand écart fun » : dégradés saturés, émojis géants, **points de progression** en haut, boutons `.onb-back`/`.onb-next` à partir de l'étape 2
 - Étape 1 : deux grandes cartes profil (💪 Marc basilic / 🌿 Mélanie citron, tagline « Diet & sport » / « Keto & sport »)
-- Étape 2 : « Salut {prénom} 👋 » + poids/âge/taille + objectifs (poids objectif, kcal/jour) avec bornes (30–250 kg, 10–100 ans, 120–230 cm), erreur inline `role="alert"`, CTA « C'est parti ! 🚀 », « ← Retour » vers l'étape 1
-- Submit = `saveProfile` + première pesée datée du jour ; pas de bouton « passer » (l'app est inutilisable sans profil — c'est voulu)
+- Étape 2 (infos) : « Salut {prénom} 👋 » + **date de naissance** (l'âge s'affiche calculé) + poids/taille avec bornes (30–250 kg, âge calculé 10–100 ans, 120–230 cm), erreur inline `role="alert"` ; en migration, note `.onb-note` + `.mig-prof`, étape 2 directe, seule la date à compléter
+- Étape 3 (objectif) : 4 cartes radio `.rcard` (Perte / Affiner / Masse / Maintien) + échéance (date optionnelle) + poids objectif — **pas de kcal/jour**
+- Étape 4 (compléments & régime) : chips presets + ajout libre (`.chips`/`.addrow`), radios `.rl` régime ; CTA final « C'est parti ! 🚀 »
+- Submit = `saveProfile` (shape v2) + première pesée datée du jour ; pas de bouton « passer » (l'app est inutilisable sans profil — c'est voulu)
 - Accent unique Herbes partout : basilic = action/valeur principale, citron = surbrillance (jamais une couleur de texte)
 
 ## Écran Profil
 
-- Mes infos (âge/taille, feedback « enregistrées ✓ » en `role="status"`), **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
+- 4 sections éditables séparément : **Mes infos** (date de naissance/taille, âge calculé), **Objectif** (cartes radio + échéance + poids objectif), **Compléments** (chips presets + libre), **Régime** (radios) — enregistrement **par section**, feedback « enregistrées ✓ » en `role="status"` ; une erreur est rendue **dans sa section**
+- **changer de profil** (bordure `--danger`, `window.confirm` obligatoire — efface le choix, garde les données)
 - Après changement : retour à l'onboarding (le sous-arbre suivi est démonté, les données restent en storage)
 
 ## Onglet Cuisine (Courses / Menu / Batch)
@@ -43,7 +46,7 @@ Complète `design-system.md` (les tokens) avec les règles d'usage. Source de v�
 
 - **Présentatifs et minces** : props descendantes, la logique reste dans `src/lib/`
 - **Classes sémantiques** (`.menu-card`, `.checklist`, `.done`) — pas de classes utilitaires, pas de style inline (exception : `style` dimensionnel sur les barres des StatCards)
-- **Resynchronisation par prop** : pattern render-phase reset (`syncedSemaine`/`syncedProfile`) — voir `Checklist.tsx`. Interdit : `useEffect` de sync, `key` imposé au consommateur. **Une exception documentée** : `key={weightsBump}` sur `StatCards` dans `App.tsx` (relit les pesées au remount après une pesée ajoutée)
+- **Resynchronisation par prop** : pattern render-phase reset (`syncedSemaine`/`syncedProfile`) — voir `Checklist.tsx`. Interdit : `useEffect` de sync, `key` imposé au consommateur. **Une exception documentée** : `key={weightsBump}` sur `ObjectifBloc` et `StatCards` dans `App.tsx` (relisent les pesées au remount après une pesée ajoutée)
 - **Rétrocompatibilité des props** : un composant existant ne change de signature qu'en ajoutant des props optionnelles (ex. `onChecksChange?` de Checklist)
 
 ## Formulaires

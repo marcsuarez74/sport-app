@@ -9,6 +9,9 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr-FR/1.1.0/) et le
 ### Ajouté
 
 - Icônes SVG maison (`Icon.tsx`), bannière « Pensées pour le rituel » + budget, note de fraîcheur et marqueur batch sur les items, Mode magasin, bannière « Ce soir », mode guidé « Lancer le batch », swipe Cuisine ↔ Mon suivi, portions par profil + indice de fraîcheur des recettes
+- Profil v2 : date de naissance (l'âge devient calculé), objectif explicite (perte / affiner / masse / maintien) avec échéance, compléments (presets + libre), régime descriptif
+- Onboarding en 4 étapes avec migration préremplie (le profil ancien est mis à niveau au premier lancement)
+- Bloc « Objectif » en tête de Mon suivi : type, échéance (J-restants / dépassée), progression pesée → cible, compléments
 
 ### Modifié
 
@@ -16,10 +19,14 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr-FR/1.1.0/) et le
 - Navigation segmented sous la bannière (le dock flottant disparaît)
 - Menu : réserve de recettes en cartes (coche « c'est fait », plus aucun jour imposé)
 - Format .md v2 (rétrocompatible) : `- budget:`, suffixes ` · rituel` / ` | note`, `fraicheur:`, `- portions marc/melanie:`
+- Stat-cards réduites à la carte Poids (variation en kg vs 7 jours)
+- Séances en liste libre : le jour n'est plus qu'une recommandation (« conseillé lun. »)
+- Écran Profil réorganisé : Mes infos, Objectif, Compléments, Régime
 
 ### Retiré
 
 - Dock flottant, thème sombre, badge « Aujourd'hui » du menu
+- Objectif kcal/jour (saisie et affichage), âge saisi à la main, cartes Courses / Kcal / Séances du suivi
 
 ## [1.0.0] - 2026-09-09
 
