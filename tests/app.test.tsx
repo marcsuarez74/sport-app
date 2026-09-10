@@ -298,7 +298,7 @@ describe('Onboarding v2 — persistance via App', () => {
     localStorage.clear();
   });
 
-  it('parcours complet 4 étapes : objectif, compléments et régime persistés', async () => {
+  it('parcours complet 5 étapes : objectif, compléments et régime persistés', async () => {
     render(<App />);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /Marc/ }));

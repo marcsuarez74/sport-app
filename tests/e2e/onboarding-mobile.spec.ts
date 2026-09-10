@@ -11,7 +11,7 @@ async function assertPasDeDebordement(page: import('@playwright/test').Page) {
   expect(overflow, 'la page ne doit pas scroller horizontalement').toBeLessThanOrEqual(OVERFLOW_TOLERANCE);
 }
 
-test.describe('Onboarding 4 étapes — mobile', () => {
+test.describe('Onboarding 5 étapes — mobile', () => {
   test('étape 2 : aucun débordement horizontal et champs dans le viewport', async ({ page }) => {
     const largeur = page.viewportSize()!.width;
     await page.goto('/');
