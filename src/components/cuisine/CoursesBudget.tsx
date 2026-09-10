@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { DepenseEntry, UserProfile, WeeklyData } from '../../lib/model';
-import { getDepenses } from '../../lib/storage';
-import { formatEuro } from '../../lib/prix';
+import { MAGASINS_PRESETS } from '../../lib/model';
+import { getDepenses, saveDepense, deleteDepense } from '../../lib/storage';
+import { formatEuro, parseEuro } from '../../lib/prix';
+import { todayISO, formatDayMonth } from '../../lib/dates';
 import { Icon } from '../Icon';
 
 // Somme des dépenses dont la date appartient à [du..au] — comparaison par
@@ -83,5 +85,181 @@ export function CoursesBudget({
         </button>
       </div>
     </section>
+  );
+}
+
+export function DepensesPanel({
+  profile,
+  focusTotal,
+  onRetour,
+}: {
+  profile: UserProfile;
+  focusTotal: boolean;
+  onRetour: () => void;
+}) {
+  const [depenses, setDepenses] = useState<DepenseEntry[]>(() => getDepenses());
+  const [date, setDate] = useState(() => todayISO());
+  const [magasin, setMagasin] = useState(profile.magasin ?? '');
+  const [total, setTotal] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const enregistrer = () => {
+    const t = parseEuro(total);
+    if (t === null) {
+      setError('Total invalide : entre un montant supérieur à 0.');
+      return;
+    }
+    if (date > todayISO()) {
+      setError('La date ne peut pas être dans le futur.');
+      return;
+    }
+    if (!magasin.trim()) {
+      setError('Indique le magasin de la session.');
+      return;
+    }
+    setError(null);
+    setSaved(true);
+    setDepenses(saveDepense(date, magasin, t));
+    setTotal('');
+  };
+
+  // Regroupement « Par magasin » : casse ignorée, première graphie conservée,
+  // tri par total décroissant.
+  const parMagasin = [...depenses.reduce((map, d) => {
+    const cle = d.magasin.toLowerCase();
+    const acc = map.get(cle) ?? { nom: d.magasin, total: 0, sessions: 0 };
+    acc.total += d.total;
+    acc.sessions += 1;
+    map.set(cle, acc);
+    return map;
+  }, new Map<string, { nom: string; total: number; sessions: number }>()).values()].sort(
+    (a, b) => b.total - a.total,
+  );
+
+  return (
+    <div className="dep-panel">
+      <div className="dep-head">
+        <button type="button" className="dep-back" onClick={onRetour}>
+          <Icon name="chev-left" size={14} />
+          Retour
+        </button>
+        <h1>Mes dépenses réelles</h1>
+        <p className="dep-sub">Une ligne par session de courses.</p>
+      </div>
+
+      <div className="dep-form">
+        <div className="frow">
+          <div>
+            <span className="fl">Date</span>
+            <input
+              type="date"
+              aria-label="Date"
+              value={date}
+              onChange={(e) => {
+                setSaved(false);
+                setError(null);
+                setDate(e.target.value);
+              }}
+            />
+          </div>
+          <div>
+            <span className="fl">Magasin</span>
+            <input
+              list="dep-magasins"
+              aria-label="Magasin"
+              value={magasin}
+              onChange={(e) => {
+                setSaved(false);
+                setError(null);
+                setMagasin(e.target.value);
+              }}
+            />
+            <datalist id="dep-magasins">
+              {MAGASINS_PRESETS.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
+          </div>
+          <div>
+            <span className="fl">Total (€)</span>
+            <input
+              className="tot"
+              inputMode="decimal"
+              aria-label="Total (€)"
+              placeholder="38,20"
+              autoFocus={focusTotal}
+              value={total}
+              onChange={(e) => {
+                setSaved(false);
+                setError(null);
+                setTotal(e.target.value);
+              }}
+            />
+          </div>
+        </div>
+        <div className="fact">
+          <button type="button" className="blink" onClick={onRetour}>
+            Annuler
+          </button>
+          <button type="button" className="bgo" onClick={enregistrer}>
+            <Icon name="check" size={13} /> Enregistrer
+          </button>
+        </div>
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        {saved && !error && (
+          <p className="muted" role="status">
+            Enregistré ✓
+          </p>
+        )}
+      </div>
+
+      {parMagasin.length > 0 && (
+        <>
+          <p className="dep-sec-label">Par magasin</p>
+          <div className="dep-sum">
+            {parMagasin.map((m) => (
+              <div className="s" key={m.nom}>
+                <span className="nm">
+                  {m.nom} <small>{`${m.sessions} session${m.sessions > 1 ? 's' : ''}`}</small>
+                </span>
+                <span className="tot">{formatEuro(m.total)}</span>
+                <span className="avg">{`≈ ${formatEuro(m.total / m.sessions)} / session`}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {depenses.length > 0 && (
+        <>
+          <p className="dep-sec-label">Historique</p>
+          <div className="dep-list">
+            {depenses.map((d) => (
+              <div className="dep" key={`${d.date}-${d.magasin}`}>
+                <span className="d">{formatDayMonth(d.date)}</span>
+                <span className="m">{d.magasin}</span>
+                <span className="t">{formatEuro(d.total)}</span>
+                <button
+                  type="button"
+                  className="rm"
+                  aria-label={`Supprimer ${formatDayMonth(d.date)} ${d.magasin}`}
+                  onClick={() => setDepenses(deleteDepense(d.date, d.magasin))}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <p className="hint dep-hint">
+        Deux magasins le même jour = deux lignes. Touche ✕ pour corriger une erreur de saisie.
+      </p>
+    </div>
   );
 }

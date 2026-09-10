@@ -8,7 +8,7 @@ import type {
   UserProfile,
   WeeklyData,
 } from '../src/lib/model';
-import { addWeight, getChecks, getWeights, loadWeeks, setCheck, upsertWeek } from '../src/lib/storage';
+import { addWeight, getChecks, getDepenses, getWeights, loadWeeks, setCheck, upsertWeek } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
 import { parseWeeklyFile } from '../src/lib/parse';
 import semaineExempleRaw from '../src/assets/semaine-exemple.md?raw';
@@ -18,7 +18,7 @@ import { StatCards } from '../src/components/StatCards';
 import { ObjectifBloc } from '../src/components/ObjectifBloc';
 import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
-import { CoursesBudget } from '../src/components/cuisine/CoursesBudget';
+import { CoursesBudget, DepensesPanel } from '../src/components/cuisine/CoursesBudget';
 import { MenuView } from '../src/components/cuisine/MenuView';
 import { BatchView } from '../src/components/cuisine/BatchView';
 import { CuisineView } from '../src/components/cuisine/CuisineView';
@@ -1298,5 +1298,132 @@ describe('CoursesBudget — carte budget', () => {
     expect(onOuvrir).toHaveBeenCalledWith(true);
     await user.click(screen.getByRole('button', { name: /Voir mes dépenses réelles/ }));
     expect(onOuvrir).toHaveBeenCalledWith(false);
+  });
+});
+
+describe('DepensesPanel — saisie, par magasin, historique', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const rendrePanel = (profile = profileV2('marc', { magasin: 'Lidl' }), focusTotal = false) =>
+    render(<DepensesPanel profile={profile} focusTotal={focusTotal} onRetour={() => {}} />);
+
+  it('préremplit la date du jour et le magasin du profil', () => {
+    vi.setSystemTime(new Date('2026-09-09T10:00:00'));
+    rendrePanel();
+
+    expect(screen.getByLabelText('Date')).toHaveValue('2026-09-09');
+    expect(screen.getByLabelText('Magasin')).toHaveValue('Lidl');
+    vi.useRealTimers();
+  });
+
+  it('enregistre une dépense (virgule acceptée) et la montre dans l historique', async () => {
+    const user = userEvent.setup();
+    rendrePanel();
+
+    await user.type(screen.getByLabelText('Total (€)'), '38,20');
+    await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
+
+    expect(getDepenses()).toEqual([
+      { date: expect.any(String), magasin: 'Lidl', total: 38.2 },
+    ]);
+    expect(screen.getAllByText('38,20 €').length).toBeGreaterThan(0);
+    expect(screen.getByRole('status')).toHaveTextContent(/Enregistré/);
+  });
+
+  it('refuse un total invalide ou une date future (rien n est sauvé)', async () => {
+    const user = userEvent.setup();
+    rendrePanel();
+
+    await user.type(screen.getByLabelText('Total (€)'), '0');
+    await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/Total invalide/i);
+    expect(getDepenses()).toEqual([]);
+
+    await user.clear(screen.getByLabelText('Total (€)'));
+    await user.type(screen.getByLabelText('Total (€)'), '38,20');
+    // input[type=date] : user-event v14 ne sait pas le remplir au clavier —
+    // fireEvent.change, cas documenté comme l'upload multi-fichiers (AGENTS.md).
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2999-01-01' } });
+    });
+    await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/futur/i);
+    expect(getDepenses()).toEqual([]);
+  });
+
+  it('upsert : ressaisir la même paire (date, magasin) remplace le total', async () => {
+    seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    const user = userEvent.setup();
+    rendrePanel();
+
+    // La date est préremplie à aujourd'hui : on la ramène à celle de la ligne
+    // existante pour tester la paire (date, magasin) — sans quoi le test
+    // dépendrait du jour réel.
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2026-09-09' } });
+    });
+    await user.clear(screen.getByLabelText('Magasin'));
+    await user.type(screen.getByLabelText('Magasin'), 'Lidl');
+    await user.clear(screen.getByLabelText('Total (€)'));
+    await user.type(screen.getByLabelText('Total (€)'), '40');
+    await user.click(screen.getByRole('button', { name: /Enregistrer/ }));
+
+    expect(getDepenses()).toEqual([{ date: '2026-09-09', magasin: 'Lidl', total: 40 }]);
+  });
+
+  it('regroupe par magasin (casse ignorée) avec total et moyenne', () => {
+    seedDepenses([
+      { date: '2026-09-09', magasin: 'Lidl', total: 38.2 },
+      { date: '2026-09-02', magasin: 'lidl', total: 35.1 },
+      { date: '2026-08-26', magasin: 'Intermarché', total: 41.3 },
+    ]);
+    rendrePanel();
+
+    // Scopé au résumé : « Lidl » apparaît aussi dans l'historique (et le span
+    // .nm matche via son texte direct).
+    const sum = within(document.querySelector('.dep-sum') as HTMLElement);
+    expect(sum.getByText('Lidl')).toBeInTheDocument();
+    expect(sum.getByText('2 sessions')).toBeInTheDocument();
+    expect(sum.getByText('73,30 €')).toBeInTheDocument();
+    expect(sum.getByText('≈ 36,65 € / session')).toBeInTheDocument();
+    expect(sum.getByText('Intermarché')).toBeInTheDocument();
+    expect(sum.getByText('1 session')).toBeInTheDocument();
+  });
+
+  it('supprime une ligne depuis l historique', async () => {
+    seedDepenses([
+      { date: '2026-09-09', magasin: 'Lidl', total: 38.2 },
+      { date: '2026-09-02', magasin: 'Lidl', total: 35.1 },
+    ]);
+    const user = userEvent.setup();
+    rendrePanel();
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer 09/09 Lidl' }));
+    expect(getDepenses()).toEqual([{ date: '2026-09-02', magasin: 'Lidl', total: 35.1 }]);
+  });
+
+  it('les champs magasin proposent le datalist des magasins connus', () => {
+    rendrePanel();
+
+    expect(screen.getByLabelText('Magasin')).toHaveAttribute('list', 'dep-magasins');
+    // <option value="…"/> n'a pas de texte : on vérifie les valeurs du datalist.
+    const valeurs = [...document.querySelectorAll('#dep-magasins option')].map((o) =>
+      o.getAttribute('value'),
+    );
+    expect(valeurs).toContain('Intermarché');
+    expect(valeurs.length).toBeGreaterThan(1);
+  });
+
+  it('Annuler et Retour ferment le panneau', async () => {
+    const onRetour = vi.fn();
+    const user = userEvent.setup();
+    render(<DepensesPanel profile={profileV2('marc')} focusTotal={false} onRetour={onRetour} />);
+
+    await user.click(screen.getByRole('button', { name: 'Annuler' }));
+    expect(onRetour).toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: /Retour/ }));
+    expect(onRetour).toHaveBeenCalledTimes(2);
   });
 });

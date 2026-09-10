@@ -2178,3 +2178,198 @@ progress {
   font: 700 12.5px Poppins, sans-serif;
   cursor: pointer;
 }
+
+/* Panneau « Mes dépenses réelles » */
+.dep-head {
+  padding-top: 4px;
+}
+.dep-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  font: 600 13px Poppins, sans-serif;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+.dep-head h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+.dep-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+.dep-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 14px 14px;
+  margin-top: 14px;
+}
+.dep-form .frow {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 0.8fr;
+  gap: 9px;
+}
+.dep-form .fl {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.dep-form input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 9px 10px;
+  font: 500 13px Poppins, sans-serif;
+  color: var(--text);
+  min-width: 0;
+}
+.dep-form input.tot {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.dep-form .fact {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 11px;
+}
+.dep-form .bgo {
+  min-height: 38px;
+  border: 0;
+  background: var(--accent);
+  color: var(--surface);
+  border-radius: 999px;
+  padding: 0 16px;
+  font: 700 12px Poppins, sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dep-form .fact .blink {
+  font-size: 12px;
+}
+.dep-sec-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 16px 0 8px;
+}
+.dep-sum {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.dep-sum .s {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 11px 13px;
+  min-width: 0;
+}
+.dep-sum .nm {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.dep-sum .nm small {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.dep-sum .tot {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.dep-sum .avg {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.dep-list {
+  display: flex;
+  flex-direction: column;
+}
+.dep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.dep:last-child {
+  border-bottom: 0;
+}
+.dep .d {
+  flex: 0 0 64px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.dep .m {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.dep .t {
+  font-weight: 700;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.dep .rm {
+  width: 32px;
+  height: 32px;
+  margin-right: -6px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.dep-hint {
+  margin-top: 12px;
+}
+
+/* Classe générique des hints (maquette maison-courses-v2 : petit texte muted) */
+.hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+@media (max-width: 360px) {
+  .dep-form .frow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dep-form .frow > div:first-child,
+  .dep-form .frow > div:last-child {
+    grid-column: span 2;
+  }
+}
