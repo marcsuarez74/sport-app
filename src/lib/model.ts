@@ -12,6 +12,8 @@ export interface CourseItem {
   id: string;
   rayon: string;
   label: string;
+  rituel?: boolean;
+  note?: string;
 }
 
 export interface MenuDay {
@@ -44,6 +46,8 @@ export interface Recette {
   etapes?: string[];
   mel?: string;
   batch?: string;
+  fraicheur?: string;
+  portions?: { marc?: string; melanie?: string };
 }
 
 export interface BaseCuisine {
@@ -75,6 +79,7 @@ export interface ProfileData {
 export interface WeeklyData {
   meta: WeekMeta;
   courses: CourseItem[];
+  budget?: string;
   menu: MenuDay[];
   batch: ChecklistItem[];
   profiles: Record<ProfileKey, ProfileData>;

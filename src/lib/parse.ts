@@ -79,7 +79,8 @@ export function parseWeeklyFile(raw: string): ParseResult {
   const warnings: string[] = [];
   const seen = new Set<string>();
   const sections = splitH2(content, warnings);
-  const courses = parseCourses(sections.get('courses') ?? '', 'courses', warnings, seen);
+  const coursesParse = parseCourses(sections.get('courses') ?? '', 'courses', warnings, seen);
+  const courses = coursesParse.items;
   const menu = parseMenu(sections.get('menu') ?? '', 'menu', warnings);
   const lignes = lignesBatch(sections.get('batch') ?? '', warnings);
   const batch = parseBatch(lignes, warnings, seen);
@@ -97,6 +98,7 @@ export function parseWeeklyFile(raw: string): ParseResult {
     data: {
       meta,
       courses,
+      ...(coursesParse.budget ? { budget: coursesParse.budget } : {}),
       menu,
       batch,
       profiles,
@@ -126,8 +128,13 @@ function splitH2(raw: string, warnings: string[]): Map<string, string> {
   return map;
 }
 
-function parseCourses(text: string, section: string, warnings: string[], seen: Set<string>): CourseItem[] {
-  const out: CourseItem[] = [];
+function parseCourses(
+  text: string,
+  section: string,
+  warnings: string[],
+  seen: Set<string>,
+): { items: CourseItem[]; budget?: string } {
+  const out: { items: CourseItem[]; budget?: string } = { items: [] };
   let rayon = 'divers';
   for (const line of text.split(/\r?\n/)) {
     const h = line.match(/^###\s+(.+?)\s*$/);
@@ -135,13 +142,31 @@ function parseCourses(text: string, section: string, warnings: string[], seen: S
       rayon = slugify(h[1]);
       continue;
     }
+    const budget = line.match(/^\s*[-*]\s+budget\s*:\s*(.+?)\s*$/);
+    if (budget) {
+      out.budget = budget[1];
+      continue;
+    }
     const it = line.match(/^\s*[-*]\s+(.+?)\s*$/);
     if (it) {
       const withBox = it[1].match(/^\[( |x|X)\]\s+(.+)$/);
-      const label = withBox ? withBox[2] : it[1];
+      const labelBrut = withBox ? withBox[2] : it[1];
+      // v2 : suffixes optionnels en fin de ligne — ` · rituel` (alimente le batch)
+      // et ` | note` (note de fraîcheur). L'id est calculé sur le libellé nettoyé.
+      const rituel = / · rituel$/.test(labelBrut);
+      const sansRituel = labelBrut.replace(/ · rituel$/, '');
+      const parts = sansRituel.split(/\s+\|\s+(?=[^|]*$)/, 2);
+      const label = parts[0].trim();
+      const note = parts[1];
       const id = `courses:${rayon}:${slugify(label)}`;
       registerId(id, section, seen, warnings);
-      out.push({ id, rayon, label });
+      out.items.push({
+        id,
+        rayon,
+        label,
+        ...(rituel ? { rituel: true } : {}),
+        ...(note ? { note } : {}),
+      });
       continue;
     }
     if (line.trim()) warnings.push(`Ligne ignorée (${section}) : « ${preview(line)} »`);
@@ -329,10 +354,11 @@ function parseRecettes(text: string, warnings: string[], seen: Set<string>): Rec
       warnings.push(`Ligne ignorée (recettes) : « ${preview(line)} »`);
       continue;
     }
-    const kv = line.match(/^(temps|kcal|proteines|glucides|lipides|score|image|bases)\s*:\s*(.+?)\s*$/);
+    const kv = line.match(/^(temps|kcal|proteines|glucides|lipides|score|image|bases|fraicheur)\s*:\s*(.+?)\s*$/);
     if (kv) {
       if (kv[1] === 'temps') rec.temps = kv[2];
       else if (kv[1] === 'bases') rec.bases = kv[2].split(',').map((b) => b.trim());
+      else if (kv[1] === 'fraicheur') rec.fraicheur = kv[2];
       else if (kv[1] === 'image') {
         if (kv[2].startsWith('https://')) rec.image = kv[2];
         else
@@ -357,6 +383,11 @@ function parseRecettes(text: string, warnings: string[], seen: Set<string>): Rec
         else if (kv[1] === 'glucides') rec.glucides = n;
         else rec.lipides = n;
       }
+      continue;
+    }
+    const portions = line.match(/^\s*[-*]\s+portions\s+(marc|melanie)\s*:\s*(.+?)\s*$/);
+    if (portions) {
+      rec.portions = { ...rec.portions, [portions[1]]: portions[2] };
       continue;
     }
     const pour = line.match(/^\s*[-*]\s+pour\s*(?:\d+\s*)?\s*:\s*(.+?)\s*$/);

@@ -876,6 +876,50 @@ describe('parseWeeklyFile — rétrocompatibilité v1', () => {
   });
 });
 
+describe('parse v2 — budget, rituel, note, portions, fraîcheur', () => {
+  it('lit la ligne budget en tête de ## Courses', () => {
+    const md = FULL_WEEK.replace('## Courses', '## Courses\n- budget: ≈ 35 €');
+    const { data, warnings } = parseWeeklyFile(md);
+    expect(data.budget).toBe('≈ 35 €');
+    expect(warnings).toHaveLength(0);
+  });
+
+  it('marque les items suffixés « · rituel » et nettoie le label (id stable sans le suffixe)', () => {
+    const md = FULL_WEEK.replace('- Riz basmati', '- Riz basmati · rituel');
+    const { data } = parseWeeklyFile(md);
+    const riz = data.courses.find((c) => c.label.startsWith('Riz'));
+    expect(riz?.rituel).toBe(true);
+    expect(riz?.label).toBe('Riz basmati');
+    expect(riz?.id).toBe('courses:epicerie:riz-basmati');
+  });
+
+  it('lit la note de fraîcheur en suffixe « | note »', () => {
+    const md = FULL_WEEK.replace('- Yaourts skyr', '- Yaourts skyr | à acheter vendredi, pas avant');
+    const { data, warnings } = parseWeeklyFile(md);
+    const skyr = data.courses.find((c) => c.label === 'Yaourts skyr');
+    expect(skyr?.note).toBe('à acheter vendredi, pas avant');
+    expect(warnings).toHaveLength(0);
+  });
+
+  it('lit portions marc / portions melanie et fraicheur dans une recette', () => {
+    const md = V2_WEEK.replace(
+      'kcal: 620',
+      'kcal: 620\nfraicheur: batch dimanche → boîte\n- portions marc: riz 150 g cuit\n- portions melanie: sans riz ni patate douce',
+    );
+    const { data } = parseWeeklyFile(md);
+    const r2 = data.recettes?.find((r) => r.id === 'r2-pates-bolognaise-salade');
+    expect(r2?.fraicheur).toBe('batch dimanche → boîte');
+    expect(r2?.portions?.marc).toBe('riz 150 g cuit');
+    expect(r2?.portions?.melanie).toBe('sans riz ni patate douce');
+  });
+
+  it('reste silencieux sur un fichier v1 sans ces champs', () => {
+    const { data, warnings } = parseWeeklyFile(FULL_WEEK);
+    expect(data.budget).toBeUndefined();
+    expect(warnings).toHaveLength(0);
+  });
+});
+
 // ⚠️ La sample est alignée sur la semaine COURANTE (S37 au 08/09/2026) tant qu'il n'y a pas
 // de template hebdo. Pour la rafraîchir, bump en lockstep : frontmatter + `# Semaine` de
 // src/assets/semaine-exemple.md, ce describe (dates), tests/app.test.tsx (fixture + meta +
