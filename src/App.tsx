@@ -40,11 +40,19 @@ function App() {
   const [weightsBump, setWeightsBump] = useState(0);
   const [tab, setTab] = useState<TabId>('cuisine');
 
-  // Swipe Cuisine ↔ Suivi (pointer events ; ignoré si reduced-motion ou geste
-  // démarré sur un contrôle interactif).
+  // Swipe Cuisine ↔ Suivi (pointer events). Chaque pointerdown repart d'un état
+  // propre : un geste exclu (contrôle interactif, second doigt, reduced-motion)
+  // ou annulé (scroll vertical → pointercancel) ne laisse aucun ref obsolète
+  // qu'un pointerup ultérieur transformerait en bascule fantôme.
   const swipeX = useRef<number | null>(null);
   const swipeY = useRef<number | null>(null);
+  const purgeSwipe = () => {
+    swipeX.current = null;
+    swipeY.current = null;
+  };
   const onPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
+    purgeSwipe();
+    if (!e.isPrimary) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const t = e.target as HTMLElement;
     if (t.closest('button, input, textarea, select, label, a, .micro-batch')) return;
@@ -119,7 +127,7 @@ function App() {
         hasNext={navigable && idxAffiche < semaines.length - 1}
       />
       <TabBar active={tab} onSelect={setTab} />
-      <main onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <main onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={purgeSwipe}>
         {tab === 'cuisine' && <CuisineView data={affichee.data} />}
         {tab === 'suivi' && (
           <>
