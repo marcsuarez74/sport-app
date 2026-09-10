@@ -1,202 +1,307 @@
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import type { BaseCuisine, MealKey, MenuDay, Recette } from '../../lib/model';
-import { trouverJourDuJour } from '../../lib/stats';
+import { recetteParRef } from '../../lib/stats';
+import { getChecks, setCheck } from '../../lib/storage';
+import { Icon } from '../Icon';
 
 const MEALS: Array<[MealKey, string, string]> = [
   ['dejeunerMarc', 'Marc', 'tag-marc'],
-  ['dejeunerMelanie', 'Mél', 'tag-keto'],
+  ['dejeunerMelanie', 'Mél', 'tag-mel'],
   ['dinerFamille', 'Famille', 'tag-fam'],
-  ['dinerMelanie', 'Mél', 'tag-keto'],
+  ['dinerMelanie', 'Mél', 'tag-mel'],
   ['batch', 'Batch', 'tag-bat'],
 ];
 
-function trouverRecette(ref: string, recettes: Recette[]): Recette | undefined {
-  const cible = ref.toLowerCase();
-  // égalité exacte d'abord, puis préfixe borné (`r1` ne doit pas matcher `r10-…`)
-  return recettes.find((r) => r.id === cible) ?? recettes.find((r) => r.id.startsWith(cible + '-'));
+const ICONES_REPAS: Record<MealKey, 'bowl' | 'meat' | 'pot'> = {
+  dejeunerMarc: 'bowl',
+  dejeunerMelanie: 'bowl',
+  dinerFamille: 'meat',
+  dinerMelanie: 'bowl',
+  batch: 'pot',
+};
+
+export interface Occurrence {
+  id: string;
+  jour: string;
+  cle: MealKey;
+  tag: string;
+  tagClass: string;
+  texte: string;
+  recette?: Recette;
 }
 
-function ordreDepuisAujourdhui(menu: MenuDay[]): { ordered: MenuDay[]; nbPasse: number } {
-  const jourCourant = trouverJourDuJour(menu);
-  const idx = jourCourant ? menu.indexOf(jourCourant) : -1;
-  if (idx <= 0) return { ordered: menu, nbPasse: 0 };
-  return { ordered: [...menu.slice(idx), ...menu.slice(0, idx)], nbPasse: idx };
+// Menu v2 : 1 ligne repas = 1 occurrence indépendante (aucun jour imposé).
+// L'ordre est chronologique — les .md bien rédigés placent batch/frigo d'abord.
+function construireOccurrences(menu: MenuDay[], recettes: Recette[]): Occurrence[] {
+  const out: Occurrence[] = [];
+  for (const day of menu) {
+    for (const [cle, tag, tagClass] of MEALS) {
+      const texte = day[cle];
+      if (!texte) continue;
+      const ref = day.recetteRefs?.[cle];
+      out.push({
+        id: `menu:${day.jour.trim().toLowerCase()}:${cle}`,
+        jour: day.jour,
+        cle,
+        tag,
+        tagClass,
+        texte,
+        ...(ref ? { recette: recetteParRef(ref, recettes) } : {}),
+      });
+    }
+  }
+  return out;
 }
 
 export function MenuView({
   menu,
   recettes = [],
   bases = [],
+  semaine,
 }: {
   menu: MenuDay[];
   recettes?: Recette[];
   bases?: BaseCuisine[];
+  semaine: string;
 }) {
-  if (menu.length === 0) {
-    return <p className="muted">Aucun menu pour cette semaine.</p>;
+  const [checks, setChecks] = useState<Record<string, boolean>>(() => getChecks(semaine));
+  const [syncedSemaine, setSyncedSemaine] = useState(semaine);
+  if (syncedSemaine !== semaine) {
+    setSyncedSemaine(semaine);
+    setChecks(getChecks(semaine));
   }
 
-  const { ordered, nbPasse } = ordreDepuisAujourdhui(menu);
-  const pastFrom = ordered.length - nbPasse;
-
-  const jourDuJour = trouverJourDuJour(menu);
+  const occurrences = construireOccurrences(menu, recettes);
+  if (occurrences.length === 0) {
+    return <p className="muted">Aucun menu pour cette semaine.</p>;
+  }
+  const faites = occurrences.filter((o) => checks[o.id]).length;
+  const toggle = (id: string) => {
+    const next = !checks[id];
+    setCheck(semaine, id, next);
+    setChecks((prev) => ({ ...prev, [id]: next }));
+  };
 
   return (
-    <>
-      {ordered.map((day, i) => {
-        const isToday = i === 0 && nbPasse < ordered.length && day === jourDuJour;
-        const isPast = i >= pastFrom;
-        const recetteParRepas = new Map<MealKey, Recette>();
-        for (const [key] of MEALS) {
-          const ref = day.recetteRefs?.[key];
-          const recette = ref ? trouverRecette(ref, recettes) : undefined;
-          if (recette) recetteParRepas.set(key, recette);
-        }
-        return (
-          <section
-            className={isToday ? 'menu-day today' : isPast ? 'menu-day past' : 'menu-day'}
-            key={day.jour}
-          >
-            <div className="menu-day-head">
-              <h3>{day.jour}</h3>
-              {isToday && <span className="today-badge">Aujourd'hui</span>}
-              {isPast && <span className="past-badge">Passé</span>}
-            </div>
-            {MEALS.map(([key, label, tag]) => {
-              const value = day[key];
-              if (!value) return null;
-              const recette = recetteParRepas.get(key);
-              return (
-                <Fragment key={key}>
-                  <div className="menu-row">
-                    <span className={`menu-tag ${tag}`}>{label}</span>
-                    <span className="menu-row-text">{value}</span>
-                  </div>
-                  {recette && <RecetteCard recette={recette} bases={bases} mealLabel={label} />}
-                </Fragment>
-              );
-            })}
-          </section>
-        );
-      })}
-    </>
+    <div className="menu-reserve">
+      <div className="menu-reserve-head">
+        <p className="menu-reserve-note">
+          Pas de jour imposé — ordre conseillé : batch/frigo d'abord, frais en dernier.
+        </p>
+        <p className="progress">
+          <Icon name="check" size={13} /> <b>{faites}/{occurrences.length}</b> faits
+          <progress value={faites} max={occurrences.length} />
+        </p>
+      </div>
+      {occurrences.map((o) => (
+        <MealCard
+          key={o.id}
+          occ={o}
+          bases={bases}
+          fait={!!checks[o.id]}
+          onToggle={() => toggle(o.id)}
+        />
+      ))}
+    </div>
   );
 }
 
-export function RecetteCard({
-  recette,
+function MealCard({
+  occ,
   bases,
-  mealLabel,
+  fait,
+  onToggle,
 }: {
-  recette: Recette;
+  occ: Occurrence;
   bases?: BaseCuisine[];
-  mealLabel?: string;
+  fait: boolean;
+  onToggle: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const r = occ.recette;
+  const tempsCourt = r?.temps?.split('·')[0]?.trim();
+  const chips = r
+    ? r.bases?.length
+      ? r.bases.map((b) => trouverBase(b, bases)).filter((b): b is BaseCuisine => !!b)
+      : [{ id: 'cuisson-du-jour', nom: 'Cuisson du jour', texte: '' }]
+    : [];
+  return (
+    <article
+      className={fait ? 'menu-card fait' : 'menu-card'}
+      aria-label={`${occ.jour} — ${occ.texte}`}
+    >
+      <div className="menu-card-top">
+        <label className="menu-coche">
+          <input
+            type="checkbox"
+            checked={fait}
+            onChange={onToggle}
+            aria-label={`${occ.texte} — marquer comme fait`}
+          />
+          <span className="menu-coche-box">
+            <Icon name="check" size={14} strokeWidth={2.5} />
+          </span>
+        </label>
+        <div className="mtile">
+          <Icon name={ICONES_REPAS[occ.cle]} size={20} />
+        </div>
+        <div className="mt">
+          <span className={`mtag ${occ.tagClass}`}>{occ.tag}</span>
+          <div className="mname">{occ.texte}</div>
+          {(tempsCourt || r?.kcal != null) && (
+            <div className="mmeta">
+              {tempsCourt && (
+                <span>
+                  <Icon name="clock" size={11} /> {tempsCourt}
+                </span>
+              )}
+              {r?.kcal != null && (
+                <span>
+                  <Icon name="flame" size={11} /> {r.kcal} kcal
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      {(chips.length > 0 || r?.fraicheur) && (
+        <div className="menu-card-meta">
+          {chips.length > 0 && (
+            <div className="mchips">
+              {chips.map((b) => (
+                <span className="mchip" key={b.id}>
+                  {b.nom}
+                </span>
+              ))}
+            </div>
+          )}
+          {r?.fraicheur && (
+            <div className="mh">
+              <Icon name="box" size={11} /> {r.fraicheur}
+            </div>
+          )}
+        </div>
+      )}
+      {r?.portions && (r.portions.marc || r.portions.melanie) && (
+        <div className="portions-box">
+          <div className="portions-title">Portions</div>
+          {r.portions.marc && (
+            <p>
+              <span className="portion-tag">Marc</span> {r.portions.marc}
+            </p>
+          )}
+          {r.portions.melanie && (
+            <p>
+              <span className="portion-tag keto">Mél</span> {r.portions.melanie}
+            </p>
+          )}
+        </div>
+      )}
+      {r && (
+        <button type="button" className="rtoggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+          <span>Voir la recette</span>
+          <span className={open ? 'chev up' : 'chev'}>
+            <Icon name="chev" size={12} />
+          </span>
+        </button>
+      )}
+      {open && r && <RecetteDetail recette={r} bases={bases} />}
+    </article>
+  );
+}
+
+function RecetteDetail({ recette, bases }: { recette: Recette; bases?: BaseCuisine[] }) {
   const [baseOuverte, setBaseOuverte] = useState<string | null>(null);
-  const tempsCourt = recette.temps?.split('·')[0]?.trim();
   const aMacros =
     recette.kcal != null ||
     recette.proteines != null ||
     recette.glucides != null ||
     recette.lipides != null;
   return (
-    <article className="recette-card" aria-label={recette.nom}>
-      <div className="recette-top">
-        {recette.image ? (
-          <img className="recette-thumb" src={recette.image} alt={recette.nom} loading="lazy" />
-        ) : (
-          <div className="recette-fallback" data-testid="recette-fallback" aria-hidden="true">
-            🍳
-          </div>
-        )}
-        <div className="recette-main">
-          <div className="recette-nom">{recette.nom}</div>
-          <button
-            type="button"
-            className="recette-toggle"
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
-          >
-            {open ? 'Réduire ⌃' : 'Voir la recette ⌄'}
-          </button>
-        </div>
-      </div>
-      <div className="recette-badges">
-        {mealLabel && <span className="recette-badge-cat">{mealLabel}</span>}
-        {tempsCourt && <span className="recette-badge-info">⏱ {tempsCourt}</span>}
-        {recette.score != null && (
-          <div className="recette-score">
-            <div className="recette-score-head">
-              <span className="stat-label">Health score :</span>
-              <span className="recette-score-value">
-                {recette.score}
-                <small>/10</small>
-              </span>
-            </div>
-            <div className="score-bar" data-testid="score-bar" aria-hidden="true">
-              {Array.from({ length: 10 }, (_, i) => (
-                <span key={i} className={i < recette.score! ? 'score-seg on' : 'score-seg'} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="recette-detail open">
       {aMacros && (
         <div className="recette-nutri">
-          {recette.kcal != null && <span>🔥 {recette.kcal} kcal</span>}
-          {recette.glucides != null && <span>🌾 {recette.glucides}g C</span>}
-          {recette.proteines != null && <span>💪 {recette.proteines}g P</span>}
-          {recette.lipides != null && <span>💧 {recette.lipides}g F</span>}
+          {recette.kcal != null && (
+            <span>
+              <Icon name="flame" size={11} /> {recette.kcal} kcal
+            </span>
+          )}
+          {recette.glucides != null && (
+            <span>
+              <Icon name="wheat" size={11} /> {recette.glucides}g C
+            </span>
+          )}
+          {recette.proteines != null && (
+            <span>
+              <Icon name="meat" size={11} /> {recette.proteines}g P
+            </span>
+          )}
+          {recette.lipides != null && (
+            <span>
+              <Icon name="drop" size={11} /> {recette.lipides}g F
+            </span>
+          )}
         </div>
       )}
-      {open && (
-        <div className="recette-detail">
-          {recette.pour && <p className="recette-pour">{recette.pour}</p>}
-          {recette.bases && recette.bases.length > 0 && (
-            <div className="recette-bases">
-              {recette.bases.map((b) => {
-                const base = trouverBase(b, bases);
-                return base ? (
-                  <button
-                    type="button"
-                    key={base.id}
-                    className={baseOuverte === base.id ? 'recette-bchip on' : 'recette-bchip'}
-                    aria-expanded={baseOuverte === base.id}
-                    onClick={() => setBaseOuverte(baseOuverte === base.id ? null : base.id)}
-                  >
-                    🧂 {base.nom}
-                  </button>
-                ) : null;
-              })}
-            </div>
-          )}
-          {baseOuverte &&
-            bases
-              ?.filter((b) => b.id === baseOuverte)
-              .map((b) => (
-                <p className="recette-bdesc" key={b.id}>
-                  🧂 {b.nom} : {b.texte}
-                </p>
-              ))}
-          {recette.etapes && recette.etapes.length > 0 && (
-            <ol className="recette-etapes">
-              {recette.etapes.map((e, i) => (
-                <li key={i}>{e}</li>
-              ))}
-            </ol>
-          )}
-          {recette.mel && <p className="recette-ligne recette-mel">{recette.mel}</p>}
-          {recette.batch && <p className="recette-ligne recette-bat">{recette.batch}</p>}
+      {recette.score != null && (
+        <div className="recette-score">
+          <div className="recette-score-head">
+            <span className="stat-label">Health score :</span>
+            <span className="recette-score-value">
+              {recette.score}
+              <small>/10</small>
+            </span>
+          </div>
+          <div className="score-bar">
+            {Array.from({ length: 10 }, (_, i) => (
+              <span key={i} className={i < recette.score! ? 'score-seg on' : 'score-seg'} />
+            ))}
+          </div>
         </div>
       )}
-    </article>
+      {recette.pour && <p className="recette-pour">{recette.pour}</p>}
+      {recette.bases && recette.bases.length > 0 && (
+        <div className="recette-bases">
+          {recette.bases.map((b) => {
+            const base = trouverBase(b, bases);
+            return base ? (
+              <button
+                type="button"
+                key={base.id}
+                className={baseOuverte === base.id ? 'recette-bchip on' : 'recette-bchip'}
+                aria-expanded={baseOuverte === base.id}
+                onClick={() => setBaseOuverte(baseOuverte === base.id ? null : base.id)}
+              >
+                🧂 {base.nom}
+              </button>
+            ) : null;
+          })}
+        </div>
+      )}
+      {baseOuverte &&
+        bases
+          ?.filter((b) => b.id === baseOuverte)
+          .map((b) => (
+            <p className="recette-bdesc" key={b.id}>
+              🧂 {b.nom} : {b.texte}
+            </p>
+          ))}
+      {recette.etapes && recette.etapes.length > 0 && (
+        <ol className="recette-etapes">
+          {recette.etapes.map((e, i) => (
+            <li key={i}>{e}</li>
+          ))}
+        </ol>
+      )}
+      {recette.mel && <p className="recette-ligne recette-mel">{recette.mel}</p>}
+      {recette.batch && <p className="recette-ligne recette-bat">{recette.batch}</p>}
+    </div>
   );
 }
 
 function trouverBase(ref: string, bases: BaseCuisine[] | undefined): BaseCuisine | undefined {
   if (!bases) return undefined;
   const cible = ref.toLowerCase();
-  // même discipline que trouverRecette : égalité exacte d'abord, puis préfixe borné (`b4` ne doit pas matcher `b40-…`)
-  return bases.find((b) => b.id === cible) ?? bases.find((b) => b.id.startsWith(cible + '-'));
+  // égalité exacte d'abord, puis préfixe borné (`b4` ne doit pas matcher `b40-…`)
+  return bases.find((b) => b.id === cible) ?? bases.find((b) => b.id.startsWith(`${cible}-`));
 }

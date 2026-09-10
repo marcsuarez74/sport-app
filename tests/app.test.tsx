@@ -194,7 +194,8 @@ describe('App shell', () => {
     expect(screen.getByText('Carottes')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Menu' }));
-    expect(screen.getByRole('heading', { name: 'Lundi', level: 3 })).toBeInTheDocument();
+    expect(document.querySelector('.menu-card')).not.toBeNull();
+    expect(screen.getByText('Poulet rôti')).toBeInTheDocument(); // diner-famille lundi en carte v2
 
     await user.click(screen.getByRole('button', { name: 'Batch' }));
     expect(screen.getByText(/muffins/i)).toBeInTheDocument();

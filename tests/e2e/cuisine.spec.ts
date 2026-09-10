@@ -4,11 +4,10 @@ import { expect, test } from '@playwright/test';
 // doit couvrir la semaine courante. Quand on la rafraîchit, mettre à jour
 // « Semaine 2026-S37 » et les compteurs exacts ci-dessous (même contrat que
 // les tests unitaires). Hypothèses à préserver aussi : le frontmatter garde
-// `menu: A` (pill assertée), et CHAQUE jour a un diner-famille lié (R1-R7)
-// avec kcal/protéines + étapes — le test fiche recette clique la 1ʳᵉ carte
-// quel que soit le jour d'exécution. Le jour courant, lui, reste calculé.
+// `menu: A` (pill assertée), le menu compte 33 lignes repas (5+5+5+4+4+5+5)
+// et la 3ᵉ carte (nth(2)) = lundi diner-famille → R1 (kcal/étapes) — le test
+// fiche recette s'y accroche. Les coches menu partent d'un storageState vierge.
 const ORIGIN = process.env.E2E_PREVIEW ? 'http://localhost:4173' : 'http://localhost:5173';
-const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
 const OVERFLOW_TOLERANCE = 1; // arrondis de sous-pixel
 
@@ -42,38 +41,26 @@ test.describe('Onglets Cuisine v2 — mobile', () => {
     await expect(page.locator('.menu-pill')).toHaveText('Menu A');
   });
 
-  test('menu : le jour courant est en tête avec son badge', async ({ page }) => {
+  test('menu : réserve de recettes — 33 cartes, coche persistée, fiche dépliable', async ({ page }) => {
     await page.goto(ORIGIN);
     await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
-
     await page.getByRole('button', { name: 'Menu' }).click();
-    await expect(page.locator('.menu-day').first()).toBeVisible();
+    await expect(page.locator('.menu-card')).toHaveCount(33);
+    await expect(page.locator('.menu-reserve-head')).toContainText('0/33 faits');
 
-    // même calcul que todayKey() — pas de jour codé en dur (dépend de la date d'exécution)
-    const jourCourant = JOURS[(new Date().getDay() + 6) % 7];
-    const premier = page.locator('.menu-day').first();
-    await expect(premier).toHaveClass(/menu-day today/);
-    await expect(premier.locator('h3')).toHaveText(new RegExp(jourCourant, 'i'));
-    await expect(premier.locator('.today-badge')).toHaveText("Aujourd'hui");
-  });
-
-  test('fiche recette : carte compacte repliée, dépliage par le bouton, repli par re-clic', async ({ page }) => {
-    await page.goto(ORIGIN);
-    await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
-
+    const carte = page.locator('.menu-card').nth(2); // lundi diner-famille → R1
+    await carte.locator('input[type="checkbox"]').check();
+    await expect(carte).toHaveClass(/fait/);
+    await page.reload();
+    // le rechargement remet l'app sur l'onglet Courses : rouvrir Menu avant l'assertion
     await page.getByRole('button', { name: 'Menu' }).click();
-    const carte = page.locator('.recette-card').first();
-    await expect(carte).toBeVisible();
-    await expect(carte.locator('.recette-nom')).toBeVisible();
-    await expect(carte.locator('.recette-nutri span').first()).toBeVisible();
+    await expect(page.locator('.menu-card').nth(2)).toHaveClass(/fait/);
+
     await expect(carte.locator('.recette-etapes')).toHaveCount(0);
-
-    const toggle = carte.locator('.recette-toggle');
-    await toggle.click();
+    await carte.locator('.rtoggle').click();
     await expect(carte.locator('.recette-etapes li').first()).toBeVisible();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-
-    await toggle.click();
+    await expect(carte.locator('.rtoggle')).toHaveAttribute('aria-expanded', 'true');
+    await carte.locator('.rtoggle').click();
     await expect(carte.locator('.recette-etapes')).toHaveCount(0);
   });
 

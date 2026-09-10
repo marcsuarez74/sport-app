@@ -34,7 +34,7 @@ export function CuisineView({ data }: { data: WeeklyData }) {
         <ShoppingList items={data.courses} semaine={semaine} budget={data.budget} />
       )}
       {tab === 'menu' && (
-        <MenuView menu={data.menu} recettes={data.recettes} bases={data.bases} />
+        <MenuView menu={data.menu} recettes={data.recettes} bases={data.bases} semaine={semaine} />
       )}
       {tab === 'batch' && (
         <BatchView rituel={data.rituel} microBatch={data.microBatch} semaine={semaine} />
