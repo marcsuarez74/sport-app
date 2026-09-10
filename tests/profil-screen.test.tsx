@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Mock } from 'vitest';
 import App from '../src/App';
@@ -68,6 +68,10 @@ const monterApp = () => {
   return user;
 };
 
+// Chaque bloc de l'écran Profil est une <section> sous son h3 (niveau 3).
+const section = (nom: string) =>
+  screen.getByRole('heading', { name: nom, level: 3 }).closest('section')!;
+
 describe('ProfilScreen (unité)', () => {
   let onBack: Mock<() => void>;
   let onChangeProfile: Mock<() => void>;
@@ -129,7 +133,7 @@ describe('ProfilScreen (unité)', () => {
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '2020-01-01' } });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer mes infos' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/âge/i);
+    expect(within(section('Mes infos')).getByRole('alert')).toHaveTextContent(/âge/i);
     expect(loadProfile()).toBeNull();
   });
 
@@ -246,8 +250,22 @@ describe('ProfilScreen (unité)', () => {
     await user.type(screen.getByLabelText('Poids objectif (kg)'), '500');
     await user.click(screen.getByRole('button', { name: "Enregistrer l'objectif" }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/poids objectif/i);
+    expect(within(section('Objectif')).getByRole('alert')).toHaveTextContent(/poids objectif/i);
+    expect(within(section('Mes infos')).queryByRole('alert')).not.toBeInTheDocument();
     expect(loadProfile()).toBeNull();
+  });
+
+  it('complément en doublon : alerte rendue dans la section Compléments', async () => {
+    render(
+      <ProfilScreen profile={{ ...profileMarc, complements: ['Whey'] }} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
+    );
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText('Ajouter un complément'), 'whey');
+    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+
+    expect(within(section('Compléments')).getByRole('alert')).toHaveTextContent(/déjà sélectionné/i);
+    expect(within(section('Mes infos')).queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('sections dédiées : objectif affiché et modifiable', async () => {
@@ -264,7 +282,7 @@ describe('ProfilScreen (unité)', () => {
     fireEvent.change(screen.getByLabelText('Échéance (optionnelle)'), { target: { value: '' } });
     await user.click(screen.getByRole('button', { name: "Enregistrer l'objectif" }));
 
-    expect(loadProfile()).toMatchObject({ objectif: { type: 'maintien' } });
+    expect(loadProfile()?.objectif).toEqual({ type: 'maintien' });
     expect(onProfileSaved).toHaveBeenCalled();
   });
 
