@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type {
   ChecklistItem,
   CourseItem,
+  DepenseEntry,
   ProfileData,
   UserProfile,
   WeeklyData,
@@ -17,6 +18,7 @@ import { StatCards } from '../src/components/StatCards';
 import { ObjectifBloc } from '../src/components/ObjectifBloc';
 import { WeightChart } from '../src/components/WeightChart';
 import { ShoppingList } from '../src/components/cuisine/ShoppingList';
+import { CoursesBudget } from '../src/components/cuisine/CoursesBudget';
 import { MenuView } from '../src/components/cuisine/MenuView';
 import { BatchView } from '../src/components/cuisine/BatchView';
 import { CuisineView } from '../src/components/cuisine/CuisineView';
@@ -35,6 +37,26 @@ const profileV2 = (
   complements: [],
   regime: id === 'melanie' ? 'keto' : 'aucun',
   ...extra,
+});
+
+const seedDepenses = (list: DepenseEntry[]) =>
+  localStorage.setItem('sportapp:depenses', JSON.stringify(list));
+
+const dataAvecBudget = (budget?: string): WeeklyData => ({
+  meta: {
+    semaine: '2026-S37',
+    menu: 'Menu A',
+    du: '2026-09-07',
+    au: '2026-09-13',
+  },
+  courses: [],
+  menu: [],
+  batch: [],
+  profiles: {
+    marc: { cibles: [], seances: [], rappels: [] },
+    melanie: { cibles: [], seances: [], rappels: [] },
+  },
+  ...(budget !== undefined ? { budget } : {}),
 });
 
 const items: ChecklistItem[] = [
@@ -1162,5 +1184,119 @@ describe('Icon', () => {
       expect(document.querySelector('svg')).not.toBeNull();
       unmount();
     }
+  });
+});
+
+describe('CoursesBudget — carte budget', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('affiche estimé / payé / budget max alignés et le pourcentage', () => {
+    seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    render(
+      <CoursesBudget
+        data={dataAvecBudget('≈ 35 €')}
+        profile={profileV2('marc', { magasin: 'Lidl', budgetMax: 40 })}
+        onOuvrirDepenses={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('Budget courses')).toBeInTheDocument();
+    expect(screen.getByText('≈ 35 €')).toBeInTheDocument();
+    expect(screen.getByText('38,20 €')).toBeInTheDocument();
+    expect(screen.getByText('40,00 €')).toBeInTheDocument();
+    expect(screen.getByText('96 % du budget')).toBeInTheDocument();
+    expect(screen.getByText('Lidl')).toBeInTheDocument(); // pill magasin
+  });
+
+  it('passe en rouge et annonce le dépassement au-delà du budget max', () => {
+    seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 43.8 }]);
+    render(
+      <CoursesBudget
+        data={dataAvecBudget('≈ 35 €')}
+        profile={profileV2('marc', { budgetMax: 40 })}
+        onOuvrirDepenses={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('43,80 €')).toBeInTheDocument();
+    expect(screen.getByText('dépassé de 10 %')).toBeInTheDocument();
+    expect(document.querySelector('.bud-bar.alerte')).not.toBeNull();
+    expect(document.querySelector('.bud-pct.alerte')).not.toBeNull();
+  });
+
+  it('somme uniquement les dépenses de la semaine affichée', () => {
+    seedDepenses([
+      { date: '2026-09-09', magasin: 'Lidl', total: 38.2 },
+      { date: '2026-09-02', magasin: 'Lidl', total: 10 }, // semaine précédente (du = 2026-09-07)
+      { date: '2026-09-14', magasin: 'Lidl', total: 5 }, // semaine suivante
+    ]);
+    render(
+      <CoursesBudget
+        data={dataAvecBudget()}
+        profile={profileV2('marc', { budgetMax: 40 })}
+        onOuvrirDepenses={() => {}}
+      />,
+    );
+
+    expect(screen.getByText('38,20 €')).toBeInTheDocument();
+    expect(screen.queryByText('48,20 €')).not.toBeInTheDocument();
+  });
+
+  it('sans budget max : grille à 2 colonnes, pas de barre ni de pourcentage', () => {
+    seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    render(
+      <CoursesBudget data={dataAvecBudget('≈ 35 €')} profile={profileV2('marc')} onOuvrirDepenses={() => {}} />,
+    );
+
+    expect(document.querySelector('.bud-grid.cols2')).not.toBeNull();
+    expect(screen.queryByText('Budget max')).not.toBeInTheDocument();
+    expect(document.querySelector('.bud-bar')).toBeNull();
+  });
+
+  it('estimé absent du .md : la cellule est masquée, les autres restent', () => {
+    seedDepenses([{ date: '2026-09-09', magasin: 'Lidl', total: 38.2 }]);
+    render(
+      <CoursesBudget data={dataAvecBudget()} profile={profileV2('marc', { budgetMax: 40 })} onOuvrirDepenses={() => {}} />,
+    );
+
+    expect(screen.queryByText('Estimé menu')).not.toBeInTheDocument();
+    expect(screen.getByText('Payé cette semaine')).toBeInTheDocument();
+    expect(screen.getByText('Budget max')).toBeInTheDocument();
+  });
+
+  it('rien de saisi : « Payé » vaut —', () => {
+    render(
+      <CoursesBudget data={dataAvecBudget('≈ 35 €')} profile={profileV2('marc', { budgetMax: 40 })} onOuvrirDepenses={() => {}} />,
+    );
+
+    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(document.querySelector('.bud-bar')).toBeNull();
+  });
+
+  it('aucune donnée du tout : la carte ne rend rien', () => {
+    const { container } = render(
+      <CoursesBudget data={dataAvecBudget()} profile={profileV2('marc')} onOuvrirDepenses={() => {}} />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('le bouton « Total payé » ouvre le panneau dépenses', async () => {
+    const onOuvrir = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <CoursesBudget
+        data={dataAvecBudget('≈ 35 €')}
+        profile={profileV2('marc', { budgetMax: 40 })}
+        onOuvrirDepenses={onOuvrir}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Total payé/ }));
+    expect(onOuvrir).toHaveBeenCalledWith(true);
+    await user.click(screen.getByRole('button', { name: /Voir mes dépenses réelles/ }));
+    expect(onOuvrir).toHaveBeenCalledWith(false);
   });
 });

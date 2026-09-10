@@ -2046,3 +2046,135 @@ progress {
   content: '📦 Batch : ';
   font-weight: 700;
 }
+
+/* Carte « Budget courses » (onglet Courses) */
+.bud {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px 15px;
+}
+.bud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bud-head b {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.mag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: color-mix(in srgb, var(--accent-2) 60%, var(--surface));
+  color: var(--text);
+}
+.bud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-top: 13px;
+}
+.bud-grid.cols2 {
+  grid-template-columns: 1fr 1fr;
+}
+.bud-cell .l {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.bud-cell .v {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 700;
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.bud-cell .v.alerte {
+  color: var(--danger);
+}
+.bud-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 13px;
+}
+.bud-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.bud-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+}
+.bud-bar.alerte i {
+  background: var(--danger);
+}
+.bud-pct {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--muted);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.bud-pct.alerte {
+  color: var(--danger);
+}
+.bud-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.bud-actions .blink {
+  margin-left: auto;
+}
+
+/* Boutons sobres (écrans maison & courses) — le gros basilic reste réservé
+   au CTA de l'onboarding et aux « Enregistrer » du Profil (style v6). */
+.bsoft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--surface);
+  color: var(--accent);
+  border-radius: 999px;
+  font: 700 12.5px Poppins, sans-serif;
+  cursor: pointer;
+}
+.bsoft:active {
+  transform: scale(0.97);
+}
+.blink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font: 700 12.5px Poppins, sans-serif;
+  cursor: pointer;
+}
