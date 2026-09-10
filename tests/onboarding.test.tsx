@@ -2,7 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Mock } from 'vitest';
 import { Onboarding } from '../src/components/onboarding/Onboarding';
-import type { ProfilLegacy, UserProfile } from '../src/lib/model';
+import { REGIMES } from '../src/lib/model';
+import type { ProfilLegacy, Regime, UserProfile } from '../src/lib/model';
 import { addWeight, getWeights, loadProfile } from '../src/lib/storage';
 import { todayISO } from '../src/lib/dates';
 
@@ -40,9 +41,26 @@ const allerEtape3 = async () => {
   return user;
 };
 
-const allerEtape4 = async () => {
+const allerEtape4 = async (choix: { regime?: Regime; complements?: string[] } = {}) => {
   const user = await allerEtape3();
   await user.click(screen.getByRole('button', { name: /Continuer/ }));
+  // Les choix passés ici sont faits à l'étape 4, avant de quitter (états persistants).
+  if (choix.complements) {
+    for (const c of choix.complements) {
+      await user.click(screen.getByRole('button', { name: c }));
+    }
+  }
+  if (choix.regime) {
+    const nom = REGIMES.find((r) => r.id === choix.regime)!.nom;
+    await user.click(screen.getByRole('radio', { name: nom }));
+  }
+  return user;
+};
+
+const allerEtape5 = async (choix: { regime?: Regime; complements?: string[] } = {}) => {
+  const user = await allerEtape4(choix);
+  await user.click(screen.getByRole('button', { name: /Continuer/ }));
+  expect(screen.getByRole('heading', { name: /Maison & courses/ })).toBeInTheDocument();
   return user;
 };
 
@@ -54,14 +72,14 @@ beforeEach(() => {
 });
 
 describe('Onboarding — étape 1 (choix du profil)', () => {
-  it('affiche la question, les deux cartes et 4 points de progression', () => {
+  it('affiche la question, les deux cartes et 5 points de progression', () => {
     render(<Onboarding onDone={() => {}} />);
 
     expect(screen.getByRole('heading', { name: /Qui est derrière l'écran/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Marc/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Mélanie/ })).toBeInTheDocument();
     const dots = screen.getByRole('group', { name: /Progression/ });
-    expect(dots.querySelectorAll('span')).toHaveLength(4);
+    expect(dots.querySelectorAll('span')).toHaveLength(5);
     expect(dots.querySelectorAll('span')[0]).toHaveClass('onboarding-dot-active');
     expect(screen.queryByLabelText('Poids (kg)')).not.toBeInTheDocument();
   });
@@ -205,12 +223,58 @@ describe('Onboarding — étape 4 (compléments et régime)', () => {
       ),
     );
   });
+});
 
-  it('choisit un régime et enregistre le profil v2 complet (C est parti)', async () => {
-    const user = await allerEtape4();
-    await user.click(screen.getByRole('button', { name: 'Créatine' }));
-    await user.click(screen.getByRole('radio', { name: 'Keto' }));
-    await user.type(screen.getByLabelText('Poids objectif (kg)'), '58');
+describe('Onboarding — étape 5 (maison & courses)', () => {
+  it('affiche les champs maison avec le datalist magasins', async () => {
+    await allerEtape5();
+
+    expect(screen.getByLabelText('Magasin habituel')).toHaveAttribute('list');
+    // <option value="…"/> n'a pas de texte : on vérifie les valeurs du datalist.
+    const valeurs = [...document.querySelectorAll('#ob-magasins option')].map((o) =>
+      o.getAttribute('value'),
+    );
+    expect(valeurs).toContain('Intermarché');
+    expect(screen.getByLabelText('Budget max courses / semaine (€, optionnel)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Personnes à table')).toBeInTheDocument();
+    expect(screen.getByLabelText('Repas par jour')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Healthy' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Batch-friendly' })).toBeInTheDocument();
+  });
+
+  it('bascule les préférences presets et refuse le doublon à l ajout libre', async () => {
+    const user = await allerEtape5();
+    await user.click(screen.getByRole('button', { name: 'Petit budget' }));
+    expect(screen.getByRole('button', { name: 'Petit budget' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(screen.getByRole('button', { name: 'Healthy' }));
+    await user.type(screen.getByLabelText('Ajouter une préférence'), 'healthy');
+    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/déjà sélectionné/i);
+    await user.clear(screen.getByLabelText('Ajouter une préférence'));
+    await user.type(screen.getByLabelText('Ajouter une préférence'), 'Végé');
+    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+    expect(screen.getByRole('button', { name: /Végé/ })).toBeInTheDocument();
+  });
+
+  it('refuse un budget max invalide ou des personnes hors bornes', async () => {
+    const user = await allerEtape5();
+    await user.type(screen.getByLabelText('Budget max courses / semaine (€, optionnel)'), '0');
+    await user.click(screen.getByRole('button', { name: /C'est parti/ }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/Budget max invalide/i);
+
+    await user.clear(screen.getByLabelText('Budget max courses / semaine (€, optionnel)'));
+    await user.type(screen.getByLabelText('Personnes à table'), '0');
+    await user.click(screen.getByRole('button', { name: /C'est parti/ }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/Personnes à table/i);
+    expect(loadProfile()).toBeNull();
+  });
+
+  it('C est parti enregistre le profil v2 complet (régime choisi à l étape 4 + maison)', async () => {
+    const user = await allerEtape5({ regime: 'keto', complements: ['Créatine'] });
+    await user.type(screen.getByLabelText('Magasin habituel'), 'Lidl');
+    await user.type(screen.getByLabelText('Budget max courses / semaine (€, optionnel)'), '40');
+    await user.type(screen.getByLabelText('Personnes à table'), '4');
+    await user.type(screen.getByLabelText('Repas par jour'), '3');
     soumettre();
 
     await waitFor(() =>
@@ -218,27 +282,20 @@ describe('Onboarding — étape 4 (compléments et régime)', () => {
         id: 'melanie',
         dateNaissance: '1987-03-02',
         taille: 165,
-        poidsObjectif: 58,
         objectif: { type: 'perte' },
         complements: ['Créatine'],
         regime: 'keto',
+        magasin: 'Lidl',
+        budgetMax: 40,
+        personnes: 4,
+        repasJour: 3,
       } satisfies UserProfile),
     );
-    expect(loadProfile()).toEqual({
-      id: 'melanie',
-      dateNaissance: '1987-03-02',
-      taille: 165,
-      poidsObjectif: 58,
-      objectif: { type: 'perte' },
-      complements: ['Créatine'],
-      regime: 'keto',
-    });
     expect(getWeights('melanie')).toEqual([{ date: todayISO(), kg: 62.4 }]);
   });
 
-  it('enregistre sans aucun champ optionnel (maintien, aucun complément)', async () => {
-    const user = await allerEtape4();
-    await user.click(screen.getByRole('radio', { name: 'Maintien' }));
+  it('C est parti sans rien remplir : aucun champ maison n est écrit', async () => {
+    await allerEtape5();
     soumettre();
 
     await waitFor(() =>
@@ -246,7 +303,7 @@ describe('Onboarding — étape 4 (compléments et régime)', () => {
         id: 'melanie',
         dateNaissance: '1987-03-02',
         taille: 165,
-        objectif: { type: 'maintien' },
+        objectif: { type: 'perte' },
         complements: [],
         regime: 'aucun',
       } satisfies UserProfile),

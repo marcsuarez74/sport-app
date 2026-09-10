@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import {
   COMPLEMENTS_PRESETS,
+  MAGASINS_PRESETS,
   OBJECTIF_TYPES,
+  PREFERENCES_PRESETS,
   REGIMES,
   normaliseComplement,
 } from '../../lib/model';
 import type { ObjectifType, ProfilLegacy, ProfileKey, Regime, UserProfile } from '../../lib/model';
 import { ageDepuis, todayISO } from '../../lib/dates';
+import { parseEuro } from '../../lib/prix';
 import { addWeight, getWeights, saveProfile } from '../../lib/storage';
 import { Icon } from '../Icon';
 
@@ -23,7 +26,7 @@ export function Onboarding({
   prefill?: ProfilLegacy;
 }) {
   // Migration : démarrer directement à l'étape 2, profil verrouillé (pas d'étape 1).
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(prefill ? 2 : 1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(prefill ? 2 : 1);
   const [id, setId] = useState<ProfileKey | null>(prefill?.id ?? null);
   const [poids, setPoids] = useState(() => {
     if (!prefill) return '';
@@ -41,12 +44,18 @@ export function Onboarding({
   const [complements, setComplements] = useState<string[]>([]);
   const [nouveauComplement, setNouveauComplement] = useState('');
   const [regime, setRegime] = useState<Regime>('aucun');
+  const [magasin, setMagasin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
+  const [personnes, setPersonnes] = useState('');
+  const [repasJour, setRepasJour] = useState('');
+  const [preferences, setPreferences] = useState<string[]>([]);
+  const [nouvellePreference, setNouvellePreference] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const migration = prefill != null;
   const profil = id ? PROFILS.find((p) => p.id === id) : undefined;
 
-  const aller = (n: 1 | 2 | 3 | 4) => {
+  const aller = (n: 1 | 2 | 3 | 4 | 5) => {
     setError(null);
     setStep(n);
   };
@@ -56,7 +65,7 @@ export function Onboarding({
     aller(2);
   };
 
-  const retour = () => aller(Math.max(1, step - 1) as 1 | 2 | 3 | 4);
+  const retour = () => aller(Math.max(1, step - 1) as 1 | 2 | 3 | 4 | 5);
 
   // Valide l'étape 2 et retourne le poids/taille parsés, ou null avec un message.
   // En migration, le poids est optionnel (champ vide si aucune pesée enregistrée —
@@ -137,6 +146,49 @@ export function Onboarding({
     );
   };
 
+  const ajouterPreference = () => {
+    const v = nouvellePreference.trim().slice(0, 40);
+    if (!v) return;
+    if (preferences.some((p) => normaliseComplement(p) === normaliseComplement(v))) {
+      setError('Cette préférence est déjà sélectionnée.');
+      return;
+    }
+    setError(null);
+    setPreferences([...preferences, v]);
+    setNouvellePreference('');
+  };
+
+  const basculerPreference = (preset: string) => {
+    setError(null);
+    setPreferences((ps) =>
+      ps.some((p) => normaliseComplement(p) === normaliseComplement(preset))
+        ? ps.filter((p) => normaliseComplement(p) !== normaliseComplement(preset))
+        : [...ps, preset],
+    );
+  };
+
+  // Étape 5 : tout est optionnel — seules les valeurs remplies sont contraintes.
+  const validerMaison = (): boolean => {
+    if (budgetMax) {
+      const bud = parseEuro(budgetMax);
+      if (bud === null || bud > 10000) {
+        setError('Budget max invalide : entre un montant en euros (ex. 40).');
+        return false;
+      }
+    }
+    const pers = personnes ? Number.parseInt(personnes, 10) : undefined;
+    if (personnes && (pers === undefined || pers < 1 || pers > 12)) {
+      setError('Personnes à table : entre 1 et 12.');
+      return false;
+    }
+    const repas = repasJour ? Number.parseInt(repasJour, 10) : undefined;
+    if (repasJour && (repas === undefined || repas < 1 || repas > 12)) {
+      setError('Repas par jour : entre 1 et 12.');
+      return false;
+    }
+    return true;
+  };
+
   const valider = () => {
     const infos = validerInfos();
     if (!infos) return;
@@ -145,7 +197,10 @@ export function Onboarding({
       setError('Poids objectif invalide : entre 30 et 250 kg.');
       return;
     }
+    if (!validerMaison()) return;
     if (!id) return;
+    const pers = personnes ? Number.parseInt(personnes, 10) : undefined;
+    const repas = repasJour ? Number.parseInt(repasJour, 10) : undefined;
     const profile: UserProfile = {
       id,
       dateNaissance,
@@ -154,6 +209,11 @@ export function Onboarding({
       objectif: { type: objectifType, ...(echeance ? { echeance } : {}) },
       complements: [...complements],
       regime,
+      ...(magasin.trim() ? { magasin: magasin.trim() } : {}),
+      ...(budgetMax ? { budgetMax: parseEuro(budgetMax)! } : {}),
+      ...(preferences.length > 0 ? { preferences: [...preferences] } : {}),
+      ...(pers != null ? { personnes: pers } : {}),
+      ...(repas != null ? { repasJour: repas } : {}),
     };
     saveProfile(profile);
     if (infos.kg != null) addWeight(id, todayISO(), infos.kg);
@@ -164,7 +224,7 @@ export function Onboarding({
     <div className="onboarding">
       {!migration && (
         <div className="onboarding-dots" role="group" aria-label="Progression de l'onboarding">
-          {[1, 2, 3, 4].map((n) => (
+          {[1, 2, 3, 4, 5].map((n) => (
             <span key={n} className={n <= step ? 'onboarding-dot-active' : undefined} />
           ))}
         </div>
@@ -302,7 +362,7 @@ export function Onboarding({
                 </button>
               </div>
               {migration && (
-                <p className="onb-hint">Ensuite : objectif puis compléments &amp; régime (2 écrans rapides).</p>
+                <p className="onb-hint">Ensuite : objectif, personnalisation puis maison &amp; courses.</p>
               )}
             </>
           )}
@@ -479,6 +539,129 @@ export function Onboarding({
                     setPoidsObjectif(e.target.value);
                   }}
                 />
+              </div>
+              <div className="onb-btnrow">
+                <button type="button" className="onb-back" onClick={retour}>
+                  Retour
+                </button>
+                <button type="button" className="onb-next" onClick={() => aller(5)}>
+                  Continuer <Icon name="chev-right" size={14} />
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 5 && (
+            <>
+              <h1>Maison &amp; courses</h1>
+              <p className="onboarding-sub">
+                Dernière étape — pour les listes, le budget et les prochains cycles. Tout est optionnel.
+              </p>
+              <div className="onboarding-field">
+                <label htmlFor="ob-magasin">Magasin habituel</label>
+                <input
+                  id="ob-magasin"
+                  list="ob-magasins"
+                  placeholder="Lidl, Intermarché…"
+                  value={magasin}
+                  onChange={(e) => {
+                    setError(null);
+                    setMagasin(e.target.value);
+                  }}
+                />
+                <datalist id="ob-magasins">
+                  {MAGASINS_PRESETS.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="onboarding-field">
+                <label htmlFor="ob-budget">Budget max courses / semaine (€, optionnel)</label>
+                <input
+                  id="ob-budget"
+                  inputMode="decimal"
+                  value={budgetMax}
+                  onChange={(e) => {
+                    setError(null);
+                    setBudgetMax(e.target.value);
+                  }}
+                />
+                <p className="onb-hint">
+                  Le plafond à ne pas dépasser — l'app compare l'estimé du menu et ce que tu paies vraiment.
+                </p>
+              </div>
+              <div className="onb-row2">
+                <div className="onboarding-field">
+                  <label htmlFor="ob-personnes">Personnes à table</label>
+                  <input
+                    id="ob-personnes"
+                    inputMode="numeric"
+                    value={personnes}
+                    onChange={(e) => {
+                      setError(null);
+                      setPersonnes(e.target.value);
+                    }}
+                  />
+                </div>
+                <div className="onboarding-field">
+                  <label htmlFor="ob-repas">Repas par jour</label>
+                  <input
+                    id="ob-repas"
+                    inputMode="numeric"
+                    value={repasJour}
+                    onChange={(e) => {
+                      setError(null);
+                      setRepasJour(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+              <p className="onb-label">Préférences pour les prochains cycles</p>
+              <div className="chips">
+                {PREFERENCES_PRESETS.map((preset) => {
+                  const on = preferences.some(
+                    (p) => normaliseComplement(p) === normaliseComplement(preset),
+                  );
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      className={`chip${on ? ' on' : ''}`}
+                      aria-pressed={on}
+                      onClick={() => basculerPreference(preset)}
+                    >
+                      {preset}
+                    </button>
+                  );
+                })}
+                {preferences
+                  .filter((p) => !PREFERENCES_PRESETS.some((preset) => preset === p))
+                  .map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      className="chip on"
+                      aria-pressed="true"
+                      onClick={() => basculerPreference(p)}
+                    >
+                      {p}
+                    </button>
+                  ))}
+              </div>
+              <div className="addrow">
+                <input
+                  value={nouvellePreference}
+                  maxLength={40}
+                  placeholder="Ajouter une préférence…"
+                  aria-label="Ajouter une préférence"
+                  onChange={(e) => {
+                    setError(null);
+                    setNouvellePreference(e.target.value);
+                  }}
+                />
+                <button type="button" onClick={ajouterPreference}>
+                  <Icon name="plus" size={13} /> Ajouter
+                </button>
               </div>
               <button type="submit" className="onboarding-cta onb-full">
                 C'est parti ! 🚀

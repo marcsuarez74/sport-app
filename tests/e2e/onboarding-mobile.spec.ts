@@ -49,6 +49,10 @@ test.describe('Onboarding 4 étapes — mobile', () => {
     await expect(page.getByRole('heading', { name: /Personnalisation/ })).toBeVisible();
     await page.getByRole('button', { name: 'Créatine' }).click();
     await page.getByRole('radio', { name: 'Keto' }).click();
+    await page.getByRole('button', { name: /Continuer/ }).click();
+
+    await expect(page.getByRole('heading', { name: /Maison & courses/ })).toBeVisible();
+    await assertPasDeDebordement(page);
     await page.getByRole('button', { name: /C'est parti/ }).click();
 
     // Profil enregistré + semaine d'exemple auto-chargée → shell direct
@@ -80,6 +84,7 @@ test.describe('Onboarding 4 étapes — mobile', () => {
     await expect(page.getByLabel('Date de naissance')).toHaveValue('');
 
     await page.getByLabel('Date de naissance').fill('1987-03-02');
+    await page.getByRole('button', { name: /Continuer/ }).click();
     await page.getByRole('button', { name: /Continuer/ }).click();
     await page.getByRole('button', { name: /Continuer/ }).click();
     await page.getByRole('button', { name: /C'est parti/ }).click();

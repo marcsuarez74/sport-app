@@ -1426,6 +1426,14 @@ progress {
   margin-top: 24px;
   align-items: center;
 }
+.onb-row2 {
+  display: flex;
+  gap: 10px;
+}
+.onb-row2 .onboarding-field {
+  flex: 1;
+  min-width: 0;
+}
 .onb-next {
   flex: 1;
   display: flex;
