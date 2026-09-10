@@ -1836,16 +1836,19 @@ progress {
   margin-top: 12px;
 }
 
+.profil-screen .profile-section .btn.profil-save {
+  width: 100%;
+  margin-top: 16px;
+}
+
 .profil-switch {
-  min-height: 48px;
-  padding: 12px 18px;
   border: 1.5px solid var(--danger);
-  border-radius: 12px;
-  background: none;
+  background: var(--surface);
   color: var(--danger);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 999px;
+  width: 100%;
+  min-height: 48px;
+  font: 600 13px Poppins, sans-serif;
   cursor: pointer;
 }
 

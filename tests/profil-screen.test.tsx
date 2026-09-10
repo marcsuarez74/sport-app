@@ -95,7 +95,7 @@ describe('ProfilScreen (unité)', () => {
     expect(screen.getByRole('button', { name: /Retour/ })).toBeInTheDocument();
     expect(screen.getByLabelText('Date de naissance')).toHaveValue('1985-04-12');
     expect(screen.getByLabelText('Taille (cm)')).toHaveValue(178);
-    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Enregistrer mes infos' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Changer de profil/ })).toBeInTheDocument();
     // Section « Semaine » : l'import du cycle est de retour dans le profil (rotation)
     expect(screen.getByRole('heading', { name: 'Semaine', level: 3 })).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('ProfilScreen (unité)', () => {
 
     // input[type=date] ne se laisse pas taper : convention repo = fireEvent.change.
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1984-04-12' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer mes infos' }));
 
     expect(loadProfile()).toEqual({
       id: 'marc',
@@ -127,7 +127,7 @@ describe('ProfilScreen (unité)', () => {
     );
 
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '2020-01-01' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer mes infos' }));
 
     expect(screen.getByRole('alert')).toHaveTextContent(/âge/i);
     expect(loadProfile()).toBeNull();
@@ -139,7 +139,7 @@ describe('ProfilScreen (unité)', () => {
     );
 
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1984-04-12' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer mes infos' }));
 
     expect(onProfileSaved).toHaveBeenCalledWith({
       id: 'marc',
@@ -187,7 +187,7 @@ describe('ProfilScreen (unité)', () => {
 
     await user.clear(screen.getByLabelText('Poids objectif (kg)'));
     await user.type(screen.getByLabelText('Poids objectif (kg)'), '70');
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await user.click(screen.getByRole('button', { name: "Enregistrer l'objectif" }));
 
     const attendu = { ...profileMarc, poidsObjectif: 70 };
     expect(loadProfile()).toEqual(attendu);
@@ -207,7 +207,7 @@ describe('ProfilScreen (unité)', () => {
     const user = userEvent.setup();
 
     await user.clear(screen.getByLabelText('Poids objectif (kg)'));
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await user.click(screen.getByRole('button', { name: "Enregistrer l'objectif" }));
 
     expect(loadProfile()).toEqual(profileMarc);
   });
@@ -233,7 +233,7 @@ describe('ProfilScreen (unité)', () => {
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '' } });
 
     expect(screen.queryByText(/2026 ans/)).not.toBeInTheDocument();
-    expect(screen.getByText(/Saisis ta date de naissance/)).toBeInTheDocument();
+    expect(screen.getByText(/Sélectionne ta date de naissance/)).toBeInTheDocument();
     vi.useRealTimers();
   });
 
@@ -244,10 +244,58 @@ describe('ProfilScreen (unité)', () => {
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText('Poids objectif (kg)'), '500');
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await user.click(screen.getByRole('button', { name: "Enregistrer l'objectif" }));
 
     expect(screen.getByRole('alert')).toHaveTextContent(/poids objectif/i);
     expect(loadProfile()).toBeNull();
+  });
+
+  it('sections dédiées : objectif affiché et modifiable', async () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
+    );
+    const user = userEvent.setup();
+
+    expect(screen.getByRole('heading', { name: 'Objectif', level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Perte de poids' })).toBeChecked();
+    expect(screen.getByLabelText('Échéance (optionnelle)')).toHaveValue('2026-12-15');
+
+    await user.click(screen.getByRole('radio', { name: 'Maintien' }));
+    fireEvent.change(screen.getByLabelText('Échéance (optionnelle)'), { target: { value: '' } });
+    await user.click(screen.getByRole('button', { name: "Enregistrer l'objectif" }));
+
+    expect(loadProfile()).toMatchObject({ objectif: { type: 'maintien' } });
+    expect(onProfileSaved).toHaveBeenCalled();
+  });
+
+  it('sections dédiées : compléments ajoutés et retirés, persistés', async () => {
+    render(
+      <ProfilScreen profile={{ ...profileMarc, complements: ['Whey'] }} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
+    );
+    const user = userEvent.setup();
+
+    expect(screen.getByRole('button', { name: /Whey/ })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Ajouter un complément'), 'Zinc');
+    await user.click(screen.getByRole('button', { name: /Ajouter/ }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les compléments' }));
+
+    expect(loadProfile()).toMatchObject({ complements: ['Whey', 'Zinc'] });
+
+    await user.click(screen.getByRole('button', { name: /Retirer Whey/ }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les compléments' }));
+    expect(loadProfile()).toMatchObject({ complements: ['Zinc'] });
+  });
+
+  it('sections dédiées : régime persisté', async () => {
+    render(
+      <ProfilScreen profile={profileMarc} onBack={onBack} onChangeProfile={onChangeProfile} onProfileSaved={onProfileSaved} onImported={onImported} />,
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('radio', { name: 'Végétarien' }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer le régime' }));
+
+    expect(loadProfile()).toMatchObject({ regime: 'vegetarien' });
   });
 });
 
@@ -273,7 +321,7 @@ describe('ProfilScreen (intégration via App)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Mon profil' }));
     fireEvent.change(screen.getByLabelText('Date de naissance'), { target: { value: '1984-04-12' } });
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer mes infos' }));
 
     await user.click(screen.getByRole('button', { name: /Retour/ }));
     await user.click(screen.getByRole('button', { name: 'Mon profil' }));
