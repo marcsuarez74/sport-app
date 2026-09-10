@@ -66,9 +66,17 @@ test.describe('Mon suivi — bloc objectif et carte Poids', () => {
     await expect(page.getByText(/Séances de la semaine · \d+\/\d+/)).toBeVisible();
   });
 
-  test('aucun débordement horizontal sur le suivi (320 et 375 gérés par les projets)', async ({ page }) => {
-    await page.goto(ORIGIN);
-    await page.getByRole('button', { name: 'Mon suivi' }).click();
-    await assertPasDeDebordement(page);
-  });
+  for (const largeur of [320, 375]) {
+    test(`zéro débordement horizontal sur le suivi à ${largeur}px`, async ({ page }) => {
+      await page.setViewportSize({ width: largeur, height: 700 });
+      await page.goto(ORIGIN);
+      await expect(page.getByText('Semaine 2026-S37')).toBeVisible();
+      await page.getByRole('button', { name: 'Mon suivi' }).click();
+
+      // le contenu dense est rendu avant l'assert : bloc objectif + pastilles
+      await expect(page.locator('.obj-bloc')).toBeVisible();
+      await expect(page.locator('.seance-rec').first()).toBeVisible();
+      await assertPasDeDebordement(page);
+    });
+  }
 });
