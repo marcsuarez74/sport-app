@@ -67,7 +67,6 @@ export function ShoppingList({
       </div>
       <p className="progress">
         {done}/{total} cochés
-        <progress value={done} max={total} />
         <button
           type="button"
           className="mm"
@@ -76,6 +75,7 @@ export function ShoppingList({
         >
           <Icon name="cart" size={12} /> {magasin ? 'Tout revoir' : 'Mode magasin'}
         </button>
+        <progress value={done} max={total} />
       </p>
       {[...groups]
         .sort((a, b) => Number(a.rayon === 'keto') - Number(b.rayon === 'keto'))

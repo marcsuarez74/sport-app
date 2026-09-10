@@ -437,7 +437,7 @@ p {
   display: block;
   margin-top: 2px;
   font-size: 12px;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 70%, var(--text));
 }
 
 /* ---------- Mode magasin ---------- */

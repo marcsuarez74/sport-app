@@ -394,6 +394,42 @@ describe('ShoppingList', () => {
     await user.click(screen.getByRole('button', { name: /Tout revoir/ }));
     expect(screen.getAllByRole('checkbox').length).toBe(courseItems.length);
   });
+
+  it('Mode magasin : tout coché affiche le message de fin, décocher un item le retire', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingList items={courseItems} semaine="2026-S37" />);
+    for (const nom of ['Poulet', 'Œufs', 'Yaourts', 'Tofu']) {
+      await user.click(screen.getByRole('checkbox', { name: nom }));
+    }
+    await user.click(screen.getByRole('button', { name: /Mode magasin/ }));
+    expect(screen.getByText('Tout est coché — bonne course 👋')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Tout revoir/ }));
+    await user.click(screen.getByRole('checkbox', { name: 'Poulet' }));
+    expect(screen.queryByText('Tout est coché — bonne course 👋')).not.toBeInTheDocument();
+  });
+
+  it('Mode magasin : un rayon entièrement coché disparaît, les autres restent', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingList items={courseItems} semaine="2026-S37" />);
+    for (const nom of ['Poulet', 'Œufs', 'Tofu']) {
+      await user.click(screen.getByRole('checkbox', { name: nom }));
+    }
+    await user.click(screen.getByRole('button', { name: /Mode magasin/ }));
+    expect(screen.queryByRole('heading', { name: 'Proteines' })).toBeNull();
+    expect(screen.queryByAltText('Proteines')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Laitiers' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'Yaourts' })).toBeInTheDocument();
+  });
+
+  it('Mode magasin : l’état coché survit à « Tout revoir »', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingList items={courseItems} semaine="2026-S37" />);
+    await user.click(screen.getByRole('checkbox', { name: 'Poulet' }));
+    await user.click(screen.getByRole('button', { name: /Mode magasin/ }));
+    await user.click(screen.getByRole('button', { name: /Tout revoir/ }));
+    expect(screen.getByRole('checkbox', { name: 'Poulet' })).toBeChecked();
+    expect(screen.getByText('1/4 cochés')).toBeInTheDocument();
+  });
 });
 
 const menuFixture: MenuDay[] = [
