@@ -136,7 +136,7 @@ function MealCard({
             type="checkbox"
             checked={fait}
             onChange={onToggle}
-            aria-label={`${occ.texte} — marquer comme fait`}
+            aria-label={`${occ.jour} — ${occ.texte} — marquer comme fait`}
           />
           <span className="menu-coche-box">
             <Icon name="check" size={14} strokeWidth={2.5} />
@@ -218,7 +218,7 @@ function RecetteDetail({ recette, bases }: { recette: Recette; bases?: BaseCuisi
     recette.glucides != null ||
     recette.lipides != null;
   return (
-    <div className="recette-detail open">
+    <div className="recette-detail">
       {aMacros && (
         <div className="recette-nutri">
           {recette.kcal != null && (

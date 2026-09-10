@@ -526,7 +526,9 @@ describe('MenuView v2 — réserve de recettes', () => {
     expect(carte.querySelector('.recette-etapes')).toBeNull(); // repliée
     await user.click(within(carte).getByRole('button', { name: /Voir la recette/ }));
     expect(carte.querySelector('.recette-etapes li')).not.toBeNull();
-    expect(within(carte).getAllByText(/48/).length).toBeGreaterThan(0); // macros protéines dans le déplié
+    const nutri = carte.querySelector('.recette-nutri'); // n'existe que déplié
+    expect(nutri).not.toBeNull();
+    expect(within(nutri as HTMLElement).getAllByText(/48/).length).toBeGreaterThan(0); // macros protéines dans le déplié
   });
 
   it('les cartes sans recette restent simples (pas de bouton)', () => {
