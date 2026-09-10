@@ -28,11 +28,11 @@ au: 2026-09-13
 - Galettes complètes — 8
 - Pain complet — 1
 ### Légumes
-- Courgettes — 4 · rituel
+- Courgettes — 6 · rituel
 - Poivrons — 2
 - Épinards — 250 g
 - Carottes — 1 kg · rituel
-- Salade | à acheter vendredi, pas avant
+- Salade | à racheter vendredi si vide
 - Tomates — 6
 - Oignons — 3
 - Brocolis — 500 g (surgelés OK)
@@ -239,7 +239,7 @@ PdT : 1 kg vapeur 20 min + 15 cl lait chaud + 30 g beurre. Chou-fleur (Mél) : v
 ## Batch
 ### Rituel dimanche
 - 0-5 min · Four à 180° — egg muffins ×10 lancés, on fait le reste
-- 5-30 min · Cuissons en double — dîner du soir ×2 + féculent ×2 → boîte lundi
+- 5-30 min · Cuissons en double — dîner du soir ×2 + féculent ×2 → boîte lundi (+ cuisses de poulet du lundi)
 - 30-35 min · Œufs durs ×6-8 — boxes de la semaine pour Mél
 - 35-50 min · Légumes + vinaigrette — laver, couper, ranger
 - 50-60 min · Montage des boxes — boîte lundi Marc + 1 box keto Mél
