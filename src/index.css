@@ -390,7 +390,7 @@ p {
   margin: 0 0 10px;
   font-weight: 700;
   font-size: 15px;
-  color: var(--accent-2);
+  color: var(--text);
 }
 
 /* ---------- Bannière rituel (Courses + Batch « Ce soir ») ---------- */
@@ -534,7 +534,8 @@ input[type='checkbox'] {
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 12px;
-  color: var(--muted);
+  /* Compteur sur --bg : le muted seul descend à 3,99:1 — mix pour passer ≥ 4,5:1. */
+  color: color-mix(in srgb, var(--muted) 70%, var(--text));
   font-weight: 700;
 }
 
@@ -588,7 +589,7 @@ progress {
 }
 .menu-reserve-note {
   font-size: 12.5px;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 70%, var(--text)); /* muted seul : 3,99:1 sur --bg */
   flex: 1 1 100%;
   min-width: 0;
 }
@@ -1111,7 +1112,7 @@ progress {
 }
 
 .weight-objectif {
-  color: var(--accent-2);
+  color: var(--text);
 }
 
 .weight-curve {
@@ -1125,9 +1126,11 @@ progress {
   stroke-width: 1;
 }
 
+/* Labels du graphe (SVG) sur la carte citron : le muted seul descend à 4,07:1
+   sur le fond mixé — mix 60% pour passer ≥ 4,5:1 ; 8px acceptés (graphe SVG). */
 .weight-grid-label,
 .weight-mois {
-  fill: var(--muted);
+  fill: color-mix(in srgb, var(--muted) 60%, var(--text));
   font-size: 8px;
   font-family: inherit;
 }
@@ -1140,10 +1143,9 @@ progress {
 }
 
 .weight-objectif-texte {
-  fill: var(--accent-2);
+  fill: var(--text);
   font-size: 8px;
   font-family: inherit;
-  opacity: 0.85;
 }
 
 .weight-ligne {
@@ -1166,7 +1168,7 @@ progress {
 }
 
 .weight-label {
-  fill: var(--muted);
+  fill: color-mix(in srgb, var(--muted) 60%, var(--text));
   font-size: 8.5px;
   font-family: inherit;
 }
@@ -1394,11 +1396,12 @@ progress {
 }
 
 .stat-delta-bon {
-  color: var(--accent-2);
+  color: var(--accent);
 }
 
+/* Le citron n'est jamais une couleur de texte ; l'alerte prend le rouge erreurs. */
 .stat-delta-alerte {
-  color: var(--accent);
+  color: var(--danger);
 }
 
 .stat-delta-neutre {
@@ -1477,7 +1480,7 @@ progress {
   margin-bottom: 4px;
   border: none;
   background: none;
-  color: var(--muted);
+  color: var(--text);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -1602,7 +1605,12 @@ progress {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 4px 11px;
+  display: inline-flex;
+  align-items: center;
+  /* Cible tactile : 44px = standard des boutons secondaires compacts du thème
+     (les actions primaires restent à 48px) — 28px était sous le plancher. */
+  min-height: 44px;
+  padding: 4px 14px;
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
@@ -1646,7 +1654,9 @@ progress {
 
 .recette-mel {
   background: color-mix(in srgb, var(--accent-2) 15%, transparent);
-  color: var(--accent-2);
+  /* Le citron n'est jamais une couleur de texte : même mix que les métadonnées
+     (citron seul sur son fond teinté ≈ 1,3:1 ; mix ≈ 5,8:1). */
+  color: color-mix(in srgb, var(--muted) 70%, var(--text));
 }
 
 .recette-mel::before {
